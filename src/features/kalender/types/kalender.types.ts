@@ -24,6 +24,9 @@ export interface ElemenKalender {
 
 /**
  * Wewaran merangkum seluruh 10 siklus wara (Ekawara s.d. Dasawara) ditambah Wuku.
+ * Backend Go meng-embed ElemenWarigaLengkap ke dalam Wewaran, sehingga field
+ * tambahan seperti `neptu` (integer hasil penjumlahan urip Saptawara + Pancawara)
+ * ikut terserialisasi langsung di dalam objek `wewaran` pada JSON response.
  */
 export interface Wewaran {
   ekawara: ElemenKalender;
@@ -37,6 +40,8 @@ export interface Wewaran {
   sangawara: ElemenKalender;
   dasawara: ElemenKalender;
   wuku: ElemenKalender;
+  /** Neptu = urip Saptawara + urip Pancawara (integer 7–18), dihitung backend Go tanpa hit DB */
+  neptu?: number;
 }
 
 // ---------------------------------------------------------------------------

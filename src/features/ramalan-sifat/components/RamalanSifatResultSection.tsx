@@ -7,7 +7,6 @@ import {
   Clock,
   ShieldCheck,
   Star,
-  Edit3,
 } from 'lucide-react';
 import type { RamalanSifatData, KarakterElemen } from '../types/ramalanSifat.types';
 import { buildRingkasanSintesis } from '../utils/ramalanSifatUtils';
@@ -171,7 +170,6 @@ const PilarKarakterCard: React.FC<{
 
 export const RamalanSifatResultSection: React.FC<RamalanSifatResultSectionProps> = ({
   data,
-  onModifySearch,
 }) => {
   const { identitas_kelahiran, karakter } = data;
 

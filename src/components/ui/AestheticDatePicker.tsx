@@ -27,6 +27,8 @@ export interface AestheticDatePickerProps {
   placeholder?: string;
   required?: boolean;
   minYear?: number;
+  maxYear?: number;
+  allowFuture?: boolean;
   className?: string;
 }
 
@@ -116,12 +118,14 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
   placeholder = 'dd/mm/yyyy',
   required = false,
   minYear = 1970,
+  maxYear: customMaxYear,
+  allowFuture = false,
   className = '',
 }) => {
   // Ambil tanggal hari ini dalam WITA
   const todayWITA = getTodayWITA();
   const [todayY, todayM, todayD] = todayWITA.split('-').map(Number);
-  const maxYear = todayY;
+  const maxYear = customMaxYear ?? (allowFuture ? todayY + 15 : todayY);
 
   // State tampilan teks input (format DD/MM/YYYY)
   const [inputText, setInputText] = useState<string>(toDisplayDate(value));
@@ -195,7 +199,8 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
         setViewMonth(0);
       }
     } else {
-      if (viewYear === maxYear && viewMonth >= todayM - 1) return;
+      if (!allowFuture && viewYear === maxYear && viewMonth >= todayM - 1) return;
+      if (viewYear === maxYear && viewMonth >= 11) return;
       setViewMonth(viewMonth + 1);
     }
   };
@@ -326,7 +331,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
                 className="text-xs sm:text-sm font-bold text-[#0f172a] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d9488]"
               >
                 {NAMA_BULAN.map((bulan, idx) => {
-                  const isDisabled = viewYear === maxYear && idx > todayM - 1;
+                  const isDisabled = !allowFuture && viewYear === maxYear && idx > todayM - 1;
                   return (
                     <option key={bulan} value={idx} disabled={isDisabled}>
                       {bulan}
@@ -341,7 +346,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
                 onChange={(e) => {
                   const newY = parseInt(e.target.value, 10);
                   setViewYear(newY);
-                  if (newY === maxYear && viewMonth > todayM - 1) {
+                  if (!allowFuture && newY === maxYear && viewMonth > todayM - 1) {
                     setViewMonth(todayM - 1);
                   }
                 }}
@@ -359,7 +364,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
             <button
               type="button"
               onClick={handleNextMonth}
-              disabled={viewYear === maxYear && viewMonth >= todayM - 1}
+              disabled={!allowFuture ? (viewYear === maxYear && viewMonth >= todayM - 1) : (viewYear === maxYear && viewMonth >= 11)}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
               title="Bulan Berikutnya"
             >
@@ -409,11 +414,12 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
               const isToday =
                 todayY === viewYear && todayM - 1 === viewMonth && todayD === day;
 
-              // Tanggal di masa depan (tidak boleh dipilih untuk tanggal lahir)
+              // Tanggal di masa depan (tidak boleh dipilih jika allowFuture = false)
               const isFuture =
-                viewYear > todayY ||
-                (viewYear === todayY && viewMonth > todayM - 1) ||
-                (viewYear === todayY && viewMonth === todayM - 1 && day > todayD);
+                !allowFuture &&
+                (viewYear > todayY ||
+                  (viewYear === todayY && viewMonth > todayM - 1) ||
+                  (viewYear === todayY && viewMonth === todayM - 1 && day > todayD));
 
               return (
                 <button

@@ -37,6 +37,10 @@ import { WarigaPersonalSkeleton } from '@/features/wariga-personal/components/Wa
 const RamalanSifatPage = lazy(() => import('@/features/ramalan-sifat/pages/RamalanSifatPage'));
 import { RamalanSifatSkeleton } from '@/features/ramalan-sifat/components/RamalanSifatSkeleton';
 
+// Import komponen halaman Ala Ayuning Dewasa dengan Route-Level Code Splitting (fe_strategy.md 8.12)
+const AlaAyuningDewasaPage = lazy(() => import('@/features/ala-ayuning-dewasa/pages/AlaAyuningDewasaPage'));
+import { AlaAyuningSkeleton } from '@/features/ala-ayuning-dewasa/components/AlaAyuningSkeleton';
+
 // Import komponen-komponen halaman Manajemen Admin
 import AdminUserPage from '@/features/admin/pages/AdminUserPage';
 import AdminTransactionPage from '@/features/admin/pages/AdminTransactionPage';
@@ -123,17 +127,19 @@ export default function AppRoutes() {
           <Route path="ramalan_sifat" element={<Navigate to="/ramalan-sifat" replace />} />
 
           {/* ==================================================================== */}
-          {/* PLACEHOLDER FITUR LAINNYA (Mencegah 404 saat menu sidebar diklik)    */}
+          {/* HALAMAN ALA AYUNING DEWASA (PADEWASAN / HARI BAIK & BURUK BALI)      */}
           {/* ==================================================================== */}
           <Route
             path="ala-ayuning-dewasa"
             element={
-              <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center space-y-2">
-                <h2 className="text-xl font-bold text-slate-800">Ala Ayuning Dewasa</h2>
-                <p className="text-sm text-slate-500">Modul penentuan hari baik sedang disiapkan.</p>
-              </div>
+              <Suspense fallback={<AlaAyuningSkeleton />}>
+                <AlaAyuningDewasaPage />
+              </Suspense>
             }
           />
+          <Route path="layanan/ala-ayuning-dewasa" element={<Navigate to="/ala-ayuning-dewasa" replace />} />
+          <Route path="ala_ayuning_dewasa" element={<Navigate to="/ala-ayuning-dewasa" replace />} />
+          <Route path="ala_ayuning_dewasa_page" element={<Navigate to="/ala-ayuning-dewasa" replace />} />
 
           {/* ==================================================================== */}
           {/* RUTE TERLINDUNGI LOGIN (MEMBER, GUEST TERDAFTAR, & ADMIN)            */}
