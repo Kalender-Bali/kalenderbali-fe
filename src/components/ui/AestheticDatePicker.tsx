@@ -281,7 +281,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
           placeholder={placeholder}
           autoComplete="off"
           required={required}
-          className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all tabular-nums cursor-pointer [touch-action:manipulation]"
+          className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all tabular-nums cursor-pointer [touch-action:manipulation]"
         />
 
         {/* Tombol Kalender di Ujung Kanan Input */}
@@ -290,8 +290,8 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
           onClick={() => setIsOpen((prev) => !prev)}
           className={`absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer [touch-action:manipulation] ${
             isOpen
-              ? 'bg-teal-50 text-teal-700'
-              : 'text-slate-400 hover:text-teal-700 hover:bg-slate-100 active:bg-slate-200'
+              ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300'
+              : 'text-slate-400 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 active:bg-slate-200'
           }`}
           title="Buka kalender pemilih tanggal"
           aria-label="Buka kalender pemilih tanggal"
@@ -307,16 +307,16 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute left-0 top-full mt-2 w-80 sm:w-88 p-4 bg-white rounded-2xl border border-slate-200 shadow-2xl ring-1 ring-black/5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none"
+          className="absolute left-0 top-full mt-2 w-80 sm:w-88 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 z-50 animate-in fade-in zoom-in-95 duration-150 select-none"
         >
           {/* Header Popover: Selektor Cepat Bulan, Tahun, dan Tombol Navigasi */}
-          <div className="flex items-center justify-between gap-1 pb-3 mb-3 border-b border-slate-100">
+          <div className="flex items-center justify-between gap-1 pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
             {/* Navigasi Bulan Mundur */}
             <button
               type="button"
               onClick={handlePrevMonth}
               disabled={viewYear === minYear && viewMonth === 0}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
               title="Bulan Sebelumnya"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -328,7 +328,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
               <select
                 value={viewMonth}
                 onChange={(e) => setViewMonth(parseInt(e.target.value, 10))}
-                className="text-xs sm:text-sm font-bold text-[#0f172a] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d9488]"
+                className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-white bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d9488]"
               >
                 {NAMA_BULAN.map((bulan, idx) => {
                   const isDisabled = !allowFuture && viewYear === maxYear && idx > todayM - 1;
@@ -350,7 +350,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
                     setViewMonth(todayM - 1);
                   }
                 }}
-                className="text-xs sm:text-sm font-bold text-[#0f172a] bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d9488] tabular-nums"
+                className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-white bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d9488] tabular-nums"
               >
                 {yearOptions.map((y) => (
                   <option key={y} value={y}>
@@ -365,7 +365,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
               type="button"
               onClick={handleNextMonth}
               disabled={!allowFuture ? (viewYear === maxYear && viewMonth >= todayM - 1) : (viewYear === maxYear && viewMonth >= 11)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-teal-700 hover:bg-slate-100 active:scale-95 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
               title="Bulan Berikutnya"
             >
               <ChevronRight className="w-4 h-4" />
@@ -378,7 +378,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
               <div
                 key={h.short}
                 className={`text-[11px] font-bold py-1 ${
-                  h.isWeekend ? 'text-rose-500' : 'text-slate-500'
+                  h.isWeekend ? 'text-rose-500 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'
                 }`}
                 title={h.full}
               >
@@ -395,7 +395,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
               return (
                 <div
                   key={`prev-${idx}`}
-                  className="h-9 flex items-center justify-center text-xs font-medium text-slate-300 select-none tabular-nums"
+                  className="h-9 flex items-center justify-center text-xs font-medium text-slate-300 dark:text-slate-600 select-none tabular-nums"
                 >
                   {dayNum}
                 </div>
@@ -431,10 +431,10 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
                     isSelected
                       ? 'bg-[#0e9f90] text-white font-bold shadow-md shadow-[#0e9f90]/30 scale-105 z-10'
                       : isToday
-                      ? 'ring-1.5 ring-[#0e9f90] text-[#0e9f90] font-bold hover:bg-teal-50'
+                      ? 'ring-1.5 ring-[#0e9f90] text-[#0e9f90] dark:text-teal-400 font-bold hover:bg-teal-50 dark:hover:bg-teal-950/40'
                       : isFuture
-                      ? 'text-slate-300 cursor-not-allowed hover:bg-transparent'
-                      : 'text-slate-700 hover:bg-teal-50 hover:text-teal-800'
+                      ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed hover:bg-transparent'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-teal-50 dark:hover:bg-teal-950/40 hover:text-teal-800 dark:hover:text-teal-300'
                   }`}
                 >
                   {day}
@@ -444,11 +444,11 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
           </div>
 
           {/* Footer Popover: Aksi Cepat "Hari Ini" dan "Tutup" */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={handleSelectToday}
-              className="text-xs font-bold text-teal-700 hover:text-teal-800 hover:underline cursor-pointer"
+              className="text-xs font-bold text-teal-700 dark:text-teal-400 hover:text-teal-800 dark:hover:text-teal-300 hover:underline cursor-pointer"
             >
               Pilih Hari Ini
             </button>
@@ -456,7 +456,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 px-2 py-1 rounded-md hover:bg-slate-100 cursor-pointer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
             >
               <X className="w-3 h-3" />
               <span>Tutup</span>

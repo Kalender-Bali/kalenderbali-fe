@@ -172,7 +172,7 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* =============================================================== */}
         {/* BARIS UTAMA FORM: INPUT & TOMBOL SEJAJAR DALAM 1 BARIS GRID     */}
@@ -182,7 +182,7 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
           <div className="lg:col-span-3 space-y-1.5">
             <label
               htmlFor="wariga-birth-date"
-              className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block"
+              className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block"
             >
               Tanggal Lahir
             </label>
@@ -202,7 +202,7 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
           <div className="lg:col-span-2 space-y-1.5">
             <label
               htmlFor="wariga-birth-time"
-              className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block"
+              className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block"
             >
               Waktu Lahir
             </label>
@@ -211,7 +211,7 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
                 id="wariga-birth-time"
                 value={sebelumJam6 ? 'before_06' : 'after_06'}
                 onChange={(e) => setSebelumJam6(e.target.value === 'before_06')}
-                className="w-full h-11 pl-3.5 pr-8 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] appearance-none transition-all cursor-pointer [touch-action:manipulation]"
+                className="w-full h-11 pl-3.5 pr-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] appearance-none transition-all cursor-pointer [touch-action:manipulation]"
               >
                 <option value="after_06">Setelah 06.00</option>
                 <option value="before_06">Sebelum 06.00</option>
@@ -224,7 +224,7 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
           <div className="lg:col-span-2 space-y-1.5">
             <label
               htmlFor="wariga-month-target"
-              className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block"
+              className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block"
             >
               Bulan Target
             </label>
@@ -233,7 +233,7 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
                 id="wariga-month-target"
                 value={month}
                 onChange={(e) => setMonth(parseInt(e.target.value, 10))}
-                className="w-full h-11 pl-3.5 pr-8 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] appearance-none transition-all cursor-pointer [touch-action:manipulation]"
+                className="w-full h-11 pl-3.5 pr-8 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] appearance-none transition-all cursor-pointer [touch-action:manipulation]"
               >
                 {BULAN_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -249,7 +249,7 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
           <div className="lg:col-span-2 space-y-1.5">
             <label
               htmlFor="wariga-year-target"
-              className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block"
+              className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block"
             >
               Tahun Target
             </label>
@@ -262,7 +262,7 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
                 value={year}
                 onChange={(e) => setYear(parseInt(e.target.value, 10) || 0)}
                 required
-                className="w-full h-11 px-3.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] tabular-nums focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all [touch-action:manipulation]"
+                className="w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white tabular-nums focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all [touch-action:manipulation]"
               />
             </div>
           </div>

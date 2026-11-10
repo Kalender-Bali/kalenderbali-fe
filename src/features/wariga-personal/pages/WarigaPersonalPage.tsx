@@ -151,59 +151,59 @@ export default function WarigaPersonalPage() {
       {/* 5. PENANGANAN KONDISI: BELUM ADA INPUT PENCARIAN (EMPTY STATE)     */}
       {/* =================================================================== */}
       {!isBirthDateValid && !isLoading && !isError && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-8 sm:p-12 text-center space-y-5 shadow-xs">
-          <div className="w-16 h-16 rounded-2xl bg-teal-50 border border-teal-200/60 text-teal-700 flex items-center justify-center mx-auto shadow-2xs">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-8 sm:p-12 text-center space-y-5 shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-teal-50 dark:bg-teal-950/50 border border-teal-200/60 dark:border-teal-800/60 text-teal-700 dark:text-teal-300 flex items-center justify-center mx-auto shadow-2xs">
             <CalendarSearch className="w-8 h-8" />
           </div>
 
           <div className="space-y-2 max-w-lg mx-auto">
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0f172a] tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0f172a] dark:text-white tracking-tight">
               Mulai Evaluasi Wariga Personal Anda
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-medium">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
               Masukkan tanggal lahir Anda pada formulir di atas untuk membuka matriks kalender
               keselarasan hari berdasarkan sistem 4 arketipe Wariga Bali.
             </p>
           </div>
 
           {/* Panduan Ringkas 4 Pilar Wariga */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-slate-100 max-w-4xl mx-auto text-left">
-            <div className="p-3.5 rounded-xl bg-sky-50/50 border border-sky-200/60 space-y-1">
-              <span className="text-[10px] font-bold text-sky-800 uppercase tracking-wider block">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 max-w-4xl mx-auto text-left">
+            <div className="p-3.5 rounded-xl bg-sky-50/50 dark:bg-sky-950/30 border border-sky-200/60 dark:border-sky-800/50 space-y-1">
+              <span className="text-[10px] font-bold text-sky-800 dark:text-sky-300 uppercase tracking-wider block">
                 Arketipe 1 (Hari Baik)
               </span>
-              <h4 className="text-sm font-extrabold text-[#0f172a]">Guru</h4>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
+              <h4 className="text-sm font-extrabold text-[#0f172a] dark:text-white">Guru</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 Melambangkan kebijaksanaan, pendidikan, dan kelancaran usaha.
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-200/60 space-y-1">
-              <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+            <div className="p-3.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/50 space-y-1">
+              <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block">
                 Arketipe 2 (Hari Baik)
               </span>
-              <h4 className="text-sm font-extrabold text-[#0f172a]">Ratu</h4>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
+              <h4 className="text-sm font-extrabold text-[#0f172a] dark:text-white">Ratu</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 Melambangkan wibawa kepemimpinan, relasi, dan kemakmuran.
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200/60 space-y-1">
-              <span className="text-[10px] font-bold text-amber-800 uppercase tracking-wider block">
+            <div className="p-3.5 rounded-xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50 space-y-1">
+              <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider block">
                 Arketipe 3 (Hari Buruk)
               </span>
-              <h4 className="text-sm font-extrabold text-[#0f172a]">Lara</h4>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
+              <h4 className="text-sm font-extrabold text-[#0f172a] dark:text-white">Lara</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 Melambangkan potensi rintangan, kelelahan fisik, atau kesedihan.
               </p>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-rose-50/50 border border-rose-200/60 space-y-1">
-              <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider block">
+            <div className="p-3.5 rounded-xl bg-rose-50/50 dark:bg-rose-950/30 border border-rose-200/60 dark:border-rose-800/50 space-y-1">
+              <span className="text-[10px] font-bold text-rose-800 dark:text-rose-300 uppercase tracking-wider block">
                 Arketipe 4 (Hari Buruk)
               </span>
-              <h4 className="text-sm font-extrabold text-[#0f172a]">Pati</h4>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
+              <h4 className="text-sm font-extrabold text-[#0f172a] dark:text-white">Pati</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
                 Melambangkan penghentian, pantangan untuk memulai hajatan penting.
               </p>
             </div>

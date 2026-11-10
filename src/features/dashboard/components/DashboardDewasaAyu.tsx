@@ -31,9 +31,9 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) 
   const topThreeItems = (data.items || []).slice(0, 3);
 
   return (
-    <div className="bg-gradient-to-br from-[#0e9f90] via-[#0c8e80] to-[#0a756a] text-white rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden flex flex-col justify-between h-full">
+    <div className="bg-gradient-to-br from-[#0e9f90] via-[#0c8e80] to-[#0a756a] dark:from-slate-900 dark:via-slate-900 dark:to-slate-800/90 text-white rounded-2xl p-5 sm:p-6 shadow-xs relative overflow-hidden flex flex-col justify-between h-full dark:border dark:border-teal-500/25">
       {/* Ornamen dekorasi watermark halus di pojok kanan bawah */}
-      <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-white/5 rounded-full pointer-events-none blur-xl" />
+      <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-white/5 dark:bg-teal-500/10 rounded-full pointer-events-none blur-xl" />
 
       {/* =================================================================== */}
       {/* 1. BARIS ATAS: PILL MODUL & BADGE STATUS BAIK                       */}
@@ -41,19 +41,19 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) 
       <div>
         <div className="flex items-center justify-between gap-2 mb-3">
           {/* Pill Nama Modul dengan ikon sparkle */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider">
-            <Sparkles size={12} className="text-teal-200" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 dark:bg-teal-950/80 dark:border dark:border-teal-500/40 backdrop-blur-xs text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider">
+            <Sparkles size={13} className="text-teal-200 dark:text-teal-300 shrink-0" />
             <span>DEWASA AYU HARI INI</span>
           </div>
 
           {/* Badge Status Hari (BAIK) */}
-          <div className="px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-xs text-white text-[10px] font-extrabold uppercase tracking-widest">
+          <div className="px-2.5 py-0.5 rounded-full bg-white/20 dark:bg-emerald-950/60 dark:border dark:border-emerald-500/30 backdrop-blur-xs text-white dark:text-emerald-300 text-[10px] font-extrabold uppercase tracking-widest">
             {data.statusLabel}
           </div>
         </div>
 
         {/* Narasi Ringkas Hari Baik */}
-        <p className="text-xs sm:text-sm text-teal-50/90 font-medium leading-snug mb-3">
+        <p className="text-xs sm:text-sm text-teal-50/90 dark:text-slate-300 font-medium leading-snug mb-3">
           {data.headline}
         </p>
 
@@ -65,17 +65,17 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) 
             <div
               key={item.id}
               onClick={() => navigate(data.actionUrl)}
-              className="p-2.5 sm:p-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 backdrop-blur-xs transition-all cursor-pointer group"
+              className="p-2.5 sm:p-3 rounded-xl bg-white/10 dark:bg-slate-800/80 hover:bg-white/15 dark:hover:bg-slate-800 border border-white/10 dark:border-slate-700/80 backdrop-blur-xs transition-all cursor-pointer group"
             >
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-teal-100 transition-colors">
+                <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-teal-100 dark:group-hover:text-teal-300 transition-colors">
                   {item.nama}
                 </h3>
-                <span className="text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-white/20 text-white uppercase tracking-wider">
+                <span className="text-[9px] sm:text-[10px] font-extrabold px-2.5 py-0.5 rounded-md bg-white/20 dark:bg-teal-950/90 dark:border dark:border-teal-700/60 text-white dark:text-teal-300 uppercase tracking-wider">
                   {item.tag}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-teal-100/80 font-medium truncate mt-1">
+              <p className="text-[11px] sm:text-xs text-teal-100/80 dark:text-slate-300 font-medium truncate mt-1">
                 {item.keterangan}
               </p>
             </div>
@@ -86,8 +86,8 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) 
       {/* =================================================================== */}
       {/* 3. BARIS BAWAH: KETERANGAN SUMBER & TAUTAN SELENGKAPNYA             */}
       {/* =================================================================== */}
-      <div className="flex items-center justify-between gap-3 pt-3 mt-4 border-t border-white/10">
-        <span className="text-[11px] text-teal-100/70 font-medium">
+      <div className="flex items-center justify-between gap-3 pt-3 mt-4 border-t border-white/10 dark:border-slate-800">
+        <span className="text-[11px] text-teal-100/70 dark:text-slate-400 font-medium">
           Wariga harian
         </span>
 
@@ -95,10 +95,10 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) 
         <button
           type="button"
           onClick={() => navigate(data.actionUrl)}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-white hover:text-teal-200 transition-colors cursor-pointer [touch-action:manipulation] py-1"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-white hover:text-teal-200 dark:text-teal-300 dark:hover:text-teal-200 transition-colors cursor-pointer [touch-action:manipulation] py-1"
         >
           <span>Lihat selengkapnya</span>
-          <ArrowRight size={13} />
+          <ArrowRight size={13} className="shrink-0" />
         </button>
       </div>
     </div>

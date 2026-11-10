@@ -211,7 +211,7 @@ export const WartaDetailModal: React.FC<WartaDetailModalProps> = ({
           <div className="space-y-3">
             <h2
               id="modal-article-title"
-              className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#0f172a] tracking-tight leading-snug"
+              className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[#0f172a] dark:text-white tracking-tight leading-snug"
             >
               {article.title}
             </h2>

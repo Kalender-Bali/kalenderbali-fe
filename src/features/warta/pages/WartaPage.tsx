@@ -230,7 +230,7 @@ export default function WartaPage() {
         </nav>
 
         {/* Judul H1 Halaman */}
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0f172a] tracking-tight">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0f172a] dark:text-white tracking-tight">
           Warta Budaya
         </h1>
 

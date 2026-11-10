@@ -86,29 +86,29 @@ export const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
       />
 
       {/* Kontainer Modal */}
-      <div className="relative bg-white rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-md sm:max-w-[490px] overflow-hidden z-10 p-6 sm:p-7 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
-        <div className="w-14 h-14 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-600 shadow-2xs">
+      <div className="relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xl w-full max-w-md sm:max-w-[490px] overflow-hidden z-10 p-6 sm:p-7 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-center justify-center mx-auto text-amber-600 dark:text-amber-400 shadow-2xs">
           <Crown className="w-7 h-7" aria-hidden="true" />
         </div>
 
         <div className="space-y-1.5">
           <h3
             id="premium-upgrade-title"
-            className="text-lg font-extrabold text-slate-900 tracking-tight"
+            className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight"
           >
             {title}
           </h3>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
             {description}
           </p>
         </div>
 
-        <div className="p-3.5 bg-teal-50/70 border border-teal-200/80 rounded-xl text-xs text-teal-900 font-medium text-left space-y-1.5">
-          <p className="font-bold flex items-center gap-1.5 text-teal-950">
-            <Sparkles className="w-3.5 h-3.5 text-[#0e9f90]" aria-hidden="true" />
+        <div className="p-3.5 bg-teal-50/70 dark:bg-slate-800/80 border border-teal-200/80 dark:border-slate-700 rounded-xl text-xs text-teal-900 dark:text-teal-200 font-medium text-left space-y-1.5">
+          <p className="font-bold flex items-center gap-1.5 text-teal-950 dark:text-teal-300">
+            <Sparkles className="w-3.5 h-3.5 text-[#0e9f90] dark:text-teal-400" aria-hidden="true" />
             <span>Keuntungan Akun Premium:</span>
           </p>
-          <ul className="list-disc list-inside space-y-0.5 text-teal-800">
+          <ul className="list-disc list-inside space-y-0.5 text-teal-800 dark:text-slate-300">
             {benefits.map((b, idx) => (
               <li key={idx}>{b}</li>
             ))}
@@ -119,7 +119,7 @@ export const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 active:scale-95 transition-all cursor-pointer"
+            className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 transition-all cursor-pointer"
           >
             Tutup
           </button>

@@ -24,11 +24,6 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
 
-  // Jika sudah terotentikasi, otomatis alihkan ke halaman utama
-  if (isAuthenticated) {
-    return <Navigate to="/" replace />;
-  }
-
   // State Formulir Registrasi (Sesuai Gambar 2)
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -51,6 +46,11 @@ export default function RegisterPage() {
     email: string;
     name: string;
   } | null>(null);
+
+  // Jika sudah terotentikasi, otomatis alihkan ke halaman utama
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   // ============================================================================
   // HANDLER: SUBMIT REGISTRASI AKUN MANUAL
@@ -90,8 +90,9 @@ export default function RegisterPage() {
       setRegisteredEmail(email.trim());
       useAlertStore.getState().showAlert('Berhasil register!');
       setShowVerifyModal(true);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Pendaftaran gagal. Silakan periksa kembali data Anda.');
+    } catch (err: unknown) {
+      const authErr = err as { message?: string };
+      setErrorMessage(authErr.message || 'Pendaftaran gagal. Silakan periksa kembali data Anda.');
     } finally {
       setIsLoading(false);
     }
@@ -138,8 +139,9 @@ export default function RegisterPage() {
           navigate('/', { replace: true });
         }
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Gagal mendaftar dengan akun Google.');
+    } catch (err: unknown) {
+      const authErr = err as { message?: string };
+      setErrorMessage(authErr.message || 'Gagal mendaftar dengan akun Google.');
     } finally {
       setIsLoading(false);
     }
@@ -166,7 +168,7 @@ export default function RegisterPage() {
         {/* Tombol Opsi Daftar dengan Google */}
         {/* Banner Pesan Error */}
         {errorMessage && (
-          <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-start gap-2.5">
+          <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
             <span className="leading-snug">{errorMessage}</span>
           </div>
@@ -178,7 +180,7 @@ export default function RegisterPage() {
           <div className="space-y-1">
             <label
               htmlFor="register-name"
-              className="text-xs sm:text-sm font-semibold text-[#0f172a] block"
+              className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-slate-200 block"
             >
               Nama
             </label>
@@ -190,7 +192,7 @@ export default function RegisterPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Masukkan nama"
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
             />
           </div>
 
@@ -198,7 +200,7 @@ export default function RegisterPage() {
           <div className="space-y-1">
             <label
               htmlFor="register-email"
-              className="text-xs sm:text-sm font-semibold text-[#0f172a] block"
+              className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-slate-200 block"
             >
               Email
             </label>
@@ -210,7 +212,7 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Masukkan email"
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
             />
           </div>
 
@@ -218,7 +220,7 @@ export default function RegisterPage() {
           <div className="space-y-1">
             <label
               htmlFor="register-phone"
-              className="text-xs sm:text-sm font-semibold text-[#0f172a] block"
+              className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-slate-200 block"
             >
               No. Telepon
             </label>
@@ -229,7 +231,7 @@ export default function RegisterPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="Masukkan nomor telepon"
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
             />
           </div>
 
@@ -237,7 +239,7 @@ export default function RegisterPage() {
           <div className="space-y-1">
             <label
               htmlFor="register-password"
-              className="text-xs sm:text-sm font-semibold text-[#0f172a] block"
+              className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-slate-200 block"
             >
               Password
             </label>
@@ -250,12 +252,12 @@ export default function RegisterPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
-                className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+                className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer [touch-action:manipulation]"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer [touch-action:manipulation]"
                 aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -267,7 +269,7 @@ export default function RegisterPage() {
           <div className="space-y-1">
             <label
               htmlFor="register-confirm-password"
-              className="text-xs sm:text-sm font-semibold text-[#0f172a] block"
+              className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-slate-200 block"
             >
               Konfirmasi Password
             </label>
@@ -280,12 +282,12 @@ export default function RegisterPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Masukkan konfirmasi password"
-                className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+                className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer [touch-action:manipulation]"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer [touch-action:manipulation]"
                 aria-label={showConfirmPassword ? 'Sembunyikan konfirmasi password' : 'Lihat konfirmasi password'}
               >
                 {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}

@@ -258,20 +258,35 @@ export interface BadgeColorStyle {
 
 /**
  * Menentukan skema warna badge hari raya berdasarkan kelompok tradisi Hindu Bali:
+ * Skema warna ini sepenuhnya STATIS sesuai tingkatan/kategori rahinan dan TIDAK
+ * mengikuti perubahan aksen tema tampilan pengguna.
+ *
  * 1. Siklus Sasih (Pengalantaka):
- *    - Purnama -> Merah (#e11d48) sesuai simbol lingkaran merah kalender Bali
- *    - Tilem -> Hitam (#000000) sesuai simbol lingkaran hitam kalender Bali
+ *    - Purnama -> Merah Rose (Simbol lingkaran merah kalender Bali)
+ *    - Tilem -> Hitam / Dark Slate (Simbol lingkaran hitam kalender Bali)
  * 2. Kelompok Kliwonan:
- *    - Kajeng Kliwon -> Oranye / Terracotta (berbeda dengan Purnama saat bertepatan)
+ *    - Kajeng Kliwon -> Oranye / Terracotta
  * 3. Kelompok Tumpek (Saniscara Kliwon):
- *    - 6 Tumpek -> Kuning Emas (Amber)
- * 4. Kelompok Hari Raya Besar Utama (Dharma & Pustaka):
- *    - Galungan, Kuningan, Saraswati, Pagerwesi, Nyepi, Siwaratri -> Hijau Zamrud (Emerald)
- * 5. Kelompok Rahinan Rutin Wewaran:
- *    - Anggara Kasih -> Ungu Lembut (Purple)
- *    - Buda Cemeng / Sri Sedana -> Biru Langit (Sky)
- *    - Buda Kliwon -> Tosca (Teal)
- * 6. Lainnya -> Netral Teal
+ *    - 6 Tumpek (Landep, Wariga, Kuningan, Krulut, Kandang/Uye, Wayang) -> Kuning Emas (Amber)
+ * 4. Kelompok Hari Raya Besar Utama (Kemenangan Dharma, Pustaka Suci & Sasih Akbar):
+ *    - Galungan & Rangkaian (Sugian, Penyekeban, Penyajaan, Penampahan, Galungan, Umanis, Pamaridan Guru, Pemacekan Agung, Ulihan, Pegatwakan)
+ *    - Kuningan & Penampahan Kuningan
+ *    - Saraswati & Rangkaian (Banyu Pinaruh, Soma Ribek, Sabuh Mas, Pagerwesi, Penegtegan, Paid-Paidan, Pangredanan, Urip)
+ *    - Nyepi & Rangkaian (Melasti, Tawur Kesanga, Nyepi, Ngembak Geni)
+ *    - Siwalatri / Siwaratri
+ *    -> Hijau Zamrud (Emerald)
+ * 5. Kelompok Rahinan Rutin Wewaran (Pemujaan Bhatara & Kemakmuran Rezeki / Sri Sedana):
+ *    - Buda Cemeng (Ukir, Langkir, Merakih, Menail, Kelawu), Rambut Sedana / Sadhana, Bhatari Sri,
+ *      Bhatara Guru (Persembahan Bhatara Guru), Bhatara Brahma, Bhatara Wisnu
+ *    -> Biru Langit (Sky)
+ * 6. Kelompok Rahinan Rutin Wewaran (Asmara Kasih & Spiritual):
+ *    - Anggara Kasih (Kulantir, Julungwangi, Medangsia, Tambir, Perangbakat, Dukut)
+ *    -> Ungu Lembut (Purple)
+ * 7. Kelompok Rahinan Wewaran Kliwon:
+ *    - Buda Kliwon (Matal, Ugu, Pegatwakan, Gumbreg, Dunggulan, Pahang)
+ *    -> Cyan / Tosca Statis
+ * 8. Default Rahinan Lainnya:
+ *    -> Netral Slate Statis
  */
 export function getHariRayaBadgeStyle(nama: string): BadgeColorStyle {
   const lower = nama.toLowerCase();
@@ -279,101 +294,119 @@ export function getHariRayaBadgeStyle(nama: string): BadgeColorStyle {
   // 1. Purnama -> Lingkaran Merah khas Kalender Bali (Simbol Candra Purwa / Bulan Purnama)
   if (lower.includes('purnama')) {
     return {
-      bg: 'bg-[#ffe4e6]',
-      text: 'text-[#be123c]',
-      border: 'border-rose-200/70',
-      dot: 'bg-[#e11d48]',
+      bg: 'bg-rose-100 dark:bg-rose-950/70',
+      text: 'text-rose-700 dark:text-rose-300',
+      border: 'border-rose-200/70 dark:border-rose-800/80',
+      dot: 'bg-rose-500 dark:bg-rose-400',
     };
   }
 
   // 2. Tilem -> Lingkaran Hitam Pekat khas Kalender Bali (Simbol Candra Surya / Bulan Mati)
   if (lower.includes('tilem')) {
     return {
-      bg: 'bg-[#f1f5f9]',
-      text: 'text-[#0f172a]',
-      border: 'border-slate-300/80',
-      dot: 'bg-[#000000]',
+      bg: 'bg-slate-100 dark:bg-slate-800',
+      text: 'text-slate-800 dark:text-slate-100',
+      border: 'border-slate-300/80 dark:border-slate-700',
+      dot: 'bg-slate-900 dark:bg-slate-300',
     };
   }
 
   // 3. Kajeng Kliwon -> Oranye / Terracotta (Pertemuan Triwara & Pancawara Kliwon)
-  // Dibedakan dari merah Purnama agar saat tanggal bertepatan keduanya tidak rancu
   if (lower.includes('kajeng kliwon')) {
     return {
-      bg: 'bg-[#ffedd5]',
-      text: 'text-[#9a3412]',
-      border: 'border-orange-200/70',
-      dot: 'bg-[#ea580c]',
+      bg: 'bg-orange-100 dark:bg-orange-950/70',
+      text: 'text-orange-800 dark:text-orange-300',
+      border: 'border-orange-200/70 dark:border-orange-800/80',
+      dot: 'bg-orange-500 dark:bg-orange-400',
     };
   }
 
-  // 4. Kelompok Tumpek (Saniscara Kliwon - Landep, Wariga, Kuningan, Krulut, Uye, Wayang) -> Kuning Emas
+  // 4. Kelompok Tumpek (Saniscara Kliwon - Landep, Wariga, Kuningan, Krulut, Kandang/Uye, Wayang) -> Kuning Emas
   if (lower.includes('tumpek')) {
     return {
-      bg: 'bg-[#fef3c7]',
-      text: 'text-[#92400e]',
-      border: 'border-amber-200/70',
-      dot: 'bg-[#d97706]',
+      bg: 'bg-amber-100 dark:bg-amber-950/70',
+      text: 'text-amber-900 dark:text-amber-300',
+      border: 'border-amber-200/70 dark:border-amber-800/80',
+      dot: 'bg-amber-500 dark:bg-amber-400',
     };
   }
 
-  // 5. Kelompok Hari Raya Besar Utama (Kemenangan Dharma, Pustaka Suci & Sasih Akbar)
+  // 5. Kelompok Hari Raya Besar Utama (Kemenangan Dharma, Pustaka Suci & Sasih Akbar) -> Hijau Zamrud
   if (
     lower.includes('galungan') ||
     lower.includes('kuningan') ||
     lower.includes('saraswati') ||
     lower.includes('pagerwesi') ||
+    lower.includes('banyu pinaruh') ||
+    lower.includes('soma ribek') ||
+    lower.includes('sabuh mas') ||
     lower.includes('nyepi') ||
     lower.includes('siwalatri') ||
-    lower.includes('banyu pinaruh')
+    lower.includes('siwaratri') ||
+    lower.includes('sugian') ||
+    lower.includes('penyekeban') ||
+    lower.includes('penyajaan') ||
+    lower.includes('penampahan') ||
+    lower.includes('ulihan') ||
+    lower.includes('pemacekan agung') ||
+    lower.includes('pamaridan guru') ||
+    lower.includes('pegatwakan') ||
+    lower.includes('penegtegan') ||
+    lower.includes('paid-paidan') ||
+    lower.includes('pangredanan')
   ) {
     return {
-      bg: 'bg-[#d1fae5]',
-      text: 'text-[#065f46]',
-      border: 'border-emerald-200/70',
-      dot: 'bg-[#10b981]',
+      bg: 'bg-emerald-100 dark:bg-emerald-950/70',
+      text: 'text-emerald-800 dark:text-emerald-300',
+      border: 'border-emerald-200/70 dark:border-emerald-800/80',
+      dot: 'bg-emerald-500 dark:bg-emerald-400',
     };
   }
 
-  // 6. Kelompok Rahinan Rutin Wewaran (Anggara Kasih, Buda Cemeng, Buda Kliwon)
-  if (lower.includes('anggara kasih')) {
-    return {
-      bg: 'bg-[#ede9fe]',
-      text: 'text-[#5b21b6]',
-      border: 'border-purple-200/70',
-      dot: 'bg-[#7c3aed]',
-    };
-  }
-
+  // 6. Kelompok Rahinan Rutin Wewaran (Pemujaan Bhatara & Kemakmuran Rezeki / Sri Sedana) -> Biru Langit
   if (
     lower.includes('buda cemeng') ||
     lower.includes('rambut sadhana') ||
     lower.includes('rambut sedana') ||
-    lower.includes('bhatari sri')
+    lower.includes('bhatari sri') ||
+    lower.includes('bhatara guru') ||
+    lower.includes('bhatara brahma') ||
+    lower.includes('bhatara wisnu')
   ) {
     return {
-      bg: 'bg-[#e0f2fe]',
-      text: 'text-[#0369a1]',
-      border: 'border-sky-200/70',
-      dot: 'bg-[#0284c7]',
+      bg: 'bg-sky-100 dark:bg-sky-950/70',
+      text: 'text-sky-800 dark:text-sky-300',
+      border: 'border-sky-200/70 dark:border-sky-800/80',
+      dot: 'bg-sky-500 dark:bg-sky-400',
     };
   }
 
+  // 7. Kelompok Rahinan Rutin Wewaran (Anggara Kasih - Asmara Kasih & Spiritual) -> Ungu Lembut
+  if (lower.includes('anggara kasih')) {
+    return {
+      bg: 'bg-purple-100 dark:bg-purple-950/70',
+      text: 'text-purple-800 dark:text-purple-300',
+      border: 'border-purple-200/70 dark:border-purple-800/80',
+      dot: 'bg-purple-500 dark:bg-purple-400',
+    };
+  }
+
+  // 8. Kelompok Rahinan Wewaran Kliwon (Buda Kliwon) -> Cyan / Tosca Statis
   if (lower.includes('buda kliwon')) {
     return {
-      bg: 'bg-[#ccfbf1]',
-      text: 'text-[#0f766e]',
-      border: 'border-teal-200/70',
-      dot: 'bg-[#14b8a6]',
+      bg: 'bg-cyan-100 dark:bg-cyan-950/70',
+      text: 'text-cyan-800 dark:text-cyan-300',
+      border: 'border-cyan-200/70 dark:border-cyan-800/80',
+      dot: 'bg-cyan-500 dark:bg-cyan-400',
     };
   }
 
-  // 7. Default Hari Raya Lainnya
+  // 9. Default Rahinan / Hari Raya Lainnya -> Netral Slate Statis
   return {
-    bg: 'bg-[#e6f7f5]',
-    text: 'text-[#0f766e]',
-    border: 'border-transparent',
-    dot: 'bg-[#0d9488]',
+    bg: 'bg-slate-100 dark:bg-slate-800',
+    text: 'text-slate-700 dark:text-slate-300',
+    border: 'border-slate-200 dark:border-slate-700',
+    dot: 'bg-slate-400 dark:bg-slate-400',
   };
 }
 

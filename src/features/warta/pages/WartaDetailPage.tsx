@@ -264,7 +264,7 @@ export default function WartaDetailPage() {
       {/* ==================================================================== */}
       <div className="space-y-4">
         {/* Judul Utama Artikel (H1 Semantik) */}
-        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0f172a] tracking-tight leading-snug sm:leading-tight">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0f172a] dark:text-white tracking-tight leading-snug sm:leading-tight">
           {article.title}
         </h1>
 

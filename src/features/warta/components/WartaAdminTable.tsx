@@ -119,7 +119,7 @@ export const WartaAdminTable: React.FC<WartaAdminTableProps> = ({
                         <button
                           type="button"
                           onClick={() => onView(article)}
-                          className="font-extrabold text-[#0f172a] text-sm hover:text-teal-700 transition-colors line-clamp-1 text-left cursor-pointer"
+                          className="font-extrabold text-[#0f172a] dark:text-white text-sm hover:text-slate-600 dark:hover:text-slate-300 transition-colors line-clamp-1 text-left cursor-pointer"
                         >
                           {article.title}
                         </button>

@@ -126,7 +126,7 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* ================================================================= */}
         {/* BLOK 3: GRID INPUT (TANGGAL, WAKTU LAHIR, & TOMBOL SUBMIT)         */}
@@ -137,7 +137,7 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
           <div className="lg:col-span-5 space-y-1.5">
             <label
               htmlFor="ramalan-birth-date"
-              className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+              className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
             >
               TANGGAL LAHIR
             </label>
@@ -160,7 +160,7 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
           <div className="lg:col-span-4 space-y-1.5">
             <label
               htmlFor="ramalan-birth-time"
-              className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+              className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
             >
               WAKTU LAHIR
             </label>
@@ -169,7 +169,7 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
                 id="ramalan-birth-time"
                 value={sebelumJam6 ? 'before_06' : 'after_06'}
                 onChange={(e) => setSebelumJam6(e.target.value === 'before_06')}
-                className="w-full h-11 pl-3.5 pr-9 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] appearance-none transition-all cursor-pointer [touch-action:manipulation]"
+                className="w-full h-11 pl-3.5 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] appearance-none transition-all cursor-pointer [touch-action:manipulation]"
               >
                 <option value="after_06">Setelah 06.00</option>
                 <option value="before_06">Sebelum 06.00</option>
@@ -204,7 +204,7 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
         {/* BLOK 4: PESAN KESALAHAN VALIDASI (JIKA ADA)                       */}
         {/* ================================================================= */}
         {validationError && (
-          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2 animate-in fade-in">
+          <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold rounded-xl flex items-center gap-2 animate-in fade-in">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
             <span>{validationError}</span>
           </div>

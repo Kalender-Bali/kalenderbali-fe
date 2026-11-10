@@ -112,32 +112,32 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
       role="dialog"
     >
       <div
-        className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-xl sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* =============================================================== */}
         {/* 1. HEADER MODAL: Judul Kategori, Filosofi, & Tombol Tutup (X)     */}
         {/* =============================================================== */}
-        <div className="p-6 sm:p-7 bg-gradient-to-r from-teal-50/60 via-slate-50/40 to-emerald-50/30 border-b border-slate-100 flex items-start justify-between gap-4 shrink-0">
+        <div className="p-6 sm:p-7 bg-gradient-to-r from-teal-50/60 via-slate-50/40 to-emerald-50/30 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 shrink-0">
           <div className="space-y-1.5 min-w-0 pr-2">
             {/* Lencana Modul Kategori */}
-            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d9488] flex items-center gap-1.5 select-none">
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d9488] dark:text-teal-400 flex items-center gap-1.5 select-none">
               <Sparkles size={13} className="shrink-0" />
               RINCIAN KETERANGAN
             </span>
 
             {/* Nama Judul Kategori */}
-            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0f172a] tracking-tight truncate">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0f172a] dark:text-white tracking-tight truncate">
               {category.name}
             </h2>
 
             {/* Uraian Makna Filosofis Kategori */}
             {category.description ? (
-              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
                 {category.description}
               </p>
             ) : (
-              <p className="text-xs text-slate-400 italic">
+              <p className="text-xs text-slate-400 dark:text-slate-500 italic">
                 Keterangan umum belum diisi di database.
               </p>
             )}
@@ -147,7 +147,7 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 min-w-9 min-h-9 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:scale-95 rounded-xl cursor-pointer transition-all shrink-0 [touch-action:manipulation]"
+            className="w-9 h-9 min-w-9 min-h-9 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 rounded-xl cursor-pointer transition-all shrink-0 [touch-action:manipulation]"
             aria-label="Tutup jendela rincian"
           >
             <X size={18} />
@@ -158,9 +158,9 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
         {/* 2. TOOLBAR KHUSUS & CROSS-FEATURE LINKS                          */}
         {/* =============================================================== */}
         {(isHariRayaCategory || isAlaAyuningCategory) && (
-          <div className="px-6 py-3 bg-[#e6f7f5]/60 border-b border-[#ccf0ea] flex items-center justify-between gap-3 text-xs shrink-0">
-            <span className="text-teal-800 font-medium truncate flex items-center gap-1.5">
-              <Info size={14} className="shrink-0 text-[#0d9488]" />
+          <div className="px-6 py-3 bg-[#e6f7f5]/60 dark:bg-teal-950/40 border-b border-[#ccf0ea] dark:border-teal-800/50 flex items-center justify-between gap-3 text-xs shrink-0">
+            <span className="text-teal-800 dark:text-teal-300 font-medium truncate flex items-center gap-1.5">
+              <Info size={14} className="shrink-0 text-[#0d9488] dark:text-teal-400" />
               {isHariRayaCategory
                 ? 'Tersedia kalender jadwal perayaan lengkap sepanjang tahun.'
                 : 'Tersedia modul kalkulasi hari baik berdasarkan wewaran.'}
@@ -173,7 +173,7 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
                   onClose();
                   navigate('/hari-raya');
                 }}
-                className="font-bold text-[#0e9f90] hover:text-[#0c8a7d] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+                className="font-bold text-[#0e9f90] dark:text-teal-300 hover:text-[#0c8a7d] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
               >
                 <span>Buka Hari Raya</span>
                 <ExternalLink size={12} />
@@ -187,7 +187,7 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
                   onClose();
                   navigate('/ala-ayuning-dewasa');
                 }}
-                className="font-bold text-[#0e9f90] hover:text-[#0c8a7d] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
+                className="font-bold text-[#0e9f90] dark:text-teal-300 hover:text-[#0c8a7d] hover:underline flex items-center gap-1 shrink-0 cursor-pointer"
               >
                 <span>Buka Dewasa Ayu</span>
                 <ExternalLink size={12} />
@@ -200,7 +200,7 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
         {/* 3. INPUT PENCARIAN ELEMEN LOKAL (0ms Instant Client Filter)       */}
         {/* =============================================================== */}
         {!isPending && values.length > 0 && (
-          <div className="p-4 sm:px-7 sm:py-3.5 border-b border-slate-100 bg-white shrink-0">
+          <div className="p-4 sm:px-7 sm:py-3.5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
             <div className="relative">
               <Search
                 size={16}
@@ -211,13 +211,13 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
                 value={localSearchTerm}
                 onChange={(e) => setLocalSearchTerm(e.target.value)}
                 placeholder={`Saring elemen ${category.name} (contoh: nama atau makna)...`}
-                className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+                className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
               />
               {localSearchTerm && (
                 <button
                   type="button"
                   onClick={() => setLocalSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 font-bold cursor-pointer"
                 >
                   Reset
                 </button>
@@ -258,18 +258,18 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
 
           {/* C. Status Kategori Pending / Belum Diisi di Database Backend */}
           {isPending && (
-            <div className="p-6 bg-amber-50/70 border border-amber-200/80 rounded-2xl text-center space-y-2.5 my-4">
-              <div className="w-12 h-12 rounded-xl bg-amber-100/80 text-amber-800 flex items-center justify-center mx-auto">
+            <div className="p-6 bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 rounded-2xl text-center space-y-2.5 my-4">
+              <div className="w-12 h-12 rounded-xl bg-amber-100/80 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 flex items-center justify-center mx-auto">
                 <Info size={24} />
               </div>
-              <h4 className="text-sm sm:text-base font-bold text-amber-900">
+              <h4 className="text-sm sm:text-base font-bold text-amber-900 dark:text-amber-200">
                 Data Belum Tersedia di Database
               </h4>
-              <p className="text-xs sm:text-sm text-amber-800/90 leading-relaxed max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-amber-800/90 dark:text-amber-300/90 leading-relaxed max-w-md mx-auto">
                 Kategori <strong>{category.name}</strong> terdaftar pada sistem
                 penanggalan Bali lama, namun entri nilainya saat ini masih kosong di
                 database backend. Silakan lengkapi tabel{' '}
-                <code className="px-1.5 py-0.5 rounded bg-amber-200/60 font-mono text-xs">
+                <code className="px-1.5 py-0.5 rounded bg-amber-200/60 dark:bg-amber-900 font-mono text-xs text-amber-950 dark:text-amber-200">
                   calendar_reference_values
                 </code>{' '}
                 di backend untuk memunculkan rincian elemen ini.
@@ -279,8 +279,8 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
 
           {/* D. Status Hasil Saring Lokal Tidak Ditemukan */}
           {!isLoading && !isPending && filteredValues.length === 0 && values.length > 0 && (
-            <div className="p-8 text-center text-slate-400 space-y-1">
-              <p className="text-sm font-semibold text-slate-700">
+            <div className="p-8 text-center text-slate-400 dark:text-slate-500 space-y-1">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Tidak ada elemen yang cocok
               </p>
               <p className="text-xs">
@@ -295,22 +295,22 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
             filteredValues.map((item, idx) => (
               <div
                 key={item.id || idx}
-                className="bg-[#f8fafc] rounded-xl border border-slate-200/70 p-4 sm:p-5 space-y-2 hover:border-teal-500/30 transition-colors"
+                className="bg-[#f8fafc] dark:bg-slate-800/60 rounded-xl border border-slate-200/70 dark:border-slate-700/80 p-4 sm:p-5 space-y-2 hover:border-teal-500/30 transition-colors"
               >
                 {/* Header Elemen: Nama & Lencana Nomor / Urip */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-lg bg-teal-50 text-teal-800 text-xs font-bold flex items-center justify-center tabular-nums shrink-0">
+                    <span className="w-6 h-6 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 text-xs font-bold flex items-center justify-center tabular-nums shrink-0">
                       {idx + 1}
                     </span>
-                    <h4 className="text-sm sm:text-base font-bold text-[#0f172a]">
+                    <h4 className="text-sm sm:text-base font-bold text-[#0f172a] dark:text-white">
                       {item.name}
                     </h4>
                   </div>
 
                   {/* Lencana Urip (jika ada nilai urip) */}
                   {typeof item.urip === 'number' && (
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/60 tabular-nums">
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 tabular-nums">
                       Urip {item.urip}
                     </span>
                   )}
@@ -326,7 +326,7 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
                         className="w-10 h-10 object-contain shrink-0 filter drop-shadow-2xs"
                       />
                     )}
-                    <span className="text-xs font-semibold text-teal-700 tabular-nums">
+                    <span className="text-xs font-semibold text-teal-700 dark:text-teal-400 tabular-nums">
                       Rentang Tanggal: {item.zodiac_detail.start_day}/
                       {item.zodiac_detail.start_month} - {item.zodiac_detail.end_day}/
                       {item.zodiac_detail.end_month}
@@ -336,11 +336,11 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
 
                 {/* Deskripsi Filosofis & Makna Elemen */}
                 {item.description ? (
-                  <p className="text-xs sm:text-sm text-slate-600 font-normal leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-normal leading-relaxed">
                     {item.description}
                   </p>
                 ) : (
-                  <p className="text-xs text-slate-400 italic">
+                  <p className="text-xs text-slate-400 dark:text-slate-500 italic">
                     Uraian deskripsi belum diisi di database.
                   </p>
                 )}
@@ -351,10 +351,10 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
         {/* =============================================================== */}
         {/* 5. FOOTER MODAL: Total Elemen & Tombol Tutup                    */}
         {/* =============================================================== */}
-        <div className="p-4 sm:px-7 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between gap-4 shrink-0">
-          <span className="text-xs font-semibold text-slate-500 tabular-nums">
+        <div className="p-4 sm:px-7 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900 flex items-center justify-between gap-4 shrink-0">
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
             Total:{' '}
-            <strong className="text-slate-800">
+            <strong className="text-slate-800 dark:text-slate-200">
               {filteredValues.length} Elemen
             </strong>
           </span>
@@ -362,7 +362,7 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="h-10 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm transition-all cursor-pointer [touch-action:manipulation]"
+            className="h-10 px-5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all cursor-pointer [touch-action:manipulation]"
           >
             Tutup
           </button>

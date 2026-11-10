@@ -81,42 +81,42 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
         return (
           <div
             key={`${item.tanggal}-${item.perayaan_ke}`}
-            className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs relative overflow-hidden transition-all w-full"
+            className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs relative overflow-hidden transition-all w-full"
           >
             {/* Baris Atas: Heading Tanggal Besar & Badge Siklus ke-N */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               {/* Sisi Kiri: Tanggal Besar */}
               <div>
-                <span className="text-[11px] font-extrabold text-[#0d9488] uppercase tracking-widest block mb-1.5">
+                <span className="text-[11px] font-extrabold text-[#0d9488] dark:text-teal-400 uppercase tracking-widest block mb-1.5">
                   {eyebrowLabel}
                 </span>
-                <h3 className="text-3xl sm:text-4xl font-extrabold text-[#0f172a] tracking-tight tabular-nums">
+                <h3 className="text-3xl sm:text-4xl font-extrabold text-[#0f172a] dark:text-white tracking-tight tabular-nums">
                   {formattedDate}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 tabular-nums">
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-1 tabular-nums">
                   {dayName} · {countdown.text}
                 </p>
               </div>
 
               {/* Sisi Kanan: Stat Counter Box Siklus ke-N (Sesuai AGENTS.md Bab 4.3) */}
-              <div className="bg-[#e6f7f5] border border-[#ccf0ea] rounded-xl p-3 sm:p-4 text-center min-w-[125px] shrink-0 self-start sm:self-auto">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+              <div className="bg-[#e6f7f5] dark:bg-teal-950/40 border border-[#ccf0ea] dark:border-teal-800/50 rounded-xl p-3 sm:p-4 text-center min-w-[125px] shrink-0 self-start sm:self-auto">
+                <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
                   SIKLUS KE
                 </span>
-                <span className="text-3xl sm:text-4xl font-extrabold text-[#0f172a] tabular-nums tracking-tight block my-0.5">
+                <span className="text-3xl sm:text-4xl font-extrabold text-[#0f172a] dark:text-teal-200 tabular-nums tracking-tight block my-0.5">
                   {item.perayaan_ke}
                 </span>
-                <span className="text-[10px] text-slate-500 font-medium block">
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">
                   sejak tanggal lahir
                 </span>
               </div>
             </div>
 
             {/* Baris Tengah: 4 Pilar Wariga Semantik (Sesuai AGENTS.md Bab 3.C) */}
-            <div className="border-t border-slate-100 pt-5 mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-5 mt-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
               {/* Kolom 1: Saptawara (Mint Teal) */}
               <div className="space-y-1.5">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+                <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
                   SAPTAWARA
                 </span>
                 <span className="inline-flex items-center text-xs sm:text-sm font-bold px-3 py-1.5 rounded-lg bg-[#e6f7f5] text-[#0f766e] border border-teal-200/60">
@@ -126,7 +126,7 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
 
               {/* Kolom 2: Pancawara (Emerald Green) */}
               <div className="space-y-1.5">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+                <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
                   PANCAWARA
                 </span>
                 <span className="inline-flex items-center text-xs sm:text-sm font-bold px-3 py-1.5 rounded-lg bg-[#f0fdf4] text-[#15803d] border border-emerald-200/60">
@@ -136,7 +136,7 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
 
               {/* Kolom 3: Wuku (Violet Purple) */}
               <div className="space-y-1.5">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+                <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
                   WUKU
                 </span>
                 <span className="inline-flex items-center text-xs sm:text-sm font-bold px-3 py-1.5 rounded-lg bg-[#ede9fe] text-[#6d28d9] border border-violet-200/60">
@@ -146,7 +146,7 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
 
               {/* Kolom 4: Sasih (Amber Gold) */}
               <div className="space-y-1.5">
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+                <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
                   SASIH
                 </span>
                 <span className="inline-flex items-center text-xs sm:text-sm font-bold px-3 py-1.5 rounded-lg bg-[#fffbeb] text-[#b45309] border border-amber-200/60">
@@ -156,12 +156,12 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
             </div>
 
             {/* Baris Bawah: Tombol Aksi (Sesuai AGENTS.md Bab 4.4) */}
-            <div className="border-t border-slate-100 pt-5 mt-6 flex flex-wrap items-center gap-3">
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-5 mt-6 flex flex-wrap items-center gap-3">
               {/* Tombol 1: Tambahkan ke Kalender (.ics) */}
               <button
                 type="button"
                 onClick={() => handleAddToCalendar(item)}
-                className="h-11 px-5 rounded-xl bg-[#1e293b] hover:bg-[#0f172a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 [touch-action:manipulation]"
+                className="h-11 px-5 rounded-xl bg-[#1e293b] hover:bg-[#0f172a] dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 [touch-action:manipulation]"
               >
                 <CalendarPlus className="w-4 h-4" />
                 <span>Tambahkan ke kalender</span>
@@ -171,9 +171,9 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenDetailModal(item.tanggal)}
-                className="h-11 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center justify-center gap-2 shadow-2xs active:scale-98 [touch-action:manipulation]"
+                className="h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center justify-center gap-2 shadow-2xs active:scale-98 [touch-action:manipulation]"
               >
-                <Info className="w-4 h-4 text-slate-500" />
+                <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 <span>Detail</span>
               </button>
             </div>

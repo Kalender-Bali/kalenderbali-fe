@@ -57,20 +57,20 @@ export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
   // Penentuan gaya badge status kualitas hari
   const isBaik = statusLabel.toUpperCase().includes('BAIK');
   const badgeColorClass = isBaik
-    ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-    : 'bg-amber-50 text-amber-800 border-amber-200';
+    ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+    : 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60';
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs flex flex-col justify-between space-y-6">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs flex flex-col justify-between space-y-6">
       {/* ===================================================================== */}
       {/* BLOK 1: HEADER KARTU & STATUS BADGE                                   */}
       {/* ===================================================================== */}
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div>
-          <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] tracking-tight">
+          <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight">
             Ringkasan Hari Ini
           </h3>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Evaluasi pengaruh padewasan pada tanggal aktif
           </p>
         </div>
@@ -88,15 +88,15 @@ export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
       {/* BLOK 2: NARASI HEADLINE & PETUNJUK HARI INI                           */}
       {/* ===================================================================== */}
       <div className="space-y-4">
-        <div className="flex items-start gap-3.5 p-4 rounded-xl bg-[#e6f7f5]/60 border border-[#ccf0ea]">
-          <div className="w-9 h-9 rounded-xl bg-white border border-teal-200/80 text-teal-700 flex items-center justify-center shrink-0 shadow-2xs">
-            <Sparkles className="w-5 h-5 text-[#0d9488]" />
+        <div className="flex items-start gap-3.5 p-4 rounded-xl bg-teal-50/70 dark:bg-slate-800/80 border border-teal-200/60 dark:border-slate-700/80">
+          <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-teal-200/80 dark:border-slate-700 text-teal-700 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
+            <Sparkles className="w-5 h-5 text-[#0d9488] dark:text-teal-400" />
           </div>
           <div className="space-y-1">
-            <h4 className="text-sm font-extrabold text-[#0f172a]">
+            <h4 className="text-sm font-extrabold text-[#0f172a] dark:text-white">
               Pedoman Pelaksanaan Dewasa
             </h4>
-            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
               {headline ||
                 'Hari ini memiliki pengaruh padewasan yang tercatat dalam lontar. Perhatikan uraian unsur di bawah untuk memastikan keselarasan yadnya dan pekerjaan Anda.'}
             </p>
@@ -110,14 +110,14 @@ export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
           {/* Sub-blok A: Unsur Berpengaruh Kuat (Alahing Sasih & Penanggal) */}
           {unsurUtama.length > 0 && (
             <div className="space-y-2">
-              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+              <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
                 UNSUR BERPENGARUH UTAMA (ALAHING SASIH / PENANGGAL)
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {unsurUtama.map((item) => (
                   <span
                     key={item.id}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200/80"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                     <span>{item.nama}</span>
@@ -130,21 +130,21 @@ export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
           {/* Sub-blok B: Unsur Harian (Alahing Dauh & Wuku/Wara) */}
           {unsurHarian.length > 0 && (
             <div className="space-y-2">
-              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+              <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
                 UNSUR HARIAN (ALAHING DAUH / WUKU / PASARAN)
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {unsurHarian.slice(0, 8).map((item) => (
                   <span
                     key={item.id}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-50 text-slate-700 border border-slate-200/80"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700"
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
                     <span>{item.nama}</span>
                   </span>
                 ))}
                 {unsurHarian.length > 8 && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-bold text-slate-400 bg-slate-100">
+                  <span className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-bold text-slate-400 dark:text-slate-400 bg-slate-100 dark:bg-slate-800">
                     +{unsurHarian.length - 8} lainnya
                   </span>
                 )}
@@ -153,9 +153,9 @@ export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
           )}
 
           {padewasanList.length === 0 && (
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-center space-y-1">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-center space-y-1">
               <Info className="w-5 h-5 text-slate-400 mx-auto" />
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 Tidak ada catatan khusus padewasan yang aktif pada tanggal ini.
               </p>
             </div>

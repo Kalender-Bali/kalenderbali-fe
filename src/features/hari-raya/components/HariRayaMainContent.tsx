@@ -71,7 +71,7 @@ export const HariRayaMainContent: React.FC<HariRayaMainContentProps> = ({
           </div>
 
           {/* Pill Badge Jumlah Rahina di Sudut Kanan Atas */}
-          <span className="bg-[#e6f7f5] text-[#0f766e] border border-teal-200/60 font-extrabold text-[11px] sm:text-xs px-3 sm:px-3.5 py-1 rounded-full uppercase tracking-wider shrink-0 select-none">
+          <span className="bg-[#e6f7f5] dark:bg-teal-950/60 text-[#0f766e] dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/60 font-extrabold text-[11px] sm:text-xs px-3 sm:px-3.5 py-1 rounded-full uppercase tracking-wider shrink-0 select-none">
             {cards.length} RAHINA
           </span>
         </div>
@@ -81,14 +81,14 @@ export const HariRayaMainContent: React.FC<HariRayaMainContentProps> = ({
         {/* =============================================================== */}
         {cards.length === 0 ? (
           // Keadaan Kosong (Empty State) yang Ramah
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-8 text-center space-y-2">
-            <p className="text-sm font-semibold text-slate-700">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-8 text-center space-y-2">
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               Tidak ada perayaan hari raya pada{' '}
               {viewMode === 'bulanan'
                 ? `bulan ${monthName} ${activeYear}`
                 : `tahun ${activeYear}`}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 dark:text-slate-500">
               Gunakan form pencarian di atas untuk berpindah ke periode lain atau mencari hari raya tertentu.
             </p>
           </div>
@@ -98,14 +98,14 @@ export const HariRayaMainContent: React.FC<HariRayaMainContentProps> = ({
               const badge = getHariRayaBadgeStyle(card.nama);
               const borderClass =
                 badge.border === 'border-transparent'
-                  ? 'border-teal-200/70'
+                  ? 'border-teal-200/70 dark:border-teal-800/60'
                   : badge.border;
 
               return (
                 <div
                   key={card.id}
                   onClick={() => onSelectCard(card)}
-                  className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/90 hover:border-teal-500/40 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99] [touch-action:manipulation]"
+                  className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-slate-800 hover:border-teal-500/40 dark:hover:border-teal-500/50 hover:shadow-xs transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99] [touch-action:manipulation]"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     {/* Kotak Tanggal Kiri (Date Badge) Konsisten dengan Kalender Bali */}

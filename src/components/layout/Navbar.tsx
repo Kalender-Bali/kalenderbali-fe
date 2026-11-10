@@ -4,8 +4,6 @@ import {
   Menu,
   Bell,
   Sparkles,
-  Maximize2,
-  Minimize2,
   ChevronDown,
   WifiOff,
   Calendar,
@@ -17,6 +15,7 @@ import {
   User as UserIcon,
   Crown,
 } from 'lucide-react';
+import { ThemeSelector } from '@/components/ui/ThemeSelector';
 import { useSidebarStore } from '@/stores/useSidebarStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAlertStore } from '@/stores/useAlertStore';
@@ -69,9 +68,6 @@ export default function Navbar() {
   // State untuk dropdown menu profil akun pengguna
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
-
-  // State untuk melacak status fullscreen browser
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // State untuk melacak status koneksi internet (fe_strategy.md Bagian 8.4: Graceful Offline)
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -232,21 +228,6 @@ export default function Navbar() {
   };
 
   /**
-   * Mengaktifkan / menonaktifkan mode Fullscreen pada browser
-   */
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
-        setIsFullscreen(false);
-      }
-    }
-  };
-
-  /**
    * Navigasi langsung ke tanggal kalender yang dipilih dari notifikasi
    */
   const handleSelectEventDate = (dateString: string) => {
@@ -261,7 +242,7 @@ export default function Navbar() {
       {/* Mengikuti standar AGENTS.md Bagian 5.2:                    */}
       {/* Tinggi h-18 (72px), backdrop blur, border-slate-200/80    */}
       {/* ========================================================= */}
-      <header className="sticky top-0 z-30 h-18 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-4 lg:px-6 select-none">
+      <header className="sticky top-0 z-30 h-18 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between px-4 lg:px-6 select-none transition-colors">
         {/* ========================================================= */}
         {/* SISI KIRI: TOMBOL HAMBURGER TOGGLE SIDEBAR                */}
         {/* Target sentuh min 44x44px & touch-action: manipulation    */}
@@ -270,7 +251,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={handleToggleSidebar}
-            className="min-w-11 min-h-11 flex items-center justify-center p-2 text-slate-600 hover:text-[#0f172a] hover:bg-slate-100/80 active:scale-95 rounded-xl transition-all cursor-pointer [touch-action:manipulation]"
+            className="min-w-11 min-h-11 flex items-center justify-center p-2 text-slate-600 dark:text-slate-300 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800 active:scale-95 rounded-xl transition-all cursor-pointer [touch-action:manipulation]"
             title="Buka / Tutup Sidebar Navigasi"
             aria-label="Toggle Sidebar"
           >
@@ -280,10 +261,10 @@ export default function Navbar() {
           {/* Indikator Mode Offline (AGENTS.md Bagian 5.2 Offline Mode Pill) */}
           {!isOnline && (
             <div
-              className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-300 text-amber-800 text-xs font-semibold rounded-full shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 text-xs font-semibold rounded-full shadow-2xs"
               title="Koneksi terputus. Aplikasi menggunakan data cache lokal."
             >
-              <WifiOff size={13} className="text-amber-600 shrink-0" />
+              <WifiOff size={13} className="text-amber-600 dark:text-amber-400 shrink-0" />
               <span className="hidden sm:inline">Mode Offline</span>
               <span className="text-[10px] text-amber-600 sm:hidden">Offline</span>
             </div>
@@ -294,26 +275,19 @@ export default function Navbar() {
         {/* SISI KANAN: TOMBOL AKSI, NOTIFIKASI & PROFIL PENGGUNA     */}
         {/* ========================================================= */}
         <div className="flex items-center gap-1.5 sm:gap-3">
-          {/* Tombol Badge "★ Premium" (AGENTS.md Bagian 5.2: Pill Mint) */}
+          {/* Tombol Badge "★ Premium" (Pill Dinamis Mengikuti Aksen Tema Aktif) */}
           <button
             type="button"
-            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 bg-teal-50 hover:bg-teal-100 active:bg-teal-200/60 text-teal-700 text-xs font-semibold rounded-full border border-teal-200/60 transition-all shadow-2xs cursor-pointer active:scale-95 [touch-action:manipulation]"
+            onClick={() => navigate('/bantuan')}
+            className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-subtle hover:bg-primary-light/50 dark:hover:bg-primary-border/25 active:scale-95 text-primary-text text-xs font-bold rounded-full border border-primary-border transition-all shadow-2xs cursor-pointer [touch-action:manipulation]"
             title="Fitur Premium & Donasi Komunitas"
           >
-            <Sparkles size={14} className="text-teal-600 fill-teal-500/20" />
-            <span>Premium</span>
+            <Sparkles size={14} className="text-primary-text fill-primary/20 shrink-0" />
+            <span className="font-bold">Premium</span>
           </button>
 
-          {/* Tombol Fullscreen Layar (AGENTS.md Bagian 4.4 Ghost Button) */}
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            className="min-w-11 min-h-11 flex items-center justify-center p-2 text-slate-600 hover:text-[#0f172a] hover:bg-slate-100/80 active:scale-95 rounded-xl transition-all cursor-pointer [touch-action:manipulation]"
-            title={isFullscreen ? 'Keluar Layar Penuh' : 'Mode Layar Penuh'}
-            aria-label="Toggle Fullscreen"
-          >
-            {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-          </button>
+          {/* Tombol Pemilih Tema & Aksen Warna (Menggantikan Fullscreen) */}
+          <ThemeSelector />
 
           {/* ======================================================= */}
           {/* TOMBOL LONCENG NOTIFIKASI RAHINA DENGAN DATA REAL GO    */}
@@ -322,7 +296,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setShowNotifications((prev) => !prev)}
-              className="min-w-11 min-h-11 flex items-center justify-center p-2 text-slate-600 hover:text-[#0f172a] hover:bg-slate-100/80 active:scale-95 rounded-xl transition-all cursor-pointer relative [touch-action:manipulation]"
+              className="min-w-11 min-h-11 flex items-center justify-center p-2 text-slate-600 dark:text-slate-300 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800 active:scale-95 rounded-xl transition-all cursor-pointer relative [touch-action:manipulation]"
               title="Pemberitahuan Rahina & Hari Raya Terdekat"
               aria-label="Lihat Notifikasi"
             >
@@ -342,17 +316,17 @@ export default function Navbar() {
 
             {/* POPOVER DAFTAR RAHINA TERDEKAT (AGENTS.md Bagian 5.2: w-80 sm:w-96) */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
                 {/* Header Popover dengan nuansa gradient halus & eyebrow */}
-                <div className="p-4 bg-gradient-to-r from-teal-50/60 via-slate-50/40 to-emerald-50/30 border-b border-slate-100 flex items-start justify-between gap-3">
+                <div className="p-4 bg-gradient-to-r from-teal-50/60 via-slate-50/40 to-emerald-50/30 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3">
                   <div>
                     <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d9488] block">
                       Agenda Notifikasi
                     </span>
-                    <h4 className="font-extrabold text-[#0f172a] text-sm tracking-tight mt-0.5">
+                    <h4 className="font-extrabold text-[#0f172a] dark:text-slate-100 text-sm tracking-tight mt-0.5">
                       Rahina & Hari Raya Terdekat
                     </h4>
-                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                       Sinkronisasi otomatis dengan Kalender Bali{' '}
                       <span className="tabular-nums font-semibold">{currentYear}</span>
                     </p>
@@ -360,7 +334,7 @@ export default function Navbar() {
                   <button
                     type="button"
                     onClick={() => setShowNotifications(false)}
-                    className="min-w-8 min-h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 active:scale-95 transition-all cursor-pointer [touch-action:manipulation] shrink-0"
+                    className="min-w-8 min-h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer [touch-action:manipulation] shrink-0"
                     aria-label="Tutup notifikasi"
                   >
                     <X size={16} />
@@ -368,7 +342,7 @@ export default function Navbar() {
                 </div>
 
                 {/* Konten Daftar Rahina (Scrollable) */}
-                <div className="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto">
                   {/* Status Loading Skeleton (AGENTS.md Bagian 4.8) */}
                   {isLoading && (
                     <div className="p-4 space-y-3">
@@ -477,7 +451,7 @@ export default function Navbar() {
           </div>
 
           {/* Garis Pembatas Vertikal Halus */}
-          <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1 hidden sm:block" />
 
           {/* ======================================================= */}
           {/* BLOK OTENTIKASI & PROFIL PENGGUNA DINAMIS               */}
@@ -488,7 +462,7 @@ export default function Navbar() {
             /* TOMBOL "MASUK" (Kondisi Belum Login / Tamu) */
             <NavLink
               to="/login"
-              className="h-10 px-3.5 sm:px-4.5 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-95 inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer [touch-action:manipulation]"
+              className="h-10 px-3.5 sm:px-4.5 rounded-xl bg-primary hover:bg-primary-hover active:bg-primary-hover text-white font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-95 inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer [touch-action:manipulation]"
               title="Masuk ke Akun Anda"
             >
               <LogIn size={16} className="shrink-0" />
@@ -500,7 +474,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setShowUserMenu((prev) => !prev)}
-                className="flex items-center gap-2.5 pl-1.5 pr-2 py-1.5 rounded-xl hover:bg-slate-100/80 transition-colors cursor-pointer group [touch-action:manipulation]"
+                className="flex items-center gap-2.5 pl-1.5 pr-2 py-1.5 rounded-xl hover:bg-slate-100/80 dark:hover:bg-slate-800 transition-colors cursor-pointer group [touch-action:manipulation]"
                 title="Buka Menu Akun Pengguna"
                 aria-label="Menu Akun Pengguna"
               >
@@ -509,17 +483,17 @@ export default function Navbar() {
                   <img
                     src={user.avatarUrl}
                     alt={user.name}
-                    className="w-9 h-9 rounded-full object-cover ring-2 ring-teal-100 shrink-0"
+                    className="w-9 h-9 rounded-full object-cover ring-2 ring-primary-border shrink-0"
                   />
                 ) : (
-                  <div className="w-9 h-9 rounded-full bg-linear-to-br from-[#0e9f90] to-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 ring-2 ring-teal-100">
+                  <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary to-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 ring-2 ring-primary-border">
                     {getInitials(user.name)}
                   </div>
                 )}
 
                 {/* Nama dan Status Pengguna */}
                 <div className="hidden md:flex flex-col text-left leading-tight">
-                  <span className="text-xs font-bold text-[#0f172a] group-hover:text-[#0d9488] transition-colors truncate max-w-[120px]">
+                  <span className="text-xs font-bold text-[#0f172a] dark:text-slate-100 group-hover:text-primary transition-colors truncate max-w-[120px]">
                     {user.name}
                   </span>
                   <span
@@ -547,34 +521,34 @@ export default function Navbar() {
 
               {/* Popover Dropdown Akun Pengguna */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-60 sm:w-64 bg-white rounded-2xl shadow-xl border border-slate-200/90 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute right-0 mt-2 w-60 sm:w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
                   {/* Header Profil Ringkas */}
-                  <div className="p-3.5 bg-slate-50/70 border-b border-slate-100 flex items-center gap-3">
+                  <div className="p-3.5 bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
                     {user.avatarUrl ? (
                       <img
                         src={user.avatarUrl}
                         alt={user.name}
-                        className="w-10 h-10 rounded-full object-cover ring-2 ring-teal-100 shrink-0"
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-primary-border shrink-0"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-full bg-linear-to-br from-[#0e9f90] to-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 ring-2 ring-teal-100">
+                      <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-xs shrink-0 ring-2 ring-primary-border">
                         {getInitials(user.name)}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <h5 className="text-xs font-bold text-[#0f172a] truncate">
+                      <h5 className="text-xs font-bold text-[#0f172a] dark:text-slate-100 truncate">
                         {user.name}
                       </h5>
-                      <p className="text-[11px] text-slate-400 truncate">
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">
                         {user.username ? `@${user.username}` : user.email || 'Akun Aktif'}
                       </p>
                       <span
                         className={`inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 text-[9px] font-extrabold rounded-full uppercase tracking-wider border shadow-2xs ${
                           userTier === 'Admin'
-                            ? 'bg-slate-100 border-slate-300 text-slate-800'
+                            ? 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200'
                             : userTier === 'Premium'
-                            ? 'bg-gradient-to-r from-amber-50 to-amber-100/70 border-amber-300 text-amber-800'
-                            : 'bg-slate-100 border-slate-200/90 text-slate-600'
+                            ? 'bg-gradient-to-r from-amber-50 to-amber-100/70 dark:from-amber-950/40 dark:to-amber-900/40 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300'
+                            : 'bg-slate-100 dark:bg-slate-800 border-slate-200/90 dark:border-slate-700 text-slate-600 dark:text-slate-400'
                         }`}
                       >
                         {userTier === 'Premium' && <Crown size={10} className="text-amber-600 shrink-0" />}
@@ -589,7 +563,7 @@ export default function Navbar() {
                     <NavLink
                       to="/login"
                       onClick={() => setShowUserMenu(false)}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 hover:text-[#0f172a] hover:bg-slate-100 transition-colors [touch-action:manipulation]"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors [touch-action:manipulation]"
                     >
                       <UserIcon size={15} className="text-slate-400 shrink-0" />
                       <span>Profil & Pengaturan Akun</span>
@@ -597,7 +571,7 @@ export default function Navbar() {
                   </div>
 
                   {/* Footer: Tombol Keluar (Logout) */}
-                  <div className="p-1.5 border-t border-slate-100 bg-slate-50/40">
+                  <div className="p-1.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-800/30">
                     <button
                       type="button"
                       onClick={() => {
@@ -605,7 +579,7 @@ export default function Navbar() {
                         setShowUserMenu(false);
                         useAlertStore.getState().showAlert('Berhasil logout!');
                       }}
-                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer [touch-action:manipulation]"
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer [touch-action:manipulation]"
                     >
                       <LogOut size={15} className="shrink-0 text-rose-500" />
                       <span>Keluar (Logout)</span>

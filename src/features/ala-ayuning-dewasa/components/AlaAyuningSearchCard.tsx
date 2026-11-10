@@ -121,31 +121,31 @@ export const AlaAyuningSearchCard: React.FC<AlaAyuningSearchCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs">
       {/* ===================================================================== */}
       {/* BLOK 1: HEADER FORM & SEGMENTED TAB SWITCHER                         */}
       {/* Pola seragam dengan OtonanFormSection (flex justify-between)          */}
       {/* ===================================================================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         {/* Judul & Deskripsi Form */}
         <div>
-          <h3 className="text-lg font-extrabold text-[#0f172a] tracking-tight">
+          <h3 className="text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight">
             Cari Kecocokan Dewasa
           </h3>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             Pilih metode pencarian untuk menelusuri hari baik dan buruk.
           </p>
         </div>
 
         {/* Segmented Tab Switcher — seragam dengan Otonan (bg-slate-100 p-1 rounded-xl) */}
-        <div className="bg-slate-100 p-1 rounded-xl inline-flex items-center gap-1 shrink-0 self-start sm:self-auto">
+        <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl inline-flex items-center gap-1 shrink-0 self-start sm:self-auto">
           <button
             type="button"
             onClick={() => onModeChange('date')}
             className={`py-1.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeMode === 'date'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800 font-medium'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
             }`}
           >
             Berdasarkan Tanggal
@@ -155,8 +155,8 @@ export const AlaAyuningSearchCard: React.FC<AlaAyuningSearchCardProps> = ({
             onClick={() => onModeChange('name')}
             className={`py-1.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
               activeMode === 'name'
-                ? 'bg-white text-slate-900 shadow-2xs'
-                : 'text-slate-500 hover:text-slate-800 font-medium'
+                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
             }`}
           >
             Cari Nama Padewasan

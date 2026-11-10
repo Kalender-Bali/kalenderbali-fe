@@ -260,27 +260,27 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
       {/* =================================================================== */}
       {/* 2. CARD FORM: HITUNG OTONAN                                         */}
       {/* =================================================================== */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs transition-all">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs transition-all">
         {/* Header Form & Segmented Tab Switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
           <div>
-            <h3 className="text-lg font-extrabold text-[#0f172a] tracking-tight">
+            <h3 className="text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight">
               Hitung Otonan
             </h3>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
               Tanggal lahir paling praktis; gunakan Wewaran bila data kalender Bali sudah diketahui.
             </p>
           </div>
 
           {/* Segmented Switcher Tab (Sesuai Standar AGENTS.md Bab 4.6) */}
-          <div className="bg-slate-100 p-1 rounded-xl inline-flex items-center gap-1 shrink-0 self-start sm:self-auto">
+          <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl inline-flex items-center gap-1 shrink-0 self-start sm:self-auto">
             <button
               type="button"
               onClick={() => setActiveTab('tanggal_lahir')}
               className={`py-1.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'tanggal_lahir'
-                  ? 'bg-white text-slate-900 shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-800 font-medium'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
               }`}
             >
               Tanggal lahir
@@ -290,8 +290,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
               onClick={() => setActiveTab('elemen_kalender')}
               className={`py-1.5 px-3 sm:px-4 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'elemen_kalender'
-                  ? 'bg-white text-slate-900 shadow-2xs'
-                  : 'text-slate-500 hover:text-slate-800 font-medium'
+                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium'
               }`}
             >
               Wewaran
@@ -310,7 +310,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
               <div className="lg:col-span-4 space-y-1.5">
                 <label
                   htmlFor="birth-date"
-                  className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+                  className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
                 >
                   TANGGAL LAHIR
                 </label>
@@ -327,7 +327,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
               <div className="lg:col-span-3 space-y-1.5">
                 <label
                   htmlFor="birth-time"
-                  className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+                  className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
                 >
                   WAKTU LAHIR
                 </label>
@@ -336,7 +336,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                     id="birth-time"
                     value={birthTime}
                     onChange={(e) => setBirthTime(e.target.value as 'before_06' | 'after_06')}
-                    className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all appearance-none pr-10 cursor-pointer"
+                    className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all appearance-none pr-10 cursor-pointer"
                   >
                     <option value="before_06">Sebelum 06.00</option>
                     <option value="after_06">Setelah 06.00</option>
@@ -349,7 +349,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
               <div className="lg:col-span-2 space-y-1.5">
                 <label
                   htmlFor="target-year"
-                  className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+                  className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
                 >
                   TAHUN PERHITUNGAN
                 </label>
@@ -365,7 +365,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                     placeholder={String(currentYear)}
                     required
                     maxLength={4}
-                    className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all tabular-nums"
+                    className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all tabular-nums"
                   />
                 </div>
               </div>
@@ -406,7 +406,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 <div className="lg:col-span-3 space-y-1.5">
                   <label
                     htmlFor="saptawara-select"
-                    className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+                    className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
                   >
                     SAPTAWARA
                   </label>
@@ -416,7 +416,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                       value={saptawaraId}
                       onChange={(e) => handleSaptawaraChange(e.target.value)}
                       disabled={isMasterLoading}
-                      className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all appearance-none pr-10 cursor-pointer"
+                      className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all appearance-none pr-10 cursor-pointer"
                     >
                       <option value="">-- Pilih Saptawara --</option>
                       {availableSaptawaras.map((item) => (
@@ -433,7 +433,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 <div className="lg:col-span-3 space-y-1.5">
                   <label
                     htmlFor="pancawara-select"
-                    className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+                    className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
                   >
                     PANCAWARA
                   </label>
@@ -443,7 +443,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                       value={pancawaraId}
                       onChange={(e) => handlePancawaraChange(e.target.value)}
                       disabled={isMasterLoading}
-                      className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all appearance-none pr-10 cursor-pointer"
+                      className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all appearance-none pr-10 cursor-pointer"
                     >
                       <option value="">-- Pilih Pancawara --</option>
                       {availablePancawaras.map((item) => (
@@ -460,7 +460,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 <div className="lg:col-span-2 space-y-1.5">
                   <label
                     htmlFor="wuku-select"
-                    className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+                    className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
                   >
                     WUKU
                   </label>
@@ -470,7 +470,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                       value={wukuId}
                       onChange={(e) => handleWukuChange(e.target.value)}
                       disabled={isMasterLoading}
-                      className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all appearance-none pr-10 cursor-pointer"
+                      className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all appearance-none pr-10 cursor-pointer"
                     >
                       <option value="">-- Pilih Wuku --</option>
                       {availableWukus.map((item) => (
@@ -487,7 +487,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 <div className="lg:col-span-2 space-y-1.5">
                   <label
                     htmlFor="target-year-manual"
-                    className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
+                    className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
                   >
                     TAHUN TARGET
                   </label>
@@ -503,7 +503,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                       placeholder={String(currentYear)}
                       required
                       maxLength={4}
-                      className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all tabular-nums"
+                      className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all tabular-nums"
                     />
                   </div>
                 </div>

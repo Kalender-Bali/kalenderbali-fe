@@ -81,7 +81,7 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
 
   return (
     <>
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs flex flex-col justify-between h-full">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs flex flex-col justify-between h-full">
         {/* ========================================================= */}
         {/* KONTEN ATAS & TENGAH (FLEX-1 UNTUK MENGISI TINGGI)        */}
         {/* ========================================================= */}
@@ -90,11 +90,11 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
           {/* 1. HEADER DETAIL TANGGAL                                  */}
           {/* ========================================================= */}
           <div className="flex items-center justify-between pb-1">
-            <h3 className="text-lg font-extrabold text-[#0f172a] tracking-tight">
+            <h3 className="text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight">
               Detail tanggal
             </h3>
             {isToday && (
-              <span className="text-[10px] font-extrabold text-[#0d9488] bg-[#e6f7f5] px-3 py-1 rounded-full uppercase tracking-wider">
+              <span className="text-[10px] font-extrabold text-[#0d9488] dark:text-teal-300 bg-[#e6f7f5] dark:bg-teal-950/60 border border-teal-200/60 dark:border-teal-800/60 px-3 py-1 rounded-full uppercase tracking-wider">
                 Hari ini
               </span>
             )}
@@ -149,12 +149,12 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
           {/* ========================================================= */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#0f172a] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#0d9488]" />
+              <span className="text-xs font-bold text-[#0f172a] dark:text-white flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
                 Hari Raya & Rerainan
               </span>
               {hariRayaList.length > 0 && (
-                <span className="text-[10px] font-extrabold text-[#0d9488] bg-[#e6f7f5] border border-teal-200/60 px-2.5 py-0.5 rounded-full uppercase tabular-nums">
+                <span className="text-[10px] font-extrabold text-primary bg-primary-subtle border border-primary-border px-2.5 py-0.5 rounded-full uppercase tabular-nums">
                   {hariRayaList.length} Perayaan
                 </span>
               )}
@@ -179,11 +179,11 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
                       title="Klik untuk membaca penjelasan hari raya ini"
                     >
                       <div className="flex items-center gap-3 min-w-0 pr-2">
-                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${badgeStyle.bg}`}>
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${badgeStyle.bg} ${badgeStyle.border}`}>
                           <span className={`w-2 h-2 rounded-full ${badgeStyle.dot}`} />
                         </div>
                         <div className="min-w-0">
-                          <span className="text-xs sm:text-sm font-extrabold text-[#0f172a] group-hover:text-[#0d9488] transition-colors block truncate">
+                          <span className="text-xs sm:text-sm font-extrabold text-[#0f172a] dark:text-white group-hover:text-primary transition-colors block truncate">
                             {hr.nama}
                           </span>
                           <span className="text-[11px] text-slate-400 font-medium block">
@@ -192,7 +192,7 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
                         </div>
                       </div>
 
-                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#0d9488] group-hover:translate-x-0.5 transition-all shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0" />
                     </div>
                   );
                 })}
@@ -215,11 +215,11 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
           {/* ========================================================= */}
           {/* 5. KARTU DEWASA AYU (PANDUAN HARI BAIK - EMERALD SUKSES)  */}
           {/* ========================================================= */}
-          <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-4 space-y-1.5">
-            <span className="text-[11px] font-extrabold text-emerald-800 uppercase tracking-widest block">
+          <div className="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl p-4 space-y-1.5">
+            <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-widest block">
               {dewasaAyu.title}
             </span>
-            <p className="text-xs sm:text-sm font-bold text-[#0f172a] leading-snug">
+            <p className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-slate-100 leading-snug">
               {dewasaAyu.advice}
             </p>
           </div>

@@ -97,22 +97,22 @@ export default function RamalanSifatPage() {
 
       {/* Skenario B: Terjadi Kesalahan Jaringan / Validasi Server */}
       {isError && !isLoading && (
-        <div className="bg-white rounded-2xl border border-rose-200/90 p-6 sm:p-8 shadow-xs text-center max-w-xl mx-auto space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200/90 dark:border-rose-900/50 p-6 sm:p-8 shadow-xs text-center max-w-xl mx-auto space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6" />
           </div>
           <div className="space-y-1.5">
-            <h4 className="text-base sm:text-lg font-extrabold text-[#0f172a]">
+            <h4 className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white">
               Gagal Memuat Ramalan Sifat
             </h4>
-            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               {error || 'Terjadi gangguan saat menghubungkan ke server Kalender Bali.'}
             </p>
           </div>
           <button
             type="button"
             onClick={() => refetch()}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all active:scale-98 cursor-pointer [touch-action:manipulation]"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs shadow-xs transition-all active:scale-98 cursor-pointer [touch-action:manipulation]"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Coba Lagi</span>
@@ -130,14 +130,14 @@ export default function RamalanSifatPage() {
 
       {/* Skenario D: Keadaan Awal (Belum Ada Tanggal Lahir yang Dicari) */}
       {!hasActiveSearch && !isLoading && (
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-8 sm:p-12 shadow-xs text-center max-w-2xl mx-auto space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#e6f7f5] border border-teal-200/60 text-teal-700 flex items-center justify-center mx-auto">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-8 sm:p-12 shadow-xs text-center max-w-2xl mx-auto space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#e6f7f5] dark:bg-teal-950/60 border border-teal-200/60 dark:border-teal-800/60 text-teal-700 dark:text-teal-300 flex items-center justify-center mx-auto">
             <Sparkles className="w-6 h-6" />
           </div>
-          <h4 className="text-lg font-extrabold text-[#0f172a] tracking-tight">
+          <h4 className="text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight">
             Telusuri Karakter Berdasarkan Penanggalan Bali
           </h4>
-          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-md mx-auto">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-md mx-auto">
             Pilih tanggal lahir Anda pada formulir di atas untuk menelaah komposisi 4 pilar watak
             (Pancawara, Saptawara, Wuku, dan Zodiak) berdasarkan tradisi Wariga Bali.
           </p>

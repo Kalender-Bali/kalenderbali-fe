@@ -43,11 +43,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   canResetToday = false,
 }) => {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
       {/* ========================================================= */}
       {/* 1. BAR NAVIGASI BULAN KALENDER                            */}
       {/* ========================================================= */}
-      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 min-h-[46px]">
+      <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 min-h-[46px]">
         {/* Sisi Kiri: Tombol Hari Ini (Hanya muncul jika tanggal/bulan tidak di hari ini) */}
         <div>
           {canResetToday && (
@@ -68,7 +68,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           <button
             type="button"
             onClick={onPrevMonth}
-            className="w-9 h-9 min-w-9 min-h-9 rounded-xl bg-slate-50 hover:bg-slate-100 active:bg-slate-200 border border-slate-200/90 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer active:scale-95 [touch-action:manipulation]"
+            className="w-9 h-9 min-w-9 min-h-9 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 border border-slate-200/90 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer active:scale-95 [touch-action:manipulation]"
             title="Bulan sebelumnya"
             aria-label="Bulan sebelumnya"
           >
@@ -77,7 +77,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           <button
             type="button"
             onClick={onNextMonth}
-            className="w-9 h-9 min-w-9 min-h-9 rounded-xl bg-slate-50 hover:bg-slate-100 active:bg-slate-200 border border-slate-200/90 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer active:scale-95 [touch-action:manipulation]"
+            className="w-9 h-9 min-w-9 min-h-9 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 border border-slate-200/90 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer active:scale-95 [touch-action:manipulation]"
             title="Bulan berikutnya"
             aria-label="Bulan berikutnya"
           >
@@ -94,7 +94,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           <div
             key={hari}
             className={`text-xs tracking-wider uppercase ${
-              idx === 0 ? 'text-rose-600 font-extrabold' : 'text-slate-400 font-bold'
+              idx === 0 ? 'text-rose-600 dark:text-rose-400 font-extrabold' : 'text-slate-400 dark:text-slate-400 font-bold'
             }`}
           >
             {hari}
@@ -105,7 +105,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       {/* ========================================================= */}
       {/* 3. MATRIKS SEL TANGGAL (GRID 7 KOLOM - TEPI TEGAS)        */}
       {/* ========================================================= */}
-      <div className="grid grid-cols-7 border-t border-l border-slate-200/90 mt-1">
+      <div className="grid grid-cols-7 border-t border-l border-slate-200/90 dark:border-slate-800 mt-1">
         {gridCells.map((cell, idx) => {
           const { dateString, dayNumber, isCurrentMonth, isToday, isSelected, data } = cell;
           const hariRayaList = data?.hari_raya || [];
@@ -115,17 +115,17 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             <div
               key={dateString}
               onClick={() => onSelectDate(dateString)}
-              className={`min-h-[125px] sm:min-h-[140px] xl:min-h-[152px] p-2.5 sm:p-3 border-r border-b border-slate-200/90 flex flex-col justify-between transition-colors relative cursor-pointer select-none [touch-action:manipulation] ${
+              className={`min-h-[125px] sm:min-h-[140px] xl:min-h-[152px] p-2.5 sm:p-3 border-r border-b border-slate-200/90 dark:border-slate-800 flex flex-col justify-between transition-colors relative cursor-pointer select-none [touch-action:manipulation] ${
                 !isCurrentMonth
-                  ? 'bg-slate-50/40 text-slate-300'
-                  : 'bg-white hover:bg-slate-50/70'
+                  ? 'bg-slate-50/40 dark:bg-slate-950/40 text-slate-300 dark:text-slate-600'
+                  : 'bg-white dark:bg-slate-900 hover:bg-slate-50/70 dark:hover:bg-slate-800/80'
               } ${
                 isToday
-                  ? 'bg-[#e6f7f5]/80 ring-2 ring-[#14b8a6] ring-inset z-10'
+                  ? 'bg-primary-subtle ring-2 ring-primary ring-inset z-10'
                   : ''
               } ${
                 isSelected && !isToday
-                  ? 'ring-2 ring-slate-800 ring-inset z-10'
+                  ? 'ring-2 ring-slate-800 dark:ring-slate-400 ring-inset z-10'
                   : ''
               }`}
             >
@@ -135,20 +135,20 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                   className={`text-base sm:text-lg font-bold tabular-nums leading-none ${
                     !isCurrentMonth
                       ? isSunday
-                        ? 'text-rose-300 font-medium'
-                        : 'text-slate-300 font-medium'
+                        ? 'text-rose-300 dark:text-rose-700/60 font-medium'
+                        : 'text-slate-300 dark:text-slate-600 font-medium'
                       : isSunday
-                      ? 'text-rose-600 font-extrabold'
+                      ? 'text-rose-600 dark:text-rose-400 font-extrabold'
                       : isToday
-                      ? 'text-[#0f766e] font-extrabold'
-                      : 'text-slate-800'
+                      ? 'text-primary font-extrabold'
+                      : 'text-slate-800 dark:text-white'
                   }`}
                 >
                   {dayNumber}
                 </span>
 
                 {isToday && (
-                  <span className="text-[11px] font-bold text-[#0d9488] mt-1 block">
+                  <span className="text-[11px] font-bold text-primary mt-1 block">
                     Hari ini
                   </span>
                 )}

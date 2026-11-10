@@ -40,23 +40,23 @@ export const AlaAyuningDasarSection: React.FC<AlaAyuningDasarSectionProps> = ({
   onSelectPadewasan,
 }) => {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-5">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs space-y-5">
       {/* ===================================================================== */}
       {/* BLOK 1: HEADER SECTION & BADGE TOTAL UNSUR AKTIF                      */}
       {/* ===================================================================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div>
-          <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] tracking-tight flex items-center gap-2">
-            <Layers className="w-5 h-5 text-teal-600" />
+          <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight flex items-center gap-2">
+            <Layers className="w-5 h-5 text-teal-600 dark:text-teal-400" />
             <span>Dasar Ala Ayuning Dewasa</span>
           </h3>
-          <p className="text-xs text-slate-500 font-medium">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Kriteria tradisional hasil evaluasi 220 aturan Padewasan penanggalan Bali
           </p>
         </div>
 
         {/* Badge Jumlah Unsur Aktif */}
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-[#e6f7f5] text-teal-800 border border-teal-200/60 shadow-2xs self-start sm:self-auto">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-[#e6f7f5] dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/60 shadow-2xs self-start sm:self-auto">
           {padewasanList.length} UNSUR AKTIF
         </span>
       </div>
@@ -76,7 +76,7 @@ export const AlaAyuningDasarSection: React.FC<AlaAyuningDasarSectionProps> = ({
               <div
                 key={item.id}
                 onClick={() => onSelectPadewasan(item)}
-                className="group p-4 sm:p-4.5 rounded-xl border border-slate-200/80 bg-[#f8fafc]/50 hover:bg-white hover:border-teal-500/40 hover:shadow-xs transition-all cursor-pointer active:scale-[0.99] flex flex-col justify-between space-y-3"
+                className="group p-4 sm:p-4.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-[#f8fafc]/50 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 hover:border-teal-500/40 dark:hover:border-teal-500/40 hover:shadow-xs transition-all cursor-pointer active:scale-[0.99] flex flex-col justify-between space-y-3"
               >
                 {/* Header Kartu: Ikon Status, Nama Padewasan, & Badge Alahing */}
                 <div className="flex items-start justify-between gap-2.5">
@@ -85,8 +85,8 @@ export const AlaAyuningDasarSection: React.FC<AlaAyuningDasarSectionProps> = ({
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
                         isLarangan
-                          ? 'bg-rose-50 border-rose-200/70 text-rose-600'
-                          : 'bg-emerald-50 border-emerald-200/70 text-emerald-600'
+                          ? 'bg-rose-50 dark:bg-rose-950/60 border-rose-200/70 dark:border-rose-800/60 text-rose-600 dark:text-rose-300'
+                          : 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200/70 dark:border-emerald-800/60 text-emerald-600 dark:text-emerald-300'
                       }`}
                     >
                       {isLarangan ? (
@@ -97,7 +97,7 @@ export const AlaAyuningDasarSection: React.FC<AlaAyuningDasarSectionProps> = ({
                     </div>
 
                     {/* Nama Padewasan */}
-                    <h4 className="text-sm font-extrabold text-[#0f172a] group-hover:text-teal-700 transition-colors">
+                    <h4 className="text-sm font-extrabold text-[#0f172a] dark:text-white group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
                       {item.nama}
                     </h4>
                   </div>
@@ -112,12 +112,12 @@ export const AlaAyuningDasarSection: React.FC<AlaAyuningDasarSectionProps> = ({
                 </div>
 
                 {/* Deskripsi Makna Budaya Otentik */}
-                <p className="text-xs text-slate-600 leading-relaxed font-normal line-clamp-3">
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal line-clamp-3">
                   {item.keterangan || 'Tidak ada uraian pantangan atau anjuran khusus.'}
                 </p>
 
                 {/* Footer Kartu: Indikator Klik */}
-                <div className="pt-2 border-t border-slate-100/80 flex items-center justify-between text-[11px] text-slate-400 group-hover:text-teal-600 font-medium transition-colors">
+                <div className="pt-2 border-t border-slate-100/80 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500 group-hover:text-teal-600 dark:group-hover:text-teal-400 font-medium transition-colors">
                   <span>ID Sastra #{item.id}</span>
                   <span className="inline-flex items-center gap-0.5 font-bold">
                     <span>Rincian</span>
@@ -130,12 +130,12 @@ export const AlaAyuningDasarSection: React.FC<AlaAyuningDasarSectionProps> = ({
         </div>
       ) : (
         /* State Kosong Jika Tidak Ada Padewasan Aktif */
-        <div className="p-8 rounded-xl bg-slate-50 border border-slate-100 text-center space-y-2">
+        <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-center space-y-2">
           <Sparkles className="w-6 h-6 text-slate-400 mx-auto" />
-          <h4 className="text-sm font-extrabold text-slate-700">
+          <h4 className="text-sm font-extrabold text-slate-700 dark:text-slate-200">
             Tidak Ada Unsur Padewasan Khusus
           </h4>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
             Pada tanggal ini tidak ditemukan padewasan yang bersifat larangan keras maupun anjuran utama.
           </p>
         </div>

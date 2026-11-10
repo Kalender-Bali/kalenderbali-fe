@@ -52,16 +52,16 @@ export const DashboardMiniCalendar: React.FC<DashboardMiniCalendarProps> = ({
   onSelectDate,
 }) => {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
       {/* =================================================================== */}
       {/* 1. HEADER KALENDER: NAMA BULAN, SASIH, & TOMBOL NAVIGASI < >        */}
       {/* =================================================================== */}
       <div className="flex items-center justify-between mb-4 sm:mb-5">
         <div>
-          <h2 className="text-lg sm:text-xl font-bold text-[#0f172a] tracking-tight">
+          <h2 className="text-lg sm:text-xl font-bold text-[#0f172a] dark:text-white tracking-tight">
             {title}
           </h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             {sasihSubtitle}
           </p>
         </div>
@@ -71,7 +71,7 @@ export const DashboardMiniCalendar: React.FC<DashboardMiniCalendarProps> = ({
           <button
             type="button"
             onClick={onPrevMonth}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 hover:bg-slate-100 active:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer [touch-action:manipulation]"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer [touch-action:manipulation]"
             title="Bulan sebelumnya"
             aria-label="Bulan sebelumnya"
           >
@@ -80,7 +80,7 @@ export const DashboardMiniCalendar: React.FC<DashboardMiniCalendarProps> = ({
           <button
             type="button"
             onClick={onNextMonth}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 hover:bg-slate-100 active:bg-slate-200 flex items-center justify-center text-slate-600 hover:text-slate-900 transition-colors cursor-pointer [touch-action:manipulation]"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:bg-slate-200 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer [touch-action:manipulation]"
             title="Bulan berikutnya"
             aria-label="Bulan berikutnya"
           >
@@ -96,7 +96,7 @@ export const DashboardMiniCalendar: React.FC<DashboardMiniCalendarProps> = ({
         {MINI_CALENDAR_HEADERS.map((dayName) => (
           <div
             key={dayName}
-            className="text-[10px] sm:text-[11px] font-bold text-slate-400 uppercase py-1"
+            className="text-[10px] sm:text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase py-1"
           >
             {dayName}
           </div>
@@ -117,10 +117,10 @@ export const DashboardMiniCalendar: React.FC<DashboardMiniCalendarProps> = ({
               onClick={() => onSelectDate(day.dateString)}
               className={`min-h-[64px] sm:min-h-[72px] lg:min-h-[76px] p-1.5 sm:p-2 rounded-xl text-left flex flex-col justify-between transition-all cursor-pointer [touch-action:manipulation] relative ${
                 day.isToday || day.isSelected
-                  ? 'border-2 border-[#0e9f90] bg-[#e6f7f5]/40 ring-2 ring-[#0e9f90]/15'
+                  ? 'border-2 border-primary bg-primary-subtle dark:bg-primary-subtle ring-2 ring-primary/20'
                   : day.isCurrentMonth
-                  ? 'bg-[#fbfcfc] border border-slate-100 hover:border-teal-300 hover:bg-white shadow-2xs'
-                  : 'bg-slate-50/40 border border-slate-100/50 opacity-40 hover:opacity-75'
+                  ? 'bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 hover:border-teal-300 dark:hover:border-teal-500 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-2xs'
+                  : 'bg-slate-50/60 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/60 opacity-40 hover:opacity-75'
               }`}
             >
               {/* Baris Atas Sel: Angka Tanggal & Dot Hari Ini */}
@@ -128,10 +128,10 @@ export const DashboardMiniCalendar: React.FC<DashboardMiniCalendarProps> = ({
                 <span
                   className={`text-xs sm:text-sm tabular-nums font-bold ${
                     day.isToday || day.isSelected
-                      ? 'text-[#0f766e]'
+                      ? 'text-[#0f766e] dark:text-teal-300'
                       : day.isCurrentMonth
-                      ? 'text-[#0f172a]'
-                      : 'text-slate-400'
+                      ? 'text-[#0f172a] dark:text-white'
+                      : 'text-slate-400 dark:text-slate-500'
                   }`}
                 >
                   {day.dayNumber}

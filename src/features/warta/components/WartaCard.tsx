@@ -43,7 +43,7 @@ export const WartaCard: React.FC<WartaCardProps> = ({ article, onClick }) => {
     <Link
       to={`/warta/${article.id}`}
       onClick={onClick}
-      className="bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:border-teal-500/40 hover:shadow-md transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden active:scale-[0.99] [touch-action:manipulation] text-inherit no-underline select-none"
+      className="bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-200/90 dark:border-slate-700/80 shadow-xs hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-md transition-all duration-200 cursor-pointer group flex flex-col overflow-hidden active:scale-[0.99] [touch-action:manipulation] text-inherit no-underline select-none"
       aria-label={`Buka artikel: ${article.title}`}
     >
       <article className="flex flex-col flex-1 h-full">
@@ -51,7 +51,7 @@ export const WartaCard: React.FC<WartaCardProps> = ({ article, onClick }) => {
       {/* 1. COVER GAMBAR WARTA (ASPECT-VIDEO 16:9)                            */}
       {/* Dilengkapi efek zoom mikro halus saat pointer mouse diarahkan        */}
       {/* ==================================================================== */}
-      <div className="relative aspect-video w-full overflow-hidden bg-slate-100 shrink-0">
+      <div className="relative aspect-video w-full overflow-hidden bg-slate-100 dark:bg-slate-900 shrink-0">
         <img
           src={imageUrl}
           alt={article.title}
@@ -61,9 +61,9 @@ export const WartaCard: React.FC<WartaCardProps> = ({ article, onClick }) => {
         />
 
         {/* Badge Penulis Mengambang di Sudut Kiri Bawah Gambar */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-md shadow-2xs border border-white/60">
+        <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/95 dark:bg-slate-900/90 backdrop-blur-md shadow-2xs border border-white/60 dark:border-slate-700/60">
           <User size={12} className="text-[#0d9488]" />
-          <span className="text-[11px] font-bold text-slate-800 tracking-tight">
+          <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 tracking-tight">
             {authorName}
           </span>
         </div>
@@ -80,7 +80,7 @@ export const WartaCard: React.FC<WartaCardProps> = ({ article, onClick }) => {
               <Calendar size={13} className="text-slate-400" />
               {formattedDate}
             </span>
-            <span className="text-slate-300">·</span>
+            <span className="text-slate-300 dark:text-slate-600">·</span>
             <span className="inline-flex items-center gap-1">
               <Clock size={13} className="text-slate-400" />
               {readDuration}
@@ -88,12 +88,12 @@ export const WartaCard: React.FC<WartaCardProps> = ({ article, onClick }) => {
           </div>
 
           {/* Judul Artikel (H3 Semantik) */}
-          <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] group-hover:text-teal-700 transition-colors line-clamp-2 tracking-tight leading-snug">
+          <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white line-clamp-2 tracking-tight leading-snug">
             {article.title}
           </h3>
 
           {/* Cuplikan Teks Narasi (3 Baris Rapi) */}
-          <p className="text-xs sm:text-sm font-normal text-slate-600 line-clamp-3 leading-relaxed">
+          <p className="text-xs sm:text-sm font-normal text-slate-600 dark:text-slate-300 line-clamp-3 leading-relaxed">
             {article.content}
           </p>
         </div>
@@ -101,7 +101,7 @@ export const WartaCard: React.FC<WartaCardProps> = ({ article, onClick }) => {
         {/* ==================================================================== */}
         {/* 3. FOOTER KARTU: TAUTAN INTERAKTIF BACA SELENGKAPNYA                 */}
         {/* ==================================================================== */}
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-teal-700 group-hover:text-teal-800">
+        <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs font-bold text-teal-700 group-hover:text-teal-800">
           <span>Baca Selengkapnya</span>
           <ArrowRight
             size={14}

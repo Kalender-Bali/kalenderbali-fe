@@ -26,30 +26,30 @@ interface DashboardHeroProps {
 
 export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
   return (
-    <div className="bg-[#eaf7f5] border border-[#cbebe5] rounded-2xl p-6 sm:p-7 shadow-xs">
+    <div className="bg-[#eaf7f5] dark:bg-slate-900 border border-[#cbebe5] dark:border-teal-500/20 rounded-2xl p-6 sm:p-7 shadow-xs">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         {/* ================================================================= */}
         {/* BLOK 1: SISI KIRI — IDENTITAS TANGGAL & WEWARAN HARI INI          */}
         {/* ================================================================= */}
         <div className="space-y-2">
           {/* 1A. Kicker / Eyebrow Modul */}
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0e9f90] block">
+          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0e9f90] dark:text-teal-400 block">
             HARI INI
           </span>
 
           {/* 1B. Tanggal Masehi Besar (Ukuran H1 Standar AGENTS.md) */}
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0f172a] tabular-nums tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0f172a] dark:text-white tabular-nums tracking-tight">
             {heroData.tanggalFormatted}
           </h1>
 
           {/* 1C. Subtitle Wewaran Lengkap (Hari Masehi · Saptawara Pancawara · Wuku) */}
-          <p className="text-xs sm:text-sm font-semibold text-slate-600">
+          <p className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
             {heroData.hariMasehi} · {heroData.saptawara} {heroData.pancawara} · Wuku {heroData.wuku}
           </p>
 
           {/* 1D. Pill Highlight Petunjuk / Rekomendasi Hari Baik */}
           <div className="pt-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 border border-teal-200/70 shadow-2xs text-xs font-semibold text-slate-700">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 dark:bg-slate-800/90 border border-teal-200/70 dark:border-teal-500/30 shadow-2xs text-xs font-semibold text-slate-700 dark:text-slate-200">
               {/* Dot indikator hijau emerald berdenyut halus */}
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
               <span>{heroData.quoteHariIni}</span>
@@ -62,40 +62,40 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
         {/* ================================================================= */}
         <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 shrink-0">
           {/* KOTAK 1: SASIH & PENGLANTAKA */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
-            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
+            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
               SASIH
             </span>
-            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] tracking-tight block my-0.5 truncate">
+            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] dark:text-white tracking-tight block my-0.5 truncate">
               {heroData.sasih}
             </span>
-            <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium block truncate">
+            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate">
               {heroData.pengalantaka}
             </span>
           </div>
 
           {/* KOTAK 2: PAWUKON & DINA KE- */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
-            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
+            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
               PAWUKON
             </span>
-            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] tracking-tight block my-0.5 truncate">
+            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] dark:text-white tracking-tight block my-0.5 truncate">
               {heroData.wuku}
             </span>
-            <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium block truncate">
+            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate">
               Dina ka-{heroData.dinaKa}
             </span>
           </div>
 
           {/* KOTAK 3: URIP & ARAH PENGIDER-IDER */}
-          <div className="bg-white rounded-xl border border-slate-200/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
-            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
+            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
               URIP
             </span>
-            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] tabular-nums tracking-tight block my-0.5">
+            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] dark:text-white tabular-nums tracking-tight block my-0.5">
               {heroData.urip}
             </span>
-            <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium block truncate capitalize">
+            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate capitalize">
               {heroData.arah}
             </span>
           </div>

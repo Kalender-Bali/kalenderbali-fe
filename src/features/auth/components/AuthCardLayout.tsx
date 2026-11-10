@@ -37,19 +37,19 @@ export default function AuthCardLayout({
 }: AuthCardLayoutProps) {
   return (
     <main
-      className="min-h-screen bg-[#f4f7f6] flex flex-col items-center justify-center p-4 sm:p-6 font-sans antialiased select-none text-slate-800"
+      className="min-h-screen bg-[#f4f7f6] dark:bg-slate-950 flex flex-col items-center justify-center p-4 sm:p-6 font-sans antialiased select-none text-slate-800 dark:text-slate-100 transition-colors relative"
       role="main"
     >
       {/* ==================================================================== */}
       {/* WADAH KARTU UTAMA (Card Container) Sesuai Gambar 1 & Gambar 2         */}
       {/* ==================================================================== */}
-      <div className="w-full max-w-[440px] bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 transition-all">
+      <div className="w-full max-w-[440px] bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-6 sm:p-8 transition-all">
         {/* Header Kartu: Judul & Subjudul */}
         <div className="text-center mb-6">
-          <h1 className="text-xl sm:text-2xl font-extrabold text-[#0f172a] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#0f172a] dark:text-white tracking-tight">
             {title}
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-1 leading-relaxed">
             {subtitle}
           </p>
         </div>
@@ -62,7 +62,7 @@ export default function AuthCardLayout({
       {/* NAVIGASI DI LUAR KARTU (Footer Links) Sesuai Gambar Referensi         */}
       {/* ==================================================================== */}
       {footer && (
-        <footer className="mt-6 text-center space-y-2.5 text-xs text-slate-500 font-medium">
+        <footer className="mt-6 text-center space-y-2.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
           {footer}
         </footer>
       )}

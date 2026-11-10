@@ -10,7 +10,7 @@ export default function AppLayout() {
   const { isCollapsed } = useSidebarStore();
 
   return (
-    <div className="min-h-screen bg-[#f4f7f6] text-slate-800 flex font-sans antialiased">
+    <div className="min-h-screen bg-[#f4f7f6] dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex font-sans antialiased transition-colors duration-200">
       {/* ========================================================= */}
       {/* 1. SIDEBAR NAVIGASI KIRI                                 */}
       {/* Mengatur navigasi modul, sub-menu, serta drawer mobile   */}

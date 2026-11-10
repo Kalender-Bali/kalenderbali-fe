@@ -118,11 +118,11 @@ export const PuraDetailModal: React.FC<PuraDetailModalProps> = ({
       {/* ==================================================================== */}
       {/* KARTU DIALOG UTAMA MODAL                                              */}
       {/* ==================================================================== */}
-      <div className="relative bg-white rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-2xl overflow-hidden z-10 flex flex-col max-h-[90vh]">
+      <div className="relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xl w-full max-w-2xl overflow-hidden z-10 flex flex-col max-h-[90vh]">
         {/* ================================================================== */}
         {/* HEADER MODAL: GRADIEN TEAL & TOMBOL TUTUP                          */}
         {/* ================================================================== */}
-        <div className="bg-gradient-to-r from-teal-50 via-white to-emerald-50/50 p-5 sm:p-6 border-b border-slate-200/80 shrink-0">
+        <div className="bg-gradient-to-r from-teal-50 via-white to-emerald-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 p-5 sm:p-6 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-2">
               {/* Lencana Tipe Pura */}
@@ -141,13 +141,13 @@ export const PuraDetailModal: React.FC<PuraDetailModalProps> = ({
               {/* Judul Nama Pura */}
               <h2
                 id="modal-pura-title"
-                className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight"
+                className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight"
               >
                 {pura.name}
               </h2>
 
               {/* Ringkasan Penanggalan Piodalan Pura */}
-              <div className="flex items-center gap-1.5 text-xs text-teal-800 font-semibold">
+              <div className="flex items-center gap-1.5 text-xs text-teal-800 dark:text-teal-300 font-semibold">
                 <Calendar className="w-3.5 h-3.5 text-[#0e9f90]" aria-hidden="true" />
                 <span>{observationSummary}</span>
               </div>
@@ -303,11 +303,11 @@ export const PuraDetailModal: React.FC<PuraDetailModalProps> = ({
 
               {/* Kotak Informasi Ramah jika Piodalan Belum Dikonfigurasi */}
               {!hasPiodalan && (
-                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50/70 border border-amber-200/60 text-xs text-amber-800">
-                  <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300">
+                  <Info className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="space-y-0.5">
-                    <p className="font-semibold text-amber-900">Jadwal Piodalan Belum Tercatat</p>
-                    <p className="text-amber-700/90 leading-relaxed">
+                    <p className="font-semibold text-amber-900 dark:text-amber-200">Jadwal Piodalan Belum Tercatat</p>
+                    <p className="text-amber-700/90 dark:text-amber-300/80 leading-relaxed">
                       Pengurus pura belum mencatat penanggalan piodalan resmi (Pawukon maupun Sasih) untuk pura ini.
                     </p>
                   </div>
@@ -320,13 +320,13 @@ export const PuraDetailModal: React.FC<PuraDetailModalProps> = ({
         {/* ================================================================== */}
         {/* FOOTER MODAL: AKSI TERPADU (TUTUP, PIODALAN, KEUANGAN)             */}
         {/* ================================================================== */}
-        <div className="bg-slate-50/80 p-4 sm:p-5 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <div className="bg-slate-50/80 dark:bg-slate-900 p-4 sm:p-5 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           {/* Tombol Tutup Sisi Kiri */}
           <button
             type="button"
             onClick={onClose}
             aria-label="Tutup dialog"
-            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 active:scale-95 transition-all cursor-pointer"
+            className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 transition-all cursor-pointer"
           >
             Tutup
           </button>

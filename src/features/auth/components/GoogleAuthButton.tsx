@@ -41,9 +41,12 @@ export default function GoogleAuthButton({
 
   // Gunakan ref agar perubahan fungsi onSuccess/onError dari parent tidak memicu re-render / re-inisialisasi tombol secara berulang saat user mengetik
   const onSuccessRef = useRef(onSuccess);
-  onSuccessRef.current = onSuccess;
   const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onErrorRef.current = onError;
+  });
 
   const clientId =
     import.meta.env.VITE_GOOGLE_CLIENT_ID ||
@@ -123,11 +126,11 @@ export default function GoogleAuthButton({
       {/* GARIS PEMBATAS HALUS (Divider: "atau masuk/daftar dengan")           */}
       {/* ==================================================================== */}
       <div className="flex items-center gap-3 my-5">
-        <div className="flex-1 h-px bg-slate-200" />
-        <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider select-none">
+        <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+        <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider select-none">
           {mode === 'register' ? 'atau daftar dengan' : 'atau masuk dengan'}
         </span>
-        <div className="flex-1 h-px bg-slate-200" />
+        <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
       </div>
 
       {/* ==================================================================== */}
@@ -139,7 +142,7 @@ export default function GoogleAuthButton({
           type="button"
           onClick={handleCustomButtonClick}
           disabled={disabled}
-          className={`w-full h-11 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center justify-center gap-3 [touch-action:manipulation] shadow-2xs ${
+          className={`w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 active:bg-slate-100 dark:active:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center justify-center gap-3 [touch-action:manipulation] shadow-2xs ${
             disabled ? 'opacity-60 cursor-not-allowed' : ''
           }`}
           aria-label={buttonLabel}

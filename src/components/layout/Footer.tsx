@@ -14,17 +14,17 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-slate-200/80 bg-white/70 backdrop-blur-xs py-5 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mt-auto select-none">
+    <footer className="border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 py-5 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 dark:text-slate-400 mt-auto select-none transition-colors">
       <div className="max-w-[1560px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
         {/* ========================================================= */}
         {/* 1. SISI KIRI: HAK CIPTA & SLOGAN PELESTARIAN BUDAYA       */}
         {/* Sesuai AGENTS.md Bagian 5.4 & tabular-nums pada tahun      */}
         {/* ========================================================= */}
         <div className="text-center md:text-left space-y-0.5">
-          <p className="font-semibold text-slate-700 text-xs">
+          <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
             © <span className="tabular-nums font-semibold">{currentYear}</span> Kalender Bali Lengkap
           </p>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">
             Melestarikan warisan budaya melalui pengalaman digital yang mudah diakses.
           </p>
         </div>
@@ -33,26 +33,26 @@ export default function Footer() {
         {/* 2. SISI TENGAH: TAUTAN PRIVASI, KETENTUAN, DAN KONTAK     */}
         {/* Sesuai AGENTS.md Bagian 5.4                               */}
         {/* ========================================================= */}
-        <div className="flex items-center gap-2.5 text-xs text-slate-500 font-medium">
+        <div className="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <a
             href="#privasi"
-            className="hover:text-teal-700 transition-colors"
+            className="hover:text-primary transition-colors"
             title="Kebijakan Privasi"
           >
             Privasi
           </a>
-          <span className="text-slate-300">·</span>
+          <span className="text-slate-300 dark:text-slate-600">·</span>
           <a
             href="#ketentuan"
-            className="hover:text-teal-700 transition-colors"
+            className="hover:text-primary transition-colors"
             title="Syarat & Ketentuan Penggunaan"
           >
             Ketentuan
           </a>
-          <span className="text-slate-300">·</span>
+          <span className="text-slate-300 dark:text-slate-600">·</span>
           <Link
             to="/kontak"
-            className="hover:text-teal-700 transition-colors font-semibold"
+            className="hover:text-primary transition-colors font-semibold"
             title="Buka Halaman Info Kontak Pengembang"
           >
             Kontak
@@ -69,7 +69,7 @@ export default function Footer() {
             href="https://play.google.com/store/apps/details?id=com.infowariga.android"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-200/90 rounded-xl shadow-2xs transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer [touch-action:manipulation]"
+            className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/80 active:bg-slate-100 border border-slate-200/90 dark:border-slate-700 rounded-xl shadow-2xs transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer [touch-action:manipulation]"
             title="Dapatkan di Google Play"
           >
             {/* Logo Google Play Vector Multi-Color */}
@@ -102,7 +102,7 @@ export default function Footer() {
               <div className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">
                 GET IT ON
               </div>
-              <div className="text-xs font-bold text-[#0f172a] -mt-0.5 group-hover:text-teal-700 transition-colors">
+              <div className="text-xs font-bold text-[#0f172a] dark:text-white -mt-0.5 group-hover:text-primary transition-colors">
                 Google Play
               </div>
             </div>

@@ -1,6 +1,760 @@
 @import "tailwindcss";
 
 /*
+ * Konfigurasi Dark Mode Class untuk Tailwind CSS v4
+ * Memungkinkan pemakaian selector .dark pada elemen <html>
+ */
+@custom-variant dark (&:is(.dark, .dark *));
+
+/*
+ * Pendaftaran variabel warna tema utama ke Tailwind v4
+ * Sekaligus memetakan seluruh token teal-* bawaan agar secara dinamis mengikuti aksen yang dipilih
+ */
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-text: var(--primary-text);
+  --color-primary-light: var(--primary-light);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-border: var(--primary-border);
+  --color-primary-dark: var(--primary-dark);
+
+  /* Menyelaraskan seluruh utility class teal-* (breadcrumb, tombol, badge, dsb.) dengan aksen aktif */
+  --color-teal-50: var(--primary-subtle);
+  --color-teal-100: var(--primary-light);
+  --color-teal-200: var(--primary-border);
+  --color-teal-300: var(--primary-text);
+  --color-teal-400: var(--primary-text);
+  --color-teal-500: var(--primary);
+  --color-teal-600: var(--primary);
+  --color-teal-700: var(--primary-hover);
+  --color-teal-800: var(--primary-hover);
+  --color-teal-900: var(--primary-dark);
+  --color-teal-950: var(--primary-dark);
+}
+
+/* ==========================================================================
+   PALET AKSEN TEMA (DESIGN TOKENS)
+   ========================================================================== */
+
+/* Default & Aksen: Teal (Tradisi & Budaya Bali) */
+:root, [data-accent="teal"] {
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --primary-text: #115e59;
+  --primary-light: #ccfbf1;
+  --primary-subtle: #f0fdfa;
+  --primary-border: #99f6e4;
+  --primary-dark: #042f2e;
+}
+
+/* Aksen: Orange (Surya & Kehangatan Dewata - Pengganti Emerald) */
+[data-accent="orange"], [data-accent="emerald"] {
+  --primary: #ea580c;
+  --primary-hover: #c2410c;
+  --primary-text: #9a3412;
+  --primary-light: #ffedd5;
+  --primary-subtle: #fff7ed;
+  --primary-border: #fed7aa;
+  --primary-dark: #431407;
+}
+
+/* Aksen: Blue (Samudra & Ketenteraman) */
+[data-accent="blue"] {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-text: #1e40af;
+  --primary-light: #dbeafe;
+  --primary-subtle: #eff6ff;
+  --primary-border: #bfdbfe;
+  --primary-dark: #172554;
+}
+
+/* Aksen: Amber (Sakral, Keemasan & Cahaya) */
+[data-accent="amber"] {
+  --primary: #d97706;
+  --primary-hover: #b45309;
+  --primary-text: #92400e;
+  --primary-light: #fef3c7;
+  --primary-subtle: #fffbeb;
+  --primary-border: #fde68a;
+  --primary-dark: #451a03;
+}
+
+/* Aksen: Rose (Merona & Keberanian) */
+[data-accent="rose"] {
+  --primary: #e11d48;
+  --primary-hover: #be123c;
+  --primary-text: #9f1239;
+  --primary-light: #ffe4e6;
+  --primary-subtle: #fff1f2;
+  --primary-border: #fecdd3;
+  --primary-dark: #4c0519;
+}
+
+/* Aksen: Purple (Brahmana & Spiritualitas) */
+[data-accent="purple"] {
+  --primary: #9333ea;
+  --primary-hover: #7e22ce;
+  --primary-text: #6b21a8;
+  --primary-light: #f3e8ff;
+  --primary-subtle: #faf5ff;
+  --primary-border: #e9d5ff;
+  --primary-dark: #3b0764;
+}
+
+/* ==========================================================================
+   PENYESUAIAN WARNA AKSEN PADA MODE GELAP (DARK MODE REFINEMENT)
+   ========================================================================== */
+
+html.dark[data-accent="teal"] {
+  --primary-subtle: rgba(13, 148, 136, 0.2);
+  --primary-border: rgba(13, 148, 136, 0.45);
+  --primary-text: #5eead4;
+  --primary-dark: #042f2e;
+}
+
+html.dark[data-accent="orange"],
+html.dark[data-accent="emerald"] {
+  --primary-subtle: rgba(234, 88, 12, 0.2);
+  --primary-border: rgba(234, 88, 12, 0.45);
+  --primary-text: #fdba74;
+  --primary-dark: #431407;
+}
+
+html.dark[data-accent="blue"] {
+  --primary-subtle: rgba(37, 99, 235, 0.2);
+  --primary-border: rgba(37, 99, 235, 0.45);
+  --primary-text: #93c5fd;
+  --primary-dark: #172554;
+}
+
+html.dark[data-accent="amber"] {
+  --primary-subtle: rgba(217, 119, 6, 0.2);
+  --primary-border: rgba(217, 119, 6, 0.45);
+  --primary-text: #fcd34d;
+  --primary-dark: #451a03;
+}
+
+html.dark[data-accent="rose"] {
+  --primary-subtle: rgba(225, 29, 72, 0.2);
+  --primary-border: rgba(225, 29, 72, 0.45);
+  --primary-text: #fda4af;
+  --primary-dark: #4c0519;
+}
+
+html.dark[data-accent="purple"] {
+  --primary-subtle: rgba(147, 51, 234, 0.2);
+  --primary-border: rgba(147, 51, 234, 0.45);
+  --primary-text: #d8b4fe;
+  --primary-dark: #3b0764;
+}
+
+/* ==========================================================================
+   DYNAMIC BRAND HEX OVERRIDES
+   Memastikan class yang sebelumnya menggunakan hardcoded hex (#0e9f90, #0d9488, dll.)
+   secara otomatis tunduk pada variabel CSS --primary pilihan pengguna
+   ========================================================================== */
+
+/* Latar Belakang Tombol & Elemen Primer */
+.bg-\[\#0e9f90\],
+.bg-\[\#0d9488\] {
+  background-color: var(--primary) !important;
+}
+
+/* Efek Hover & Active Tombol Primer */
+.hover\:bg-\[\#0c8a7d\]:hover,
+.hover\:bg-\[\#0f766e\]:hover {
+  background-color: var(--primary-hover) !important;
+}
+
+.active\:bg-\[\#0a756a\]:active {
+  background-color: var(--primary-hover) !important;
+}
+
+/* Teks & Ikon Berwarna Brand */
+.text-\[\#0d9488\],
+.text-\[\#0e9f90\] {
+  color: var(--primary) !important;
+}
+
+.hover\:text-\[\#0d9488\]:hover,
+.hover\:text-\[\#0c8a7d\]:hover {
+  color: var(--primary-hover) !important;
+}
+
+.group:hover .group-hover\:text-\[\#0d9488\],
+.group:hover .group-hover\:text-\[\#0e9f90\] {
+  color: var(--primary) !important;
+}
+
+/* Latar Belakang Halus / Pill Badge (#e6f7f5, #eaf7f5, #f0fdf9) */
+.bg-\[\#e6f7f5\],
+.bg-\[\#eaf7f5\],
+.bg-\[\#f0fdf9\] {
+  background-color: var(--primary-subtle) !important;
+}
+
+/* Border & Ring Form Input / Card (#0d9488, #ccf0ea, #cbebe5) */
+.border-\[\#0d9488\],
+.border-\[\#0e9f90\] {
+  border-color: var(--primary) !important;
+}
+
+.border-\[\#ccf0ea\],
+.border-\[\#cbebe5\] {
+  border-color: var(--primary-border) !important;
+}
+
+.focus\:border-\[\#0d9488\]:focus,
+.focus\:border-\[\#0e9f90\]:focus {
+  border-color: var(--primary) !important;
+}
+
+.focus\:ring-\[\#0d9488\]\/20:focus,
+.focus\:ring-\[\#0e9f90\]\/20:focus {
+  --tw-ring-color: var(--primary-border) !important;
+}
+
+.ring-\[\#0d9488\],
+.ring-\[\#0e9f90\] {
+  --tw-ring-color: var(--primary) !important;
+}
+
+.from-\[\#0e9f90\],
+.from-\[\#0d9488\] {
+  --tw-gradient-from: var(--primary) !important;
+}
+
+.to-\[\#0e9f90\],
+.to-\[\#0d9488\] {
+  --tw-gradient-to: var(--primary) !important;
+}
+
+/* ==========================================================================
+   PENYESUAIAN GLOBAL MODE GELAP (COMPREHENSIVE DARK MODE REFINEMENT)
+   Memastikan seluruh kontainer kartu, input, dialog, dan teks di seluruh
+   halaman memiliki kontras tinggi dan latar belakang gelap yang elegan
+   ========================================================================== */
+
+/* Latar Belakang Kanvas Utama Aplikasi di Mode Gelap (#f4f7f6 -> #0b1120 / slate-950) */
+html.dark,
+html.dark body {
+  background-color: #0b1120 !important;
+  color: #f8fafc;
+}
+
+html.dark .bg-\[\#f4f7f6\]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: #0b1120 !important;
+}
+
+/* Seluruh Teks Heading & Konten Gelap (#0f172a, slate-900, slate-800) Otomatis Terang */
+html.dark .text-\[\#0f172a\],
+html.dark .text-slate-900,
+html.dark .text-slate-800 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-700 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600 {
+  color: #cbd5e1 !important;
+}
+
+/* Teks Muted / Subtitle / Deskripsi agar kontrasnya pas dan mudah dibaca */
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #94a3b8 !important;
+}
+
+/* Teks & Ikon Berwarna Brand di Mode Gelap (menggunakan --primary-text cerah untuk kontras tinggi) */
+html.dark .text-\[\#0d9488\],
+html.dark .text-\[\#0e9f90\] {
+  color: var(--primary-text) !important;
+}
+
+html.dark .hover\:text-\[\#0d9488\]:hover,
+html.dark .hover\:text-\[\#0c8a7d\]:hover,
+html.dark .hover\:text-\[\#0f766e\]:hover {
+  color: var(--primary-text) !important;
+  filter: brightness(1.2);
+}
+
+html.dark .group:hover .group-hover\:text-\[\#0d9488\],
+html.dark .group:hover .group-hover\:text-\[\#0e9f90\] {
+  color: var(--primary-text) !important;
+}
+
+/* Seluruh Kontainer Kartu / Box yang Semula Putih (bg-white) Menjadi Gelap (slate-900) */
+html.dark .bg-white:not(select):not(input):not(textarea):not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: #0f172a !important;
+  color: #f8fafc;
+}
+
+/* Seluruh Latar Belakang Sekunder (#f8fafc, slate-50, slate-100) */
+html.dark .bg-\[\#f8fafc\]:not([class*="dark:bg-"]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-slate-50"]:not([class*="dark:bg-"]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-slate-50/"]:not([class*="dark:bg-"]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-slate-50/"]:not([class*="dark:bg-"]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-slate-100"]:not([class*="dark:bg-"]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-slate-100/"]:not([class*="dark:bg-"]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-slate-100/"]:not([class*="dark:bg-"]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: #1e293b !important; /* slate-800 */
+}
+
+/* Sub-kartu & Grouping Card pada Form Dinamis / Komparasi (Garis Hidup & Jodoh - Opsi 1) */
+html.dark .garis-hidup-card,
+html.dark .jodoh-card {
+  background-color: rgba(2, 6, 23, 0.35) !important; /* slate-950/35 */
+  border-color: #1e293b !important; /* slate-800 */
+}
+
+/* Sidebar Navigasi: Menu tidak aktif harus selalu transparan */
+html.dark aside nav a:not([class*="bg-primary"]):not(:hover),
+html.dark aside nav button:not([class*="bg-primary"]):not(:hover) {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+/* Chrome Layout: Sidebar, Sticky Navbar, dan Footer Seragam Menggunakan Slate-900 (#0f172a) */
+html.dark header.sticky,
+html.dark aside,
+html.dark footer {
+  background-color: #0f172a !important;
+}
+
+/* Hover background untuk button & list item */
+html.dark .hover\:bg-slate-50:hover:not([data-theme-preview="light"] *),
+html.dark .hover\:bg-slate-100:hover:not([data-theme-preview="light"] *) {
+  background-color: #1e293b !important;
+}
+
+html.dark .hover\:bg-white:hover:not([data-theme-preview="light"] *),
+html.dark .hover\:bg-slate-50\/70:hover:not([data-theme-preview="light"] *) {
+  background-color: #273549 !important;
+}
+
+html.dark .hover\:border-slate-300:hover:not([data-theme-preview="light"] *) {
+  border-color: #475569 !important;
+}
+
+html.dark .hover\:text-slate-700:hover,
+html.dark .hover\:text-slate-900:hover {
+  color: #f8fafc !important;
+}
+
+/* ==========================================================================
+   PENYESUAIAN WARNA SEMANTIK & PASTEL PADA MODE GELAP (COMPREHENSIVE)
+   Memastikan seluruh badge, pill, alert, dan callout di seluruh fitur
+   memiliki kontras tinggi, tidak menyilaukan, dan seragam antar-halaman.
+   ========================================================================== */
+
+/* 1. Latar Belakang Sel Kalender & Varian Putih Tersembunyi */
+html.dark .bg-\[\#fbfcfc\]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: #1e293b !important; /* slate-800 */
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .bg-\[\#f0fbf9\]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: var(--primary-subtle) !important;
+  border-color: var(--primary-border) !important;
+}
+
+html.dark .bg-\[\#f1f5f9\]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+/* Skeleton Loader Bones di Mode Gelap */
+html.dark .bg-slate-200:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark .bg-slate-200\/60:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark .bg-slate-200\/70:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark .bg-slate-200\/80:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark .bg-slate-300:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: #334155 !important;
+}
+
+/* 2. Latar Belakang Semi-Transparan Putih Menjadi Dark Slate */
+html.dark .bg-white\/95:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark .bg-white\/90:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark .bg-white\/80:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark .bg-white\/70:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: rgba(30, 41, 59, 0.85) !important;
+  border-color: rgba(51, 65, 85, 0.8) !important;
+}
+
+html.dark .border-white\/60:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: rgba(51, 65, 85, 0.8) !important;
+}
+
+/* 3. Varian Emerald / Hijau (Status Baik, Sukses, Suci) */
+html.dark [class~="bg-emerald-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-emerald-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-emerald-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-emerald-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-emerald-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-emerald-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#f0fdf4]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#d1fae5]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: rgba(16, 185, 129, 0.16) !important;
+}
+
+html.dark [class~="border-emerald-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-emerald-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-emerald-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-emerald-300"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-emerald-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-emerald-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+html.dark [class~="text-emerald-700"],
+html.dark [class~="text-emerald-800"],
+html.dark [class~="text-emerald-900"],
+html.dark [class*="text-[#065f46]"],
+html.dark [class*="text-[#15803d]"] {
+  color: #6ee7b7 !important; /* emerald-300 */
+}
+
+/* 4. Varian Amber / Emas (Tumpek, Peringatan, Khusus) */
+html.dark [class~="bg-amber-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-amber-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-amber-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-amber-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-amber-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-amber-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#fef3c7]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#fffbeb]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: rgba(245, 158, 11, 0.16) !important;
+}
+
+html.dark [class~="border-amber-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-amber-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-amber-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-amber-300"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-amber-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-amber-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+html.dark [class~="text-amber-700"],
+html.dark [class~="text-amber-800"],
+html.dark [class~="text-amber-900"],
+html.dark [class*="text-[#92400e]"],
+html.dark [class*="text-[#b45309]"] {
+  color: #fcd34d !important; /* amber-300 */
+}
+
+/* 5. Varian Rose / Merah (Purnama, Hari Minggu, Bahaya, Error) */
+html.dark [class~="bg-rose-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-rose-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-rose-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-rose-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-rose-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-rose-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#ffe4e6]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: rgba(244, 63, 94, 0.16) !important;
+}
+
+html.dark [class~="border-rose-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-rose-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-rose-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-rose-300"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-rose-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-rose-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: rgba(244, 63, 94, 0.4) !important;
+}
+
+html.dark [class~="text-rose-600"],
+html.dark [class~="text-rose-700"],
+html.dark [class~="text-rose-800"],
+html.dark [class~="text-rose-900"],
+html.dark [class*="text-[#be123c]"] {
+  color: #fda4af !important; /* rose-300 */
+}
+
+/* 6. Varian Orange / Terracotta (Kajeng Kliwon) */
+html.dark [class*="bg-[#ffedd5]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-orange-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-orange-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-orange-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-orange-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-orange-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-orange-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: rgba(249, 115, 22, 0.16) !important;
+}
+
+html.dark [class~="border-orange-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-orange-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-orange-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-orange-300"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-orange-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-orange-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: rgba(249, 115, 22, 0.4) !important;
+}
+
+html.dark [class*="text-[#9a3412]"],
+html.dark [class~="text-orange-700"],
+html.dark [class~="text-orange-800"],
+html.dark [class~="text-orange-900"] {
+  color: #fdba74 !important; /* orange-300 */
+}
+
+/* 7. Varian Purple / Violet (Anggara Kasih, Spiritual) */
+html.dark [class~="bg-purple-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-purple-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-purple-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-purple-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-purple-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-purple-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-violet-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-violet-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-violet-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-violet-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-violet-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-violet-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#ede9fe]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: rgba(168, 85, 247, 0.16) !important;
+}
+
+html.dark [class~="border-purple-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-purple-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-purple-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-purple-300"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-purple-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-purple-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-violet-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-violet-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-violet-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: rgba(168, 85, 247, 0.4) !important;
+}
+
+html.dark [class~="text-purple-700"],
+html.dark [class~="text-purple-800"],
+html.dark [class~="text-purple-900"],
+html.dark [class~="text-violet-700"],
+html.dark [class~="text-violet-800"],
+html.dark [class*="text-[#5b21b6]"],
+html.dark [class*="text-[#6d28d9]"] {
+  color: #d8b4fe !important; /* purple-300 */
+}
+
+/* 8. Varian Sky / Biru (Buda Cemeng, Informasi, Samudra) */
+html.dark [class~="bg-sky-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-sky-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-sky-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-sky-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-sky-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-sky-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-blue-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-blue-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-blue-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#e0f2fe]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: rgba(14, 165, 233, 0.16) !important;
+}
+
+html.dark [class~="border-sky-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-sky-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-sky-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-sky-300"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-sky-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-sky-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-blue-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-blue-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-blue-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: rgba(14, 165, 233, 0.4) !important;
+}
+
+html.dark [class~="text-sky-700"],
+html.dark [class~="text-sky-800"],
+html.dark [class~="text-sky-900"],
+html.dark [class*="text-[#0369a1]"] {
+  color: #7dd3fc !important; /* sky-300 */
+}
+
+/* 9. Varian Teal Brand Berteks Gelap Otomatis Menjadi Terang Kontras */
+html.dark [class~="bg-teal-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-teal-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-teal-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-teal-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-teal-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-teal-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#e6f7f5]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#eaf7f5]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#f0fdf9]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: var(--primary-subtle) !important;
+}
+
+html.dark [class~="border-teal-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-teal-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-teal-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="border-[#ccf0ea]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="border-[#cbebe5]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: var(--primary-border) !important;
+}
+
+html.dark .text-\[\#0f766e\],
+html.dark .text-\[\#0c8a7d\],
+html.dark .text-\[\#0a756a\],
+html.dark .text-\[\#115e59\],
+html.dark [class~="text-teal-700"],
+html.dark [class~="text-teal-800"],
+html.dark [class~="text-teal-900"] {
+  color: var(--primary-text) !important;
+}
+
+/* 10. Ring Seleksi Aktif Kalender di Mode Gelap */
+html.dark .ring-slate-800 {
+  --tw-ring-color: #94a3b8 !important;
+}
+
+/* Penyesuaian Gradient Header Modal Dialog & Hero di Mode Gelap (Eliminasi Silver / Putih) */
+html.dark [class*="from-teal-50"],
+html.dark [class*="from-teal-100"] {
+  --tw-gradient-from: #1e293b !important; /* slate-800 */
+}
+html.dark [class*="via-slate-50"],
+html.dark [class*="via-slate-100"],
+html.dark [class*="via-teal-50"],
+html.dark [class*="via-amber-50"],
+html.dark .via-white {
+  --tw-gradient-via: #1e293b !important;
+}
+html.dark [class*="to-emerald-50"],
+html.dark [class*="to-emerald-100"],
+html.dark [class*="to-slate-50"],
+html.dark [class*="to-teal-50"] {
+  --tw-gradient-to: #0f172a !important; /* slate-900 */
+}
+
+/* ==========================================================================
+   PENYESUAIAN MODAL & DIALOG UNIVERSAL DI MODE GELAP
+   ========================================================================== */
+html.dark [role="dialog"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) > div.bg-white,
+html.dark [aria-modal="true"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) > div.bg-white,
+html.dark [role="dialog"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *).bg-white,
+html.dark [aria-modal="true"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *).bg-white {
+  background-color: #0f172a !important; /* slate-900 */
+  border-color: #1e293b !important; /* slate-800 */
+  color: #f8fafc !important;
+}
+
+html.dark [role="dialog"] .bg-\[\#f8fafc\],
+html.dark [role="dialog"] .bg-slate-50,
+html.dark [aria-modal="true"] .bg-\[\#f8fafc\],
+html.dark [aria-modal="true"] .bg-slate-50 {
+  background-color: rgba(30, 41, 59, 0.7) !important; /* slate-800/70 */
+  border-color: #334155 !important;
+}
+
+html.dark [role="dialog"] .bg-slate-100,
+html.dark [aria-modal="true"] .bg-slate-100 {
+  background-color: #1e293b !important;
+}
+
+html.dark [role="dialog"] [class*="bg-gradient-to-r"][class*="from-teal-50"],
+html.dark [aria-modal="true"] [class*="bg-gradient-to-r"][class*="from-teal-50"] {
+  background: linear-gradient(to right, #1e293b, #1e293b 50%, #0f172a) !important;
+  border-color: #334155 !important;
+}
+
+html.dark [role="dialog"] .text-\[\#0f172a\],
+html.dark [aria-modal="true"] .text-\[\#0f172a\],
+html.dark [role="dialog"] .text-slate-900,
+html.dark [aria-modal="true"] .text-slate-900 {
+  color: #f8fafc !important;
+}
+
+html.dark [role="dialog"] .text-slate-600,
+html.dark [aria-modal="true"] .text-slate-600,
+html.dark [role="dialog"] .text-slate-500,
+html.dark [aria-modal="true"] .text-slate-500 {
+  color: #cbd5e1 !important;
+}
+
+/* Form Label Kontras Tinggi di Seluruh Input Aplikasi */
+html.dark label[class*="text-slate-400"],
+html.dark span[class*="text-slate-400"][class*="uppercase"] {
+  color: #cbd5e1 !important; /* slate-300 */
+}
+
+/* Garis Border Kartu & Pembatas Halus */
+html.dark [class~="border-slate-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-slate-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-slate-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-slate-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-slate-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-slate-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: #334155 !important; /* slate-700 */
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]):not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: #334155 !important;
+}
+
+/* Form Input, Select, Textarea di Mode Gelap - Warna Seragam Slate-800 (#1e293b) */
+html.dark select:not([data-theme-preview="light"] *),
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([data-theme-preview="light"] *),
+html.dark textarea:not([data-theme-preview="light"] *) {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html.dark select:focus:not([data-theme-preview="light"] *),
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):focus:not([data-theme-preview="light"] *),
+html.dark textarea:focus:not([data-theme-preview="light"] *) {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8 !important; /* slate-400 */
+}
+
+html.dark select option {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+html.dark select option:disabled {
+  color: #64748b !important;
+}
+
+html.dark input:disabled,
+html.dark select:disabled,
+html.dark textarea:disabled {
+  background-color: #0b1120 !important;
+  color: #64748b !important;
+  border-color: #1e293b !important;
+}
+
+/* Pastikan Mini Preview Terang di ThemeSelector Tetap Terang */
+[data-theme-preview="light"] {
+  background-color: #f1f5f9 !important;
+}
+[data-theme-preview="light"] .bg-white {
+  background-color: #ffffff !important;
+}
+[data-theme-preview="light"] .bg-slate-200 {
+  background-color: #e2e8f0 !important;
+}
+[data-theme-preview="light"] .bg-slate-300 {
+  background-color: #cbd5e1 !important;
+}
+[data-theme-preview="light"] .border-slate-200\/80,
+[data-theme-preview="light"] .border-slate-200\/90,
+[data-theme-preview="light"] .border-slate-200\/60 {
+  border-color: #e2e8f0 !important;
+}
+
+/*
  * Mencegah Layout Shift (Pergeseran Layout):
  * Memastikan area scrollbar (gutter) selalu stabil di browser
  * sehingga layout kalender tidak bergeser saat modal dialog dibuka/ditutup.
@@ -8,3 +762,51 @@
 html {
   scrollbar-gutter: stable;
 }
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* ==========================================================================
+   TRANSISI LEMBUT PERPINDAHAN TEMA (SMOOTH SEAMLESS THEME TRANSITIONS)
+   ========================================================================== */
+
+/* Animasi Native View Transitions Crossfade (Chrome, Edge, Safari 18+) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 250ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transisi CSS Halus untuk Elemen-Elemen Layout, Kontainer, Teks & Form */
+html,
+body,
+header,
+aside,
+footer,
+main,
+section,
+nav,
+select,
+input,
+textarea,
+h1, h2, h3, h4, h5, h6,
+p, span, a, label {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 250ms;
+}
+
+.bg-white,
+.bg-\[\#f8fafc\],
+.bg-slate-50,
+.bg-slate-100,
+.bg-slate-800,
+.bg-slate-900,
+.border-slate-200,
+.border-slate-800 {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 250ms;
+}
+

@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test:mengatur-dewasa": "node --test tests/mengaturDewasa.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

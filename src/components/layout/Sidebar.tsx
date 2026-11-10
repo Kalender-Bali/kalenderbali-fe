@@ -61,11 +61,15 @@ export default function Sidebar() {
     icon: Layers,
     children: [
       { to: '/ala-ayuning-dewasa', label: 'Ala Ayuning Dewasa' },
+      { to: '/mengatur-dewasa', label: 'Mengatur Dewasa' },
       { to: '/otonan', label: 'Cari Otonan' },
       { to: '/piodalan', label: 'Piodalan' },
       { to: '/hari-raya', label: 'Hari Raya' },
       { to: '/wariga-personal', label: 'Wariga Personal' },
       { to: '/ramalan-sifat', label: 'Ramalan Sifat' },
+      { to: '/garis-hidup', label: 'Garis Hidup' },
+      { to: '/jodoh', label: 'Jodoh' },
+      { to: '/bhagawadgita', label: 'Bhagawad Gita' },
     ],
   };
 
@@ -113,7 +117,7 @@ export default function Sidebar() {
       {/* - Di mobile: fixed drawer meluncur dari kiri             */}
       {/* ========================================================= */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white border-r border-slate-200/90 transition-all duration-300 ease-in-out select-none ${
+        className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 transition-all duration-300 ease-in-out select-none ${
           isMobileOpen
             ? 'translate-x-0 w-72 shadow-2xl'
             : '-translate-x-full lg:translate-x-0'
@@ -123,7 +127,7 @@ export default function Sidebar() {
         {/* 3. HEADER SIDEBAR (LOGO & IDENTITAS APLIKASI)             */}
         {/* Mengikuti AGENTS.md Bagian 5.3: Tinggi h-18 (72px) baku  */}
         {/* ========================================================= */}
-        <div className="h-18 flex items-center justify-between px-4 border-b border-slate-100 shrink-0">
+        <div className="h-18 flex items-center justify-between px-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
           <NavLink
             to="/"
             onClick={closeMobile}
@@ -140,10 +144,10 @@ export default function Sidebar() {
             {/* Nama & Tagline Aplikasi (Disembunyikan saat Desktop Collapsed) */}
             {!isCollapsed && (
               <div className="flex flex-col min-w-0 transition-opacity duration-200">
-                <span className="font-extrabold text-[#0f172a] text-base leading-tight tracking-tight truncate">
+                <span className="font-extrabold text-[#0f172a] dark:text-slate-100 text-base leading-tight tracking-tight truncate">
                   Kalender Bali
                 </span>
-                <span className="text-[10px] font-semibold tracking-wider text-slate-400 uppercase truncate">
+                <span className="text-[10px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase truncate">
                   Waktu, Tradisi, & Hari Baik
                 </span>
               </div>
@@ -154,7 +158,7 @@ export default function Sidebar() {
           <button
             type="button"
             onClick={closeMobile}
-            className="min-w-11 min-h-11 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 active:scale-95 rounded-xl lg:hidden [touch-action:manipulation] cursor-pointer transition-all"
+            className="min-w-11 min-h-11 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 rounded-xl lg:hidden [touch-action:manipulation] cursor-pointer transition-all"
             aria-label="Tutup menu navigasi"
           >
             <X size={20} />
@@ -179,8 +183,8 @@ export default function Sidebar() {
                   className={({ isActive }) =>
                     `group relative flex items-center gap-3 px-3.5 min-h-11 rounded-xl text-sm font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
                       isActive
-                        ? 'bg-teal-50 text-teal-800 font-semibold border-teal-200/60 shadow-2xs'
-                        : 'border-transparent text-slate-600 hover:text-[#0f172a] hover:bg-slate-100/70'
+                        ? 'bg-primary-subtle text-primary font-bold border-primary-border shadow-2xs'
+                        : 'bg-transparent border-transparent text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
                     } ${isCollapsed ? 'justify-center px-0' : ''}`
                   }
                 >
@@ -202,7 +206,7 @@ export default function Sidebar() {
               <button
                 type="button"
                 onClick={() => toggleSubmenu(layananGroup.label)}
-                className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border border-transparent transition-colors duration-150 text-slate-600 hover:text-[#0f172a] hover:bg-slate-100/70 outline-none focus:outline-none [touch-action:manipulation] cursor-pointer ${
+                className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border bg-transparent border-transparent transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70 outline-none focus:outline-none [touch-action:manipulation] cursor-pointer ${
                   isCollapsed ? 'justify-center px-0' : ''
                 }`}
               >
@@ -238,7 +242,7 @@ export default function Sidebar() {
                       : 'grid-rows-[0fr] opacity-0'
                   }`}
                 >
-                  <div className="overflow-hidden ml-5 pl-4 border-l border-slate-200/80 space-y-1">
+                  <div className="overflow-hidden ml-5 pl-4 border-l border-slate-200/80 dark:border-slate-800 space-y-1">
                     {layananGroup.children.map((subItem) => (
                       <NavLink
                         key={subItem.to}
@@ -247,8 +251,8 @@ export default function Sidebar() {
                         className={({ isActive }) =>
                           `flex items-center min-h-9 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
                             isActive
-                              ? 'text-teal-700 bg-teal-50/80 font-semibold border-teal-200/40'
-                              : 'border-transparent text-slate-500 hover:text-[#0f172a] hover:bg-slate-100/60'
+                              ? 'text-primary bg-primary-subtle font-bold border-primary-border'
+                              : 'bg-transparent border-transparent text-slate-500 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
                           }`
                         }
                       >
@@ -279,8 +283,8 @@ export default function Sidebar() {
                     const isItemActive = isActive || isKeteranganActive || isWartaActive;
                     return `group relative flex items-center gap-3 px-3.5 min-h-11 rounded-xl text-sm font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
                       isItemActive
-                        ? 'bg-teal-50 text-teal-800 font-semibold border-teal-200/60 shadow-2xs'
-                        : 'border-transparent text-slate-600 hover:text-[#0f172a] hover:bg-slate-100/70'
+                        ? 'bg-primary-subtle text-primary font-bold border-primary-border shadow-2xs'
+                        : 'bg-transparent border-transparent text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
                     } ${isCollapsed ? 'justify-center px-0' : ''}`;
                   }}
                 >
@@ -303,7 +307,7 @@ export default function Sidebar() {
                 <button
                   type="button"
                   onClick={() => toggleSubmenu(adminGroup.label)}
-                  className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border border-transparent transition-colors duration-150 text-slate-600 hover:text-[#0f172a] hover:bg-slate-100/70 outline-none focus:outline-none [touch-action:manipulation] cursor-pointer ${
+                  className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border bg-transparent border-transparent transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70 outline-none focus:outline-none [touch-action:manipulation] cursor-pointer ${
                     isCollapsed ? 'justify-center px-0' : ''
                   }`}
                 >
@@ -339,7 +343,7 @@ export default function Sidebar() {
                         : 'grid-rows-[0fr] opacity-0'
                     }`}
                   >
-                    <div className="overflow-hidden ml-5 pl-4 border-l border-slate-200/80 space-y-1">
+                    <div className="overflow-hidden ml-5 pl-4 border-l border-slate-200/80 dark:border-slate-800 space-y-1">
                       {adminGroup.children.map((subItem) => (
                         <NavLink
                           key={subItem.to}
@@ -348,8 +352,8 @@ export default function Sidebar() {
                           className={({ isActive }) =>
                             `flex items-center min-h-9 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
                               isActive
-                                ? 'text-teal-700 bg-teal-50/80 font-semibold border-teal-200/40'
-                                : 'border-transparent text-slate-500 hover:text-[#0f172a] hover:bg-slate-100/60'
+                                ? 'text-primary bg-primary-subtle font-bold border-primary-border'
+                                : 'bg-transparent border-transparent text-slate-500 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
                             }`
                           }
                         >

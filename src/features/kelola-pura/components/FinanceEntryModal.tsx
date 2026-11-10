@@ -203,31 +203,31 @@ export const FinanceEntryModal: React.FC<FinanceEntryModalProps> = ({
       />
 
       {/* Kontainer Kartu Modal */}
-      <div className="relative bg-white rounded-3xl border border-slate-200/90 shadow-2xl w-full max-w-lg overflow-hidden z-10 flex flex-col max-h-[90vh]">
+      <div className="relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xl w-full max-w-lg overflow-hidden z-10 flex flex-col max-h-[90vh]">
         {/* Header Modal */}
-        <div className="bg-gradient-to-r from-teal-50 via-white to-emerald-50/50 p-5 sm:p-6 border-b border-slate-200/80 shrink-0">
+        <div className="bg-gradient-to-r from-teal-50 via-white to-emerald-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-800 p-5 sm:p-6 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-3.5 bg-[#0e9f90] rounded-full inline-block" />
-                <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d9488]">
+                <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d9488] dark:text-teal-300">
                   Administrasi Kas Pura
                 </span>
               </div>
               <h2
                 id="finance-modal-title"
-                className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight"
+                className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight"
               >
                 {isEditing ? 'Ubah Catatan Kas' : 'Catat Transaksi Kas Baru'}
               </h2>
-              <p className="text-xs text-slate-500 font-medium line-clamp-1">{puraName}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium line-clamp-1">{puraName}</p>
             </div>
 
             <button
               type="button"
               onClick={onClose}
               aria-label="Tutup formulir keuangan"
-              className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus:outline-hidden cursor-pointer"
+              className="min-h-[40px] min-w-[40px] inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-hidden cursor-pointer"
             >
               <X className="w-5 h-5" aria-hidden="true" />
             </button>

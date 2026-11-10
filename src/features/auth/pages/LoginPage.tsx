@@ -29,12 +29,7 @@ export default function LoginPage() {
   const { isAuthenticated } = useAuthStore();
 
   // Ambil state redirect jika pengguna sebelumnya dicegat oleh route guard
-  const from = (location.state as any)?.from?.pathname || '/';
-
-  // Jika sudah terotentikasi, otomatis alihkan ke halaman utama/asal
-  if (isAuthenticated) {
-    return <Navigate to={from} replace />;
-  }
+  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/';
 
   // State Formulir
   const [email, setEmail] = useState('');
@@ -52,6 +47,11 @@ export default function LoginPage() {
     email: string;
     name: string;
   } | null>(null);
+
+  // Jika sudah terotentikasi, otomatis alihkan ke halaman utama/asal
+  if (isAuthenticated) {
+    return <Navigate to={from} replace />;
+  }
 
   // ============================================================================
   // HANDLER: SUBMIT LOGIN MANUAL (Email + Kata Sandi)
@@ -81,13 +81,14 @@ export default function LoginPage() {
 
       // Arahkan pengguna ke halaman tujuan atau dashboard
       navigate(from, { replace: true });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const authErr = err as { code?: string; message?: string };
       // Deteksi jika akun terdaftar tetapi belum verifikasi email (HTTP 403 EMAIL_NOT_VERIFIED)
-      if (err.code === 'EMAIL_NOT_VERIFIED' || err.message?.toLowerCase().includes('not verified')) {
+      if (authErr.code === 'EMAIL_NOT_VERIFIED' || authErr.message?.toLowerCase().includes('not verified')) {
         setErrorMessage('Akun Anda belum diverifikasi. Kode verifikasi baru telah dikirimkan ke email Anda.');
         setShowVerifyModal(true);
       } else {
-        setErrorMessage(err.message || 'Email atau kata sandi yang Anda masukkan salah.');
+        setErrorMessage(authErr.message || 'Email atau kata sandi yang Anda masukkan salah.');
       }
     } finally {
       setIsLoading(false);
@@ -136,8 +137,9 @@ export default function LoginPage() {
           navigate(from, { replace: true });
         }
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Gagal masuk dengan akun Google.');
+    } catch (err: unknown) {
+      const authErr = err as { message?: string };
+      setErrorMessage(authErr.message || 'Gagal masuk dengan akun Google.');
     } finally {
       setIsLoading(false);
     }
@@ -176,7 +178,7 @@ export default function LoginPage() {
       >
         {/* Banner Pesan Error */}
         {errorMessage && (
-          <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-start gap-2.5">
+          <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
             <span className="leading-snug">{errorMessage}</span>
           </div>
@@ -188,7 +190,7 @@ export default function LoginPage() {
           <div className="space-y-1.5">
             <label
               htmlFor="login-email"
-              className="text-xs sm:text-sm font-semibold text-[#0f172a] block"
+              className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-slate-200 block"
             >
               Email
             </label>
@@ -200,7 +202,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Masukkan email"
-              className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+              className="w-full h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
             />
           </div>
 
@@ -208,7 +210,7 @@ export default function LoginPage() {
           <div className="space-y-1.5">
             <label
               htmlFor="login-password"
-              className="text-xs sm:text-sm font-semibold text-[#0f172a] block"
+              className="text-xs sm:text-sm font-semibold text-[#0f172a] dark:text-slate-200 block"
             >
               Password
             </label>
@@ -221,13 +223,13 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
-                className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+                className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
               />
               {/* Tombol Intip / Sembunyikan Password */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer [touch-action:manipulation]"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer [touch-action:manipulation]"
                 aria-label={showPassword ? 'Sembunyikan password' : 'Lihat password'}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}

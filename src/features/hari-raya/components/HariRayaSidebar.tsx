@@ -79,14 +79,14 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
       {/* ================================================================= */}
       {/* KARTU: Panel "Hari Raya Terdekat"                                 */}
       {/* ================================================================= */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
         {/* Header Kartu: Judul dan Badge Sisa Hari */}
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] tracking-tight">
+          <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight">
             Hari Raya Terdekat
           </h3>
           {upcomingInfo && (
-            <span className="bg-amber-100 text-amber-800 border border-amber-300 font-extrabold text-[11px] rounded-full px-2.5 py-0.5 uppercase tracking-wider select-none shrink-0">
+            <span className="bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800/80 font-extrabold text-[11px] rounded-full px-2.5 py-0.5 uppercase tracking-wider select-none shrink-0">
               {upcomingInfo.daysRemaining === 0
                 ? 'HARI INI'
                 : `${upcomingInfo.daysRemaining} HARI`}
@@ -96,7 +96,7 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
 
         {/* Highlight Box Hijau Toska Lembut dengan Ilustrasi Bulan */}
         {upcomingInfo ? (
-          <div className="bg-[#f0fdf9] border border-teal-200/80 rounded-2xl p-5 relative overflow-hidden space-y-3">
+          <div className="bg-[#f0fdf9] dark:bg-slate-800/80 border border-teal-200/80 dark:border-teal-500/30 rounded-2xl p-5 relative overflow-hidden space-y-3">
             {/* Ilustrasi Vektor Bulan Purnama Lembut di Sisi Kanan Atas */}
             <div className="absolute -top-3 -right-3 w-28 h-28 pointer-events-none opacity-25">
               <svg viewBox="0 0 100 100" fill="none" className="w-full h-full">
@@ -109,7 +109,7 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
             </div>
 
             {/* Tanggal Masehi Lengkap */}
-            <span className="text-xs font-semibold text-teal-800 block relative z-10">
+            <span className="text-xs font-semibold text-teal-800 dark:text-teal-300 block relative z-10">
               {upcomingInfo.item.dayName ? `${capitalize(upcomingInfo.item.dayName)}, ` : ''}
               {upcomingInfo.item.dayNumber}{' '}
               {NAMA_BULAN_INDO[parseInt(upcomingInfo.item.tanggal.split('-')[1], 10) - 1]}{' '}
@@ -118,30 +118,30 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
 
             {/* Judul Besar Hari Raya */}
             <div className="relative z-10">
-              <h4 className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] tracking-tight">
+              <h4 className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] dark:text-white tracking-tight">
                 {upcomingInfo.item.nama}
               </h4>
               {upcomingInfo.moonPhaseText && (
-                <span className="text-xs font-semibold text-teal-700 block mt-0.5">
+                <span className="text-xs font-semibold text-teal-700 dark:text-teal-300 block mt-0.5">
                   {upcomingInfo.moonPhaseText}
                 </span>
               )}
             </div>
 
             {/* Uraian Makna Filosofis Lengkap Langsung di Kartu */}
-            <div className="pt-2 border-t border-teal-200/60 space-y-1.5 relative z-10">
-              <span className="text-[11px] font-extrabold text-teal-900 uppercase tracking-wider flex items-center gap-1.5">
-                <BookOpen className="w-3.5 h-3.5 text-teal-700" />
+            <div className="pt-2 border-t border-teal-200/60 dark:border-slate-700 space-y-1.5 relative z-10">
+              <span className="text-[11px] font-extrabold text-teal-900 dark:text-teal-300 uppercase tracking-wider flex items-center gap-1.5">
+                <BookOpen className="w-3.5 h-3.5 text-teal-700 dark:text-teal-400" />
                 Makna Filosofis
               </span>
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-normal whitespace-pre-line">
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-normal whitespace-pre-line">
                 {upcomingInfo.item.keterangan ||
                   'Hari pemujaan suci ini dirayakan oleh umat Hindu di Bali untuk memohon kerahayuan, penyucian lahir dan batin, serta keharmonisan jagat raya sekala dan niskala.'}
               </p>
             </div>
           </div>
         ) : (
-          <div className="bg-[#f8fafc] rounded-xl p-4 text-center text-xs text-slate-500">
+          <div className="bg-[#f8fafc] dark:bg-slate-800/60 rounded-xl p-4 text-center text-xs text-slate-500 dark:text-slate-400">
             Tidak ada perayaan terdekat yang ditemukan.
           </div>
         )}

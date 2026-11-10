@@ -41,6 +41,24 @@ import { RamalanSifatSkeleton } from '@/features/ramalan-sifat/components/Ramala
 const AlaAyuningDewasaPage = lazy(() => import('@/features/ala-ayuning-dewasa/pages/AlaAyuningDewasaPage'));
 import { AlaAyuningSkeleton } from '@/features/ala-ayuning-dewasa/components/AlaAyuningSkeleton';
 
+// Pemuatan halaman Mengatur Dewasa dilakukan saat rute dibuka.
+const MengaturDewasaPage = lazy(() => import('@/features/mengatur-dewasa/pages/MengaturDewasaPage'));
+import { MengaturDewasaSkeleton } from '@/features/mengatur-dewasa/components/MengaturDewasaSkeleton';
+
+// Import komponen halaman Ramalan Jodoh dengan Route-Level Code Splitting (fe_strategy.md 8.12)
+const JodohPage = lazy(() => import('@/features/jodoh/pages/JodohPage'));
+import { JodohSkeleton } from '@/features/jodoh/components/JodohSkeleton';
+
+// Import komponen halaman Garis Hidup dengan Route-Level Code Splitting (fe_strategy.md 8.12)
+const GarisHidupPage = lazy(() => import('@/features/garis-hidup/pages/GarisHidupPage'));
+import { GarisHidupSkeleton } from '@/features/garis-hidup/components/GarisHidupSkeleton';
+
+// Import komponen halaman Bhagawad Gita dengan Route-Level Code Splitting (fe_strategy.md 8.12)
+const BhagawadGitaPage = lazy(() => import('@/features/bhagawad-gita/pages/BhagawadGitaPage'));
+const BhagawadGitaChapterPage = lazy(() => import('@/features/bhagawad-gita/pages/BhagawadGitaChapterPage'));
+const BhagawadGitaTopicPage = lazy(() => import('@/features/bhagawad-gita/pages/BhagawadGitaTopicPage'));
+import { BhagawadGitaSkeleton } from '@/features/bhagawad-gita/components/BhagawadGitaSkeleton';
+
 // Import komponen-komponen halaman Manajemen Admin
 import AdminUserPage from '@/features/admin/pages/AdminUserPage';
 import AdminTransactionPage from '@/features/admin/pages/AdminTransactionPage';
@@ -127,6 +145,34 @@ export default function AppRoutes() {
           <Route path="ramalan_sifat" element={<Navigate to="/ramalan-sifat" replace />} />
 
           {/* ==================================================================== */}
+          {/* HALAMAN GARIS HIDUP (PAL SRI SEDANA / PERJALANAN HIDUP WARIGA)      */}
+          {/* ==================================================================== */}
+          <Route
+            path="garis-hidup"
+            element={
+              <Suspense fallback={<GarisHidupSkeleton />}>
+                <GarisHidupPage />
+              </Suspense>
+            }
+          />
+          <Route path="layanan/garis-hidup" element={<Navigate to="/garis-hidup" replace />} />
+          <Route path="garis_hidup" element={<Navigate to="/garis-hidup" replace />} />
+
+          {/* ==================================================================== */}
+          {/* HALAMAN JODOH (RAMALAN KECOCOKAN PERJODOHAN PAL SRI SEDANA)         */}
+          {/* ==================================================================== */}
+          <Route
+            path="jodoh"
+            element={
+              <Suspense fallback={<JodohSkeleton />}>
+                <JodohPage />
+              </Suspense>
+            }
+          />
+          <Route path="layanan/jodoh" element={<Navigate to="/jodoh" replace />} />
+          <Route path="ramalan-jodoh" element={<Navigate to="/jodoh" replace />} />
+
+          {/* ==================================================================== */}
           {/* HALAMAN ALA AYUNING DEWASA (PADEWASAN / HARI BAIK & BURUK BALI)      */}
           {/* ==================================================================== */}
           <Route
@@ -140,6 +186,42 @@ export default function AppRoutes() {
           <Route path="layanan/ala-ayuning-dewasa" element={<Navigate to="/ala-ayuning-dewasa" replace />} />
           <Route path="ala_ayuning_dewasa" element={<Navigate to="/ala-ayuning-dewasa" replace />} />
           <Route path="ala_ayuning_dewasa_page" element={<Navigate to="/ala-ayuning-dewasa" replace />} />
+
+          {/* Katalog dapat dilihat publik; backend meminta login saat pencarian. */}
+          <Route path="mengatur-dewasa" element={<Suspense fallback={<MengaturDewasaSkeleton />}><MengaturDewasaPage /></Suspense>} />
+          <Route path="layanan/mengatur-dewasa" element={<Navigate to="/mengatur-dewasa" replace />} />
+
+          {/* ==================================================================== */}
+          {/* HALAMAN BHAGAWAD GITA (18 BAB, 700 SLOKA, & REFLEKSI HIDUP)          */}
+          {/* ==================================================================== */}
+          <Route
+            path="bhagawadgita"
+            element={
+              <Suspense fallback={<BhagawadGitaSkeleton />}>
+                <BhagawadGitaPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="bhagawadgita/bab/:chapterNumber"
+            element={
+              <Suspense fallback={<BhagawadGitaSkeleton />}>
+                <BhagawadGitaChapterPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="bhagawadgita/topik/:topicId"
+            element={
+              <Suspense fallback={<BhagawadGitaSkeleton />}>
+                <BhagawadGitaTopicPage />
+              </Suspense>
+            }
+          />
+          <Route path="bhagavad-gita" element={<Navigate to="/bhagawadgita" replace />} />
+          <Route path="layanan/bhagawadgita" element={<Navigate to="/bhagawadgita" replace />} />
+          <Route path="layanan/bhagavad-gita" element={<Navigate to="/bhagawadgita" replace />} />
+          <Route path="gita" element={<Navigate to="/bhagawadgita" replace />} />
 
           {/* ==================================================================== */}
           {/* RUTE TERLINDUNGI LOGIN (MEMBER, GUEST TERDAFTAR, & ADMIN)            */}

@@ -49,8 +49,16 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Jika token tidak valid / kedaluwarsa (401 Unauthorized), hapus sesi pengguna
-    if (error.response?.status === 401) {
+    // Pertahankan identitas pembatalan agar query tidak menganggapnya gangguan server.
+    if (axios.isCancel(error)) {
+      return Promise.reject(error);
+    }
+
+    // Respons 401 dari token lama tidak boleh menghapus sesi yang sudah berganti.
+    const activeToken = useAuthStore.getState().token;
+    const headers = error.config?.headers;
+    const requestAuthorization = headers?.get?.('Authorization') ?? headers?.Authorization;
+    if (error.response?.status === 401 && activeToken && requestAuthorization === `Bearer ${activeToken}`) {
       useAuthStore.getState().logout();
     }
 
