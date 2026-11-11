@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { getTodayWITA } from '@/features/kalender/utils/calendarUtils';
+import { popoverVariants } from '@/lib/animations';
 
 /**
  * ============================================================================
@@ -131,9 +133,13 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
   const [inputText, setInputText] = useState<string>(toDisplayDate(value));
 
   // Sinkronisasi inputText jika props value berubah dari luar (misal URL params / reset)
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [value];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     setInputText(toDisplayDate(value));
-  }, [value]);
+
+  }
 
   // State tampilan bulan & tahun pada kalender popover
   const initialParsed = parseDateParts(value);
@@ -147,13 +153,17 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Sinkronisasi viewYear & viewMonth saat nilai value berubah
-  useEffect(() => {
+  const [previousInputs2, setPreviousInputs2] = useState<readonly unknown[] | null>(null);
+  const currentInputs2 = [value];
+  if (previousInputs2 === null || currentInputs2.some((value, index) => !Object.is(value, previousInputs2[index]))) {
+    setPreviousInputs2(currentInputs2);
     const parsed = parseDateParts(value);
     if (parsed) {
       setViewYear(parsed.year);
       setViewMonth(parsed.month);
     }
-  }, [value]);
+
+  }
 
   // Listener klik di luar komponen untuk menutup popover
   useEffect(() => {
@@ -303,13 +313,19 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
       {/* =================================================================== */}
       {/* POPOVER KALENDER ESTETIK                                            */}
       {/* =================================================================== */}
-      {isOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="absolute left-0 top-full mt-2 w-80 sm:w-88 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 z-50 animate-in fade-in zoom-in-95 duration-150 select-none"
-        >
-          {/* Header Popover: Selektor Cepat Bulan, Tahun, dan Tombol Navigasi */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="datepicker-popover"
+            variants={popoverVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            role="dialog"
+            aria-modal="true"
+            className="absolute left-0 top-full mt-2 w-80 sm:w-88 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 z-50 select-none"
+          >
+            {/* Header Popover: Selektor Cepat Bulan, Tahun, dan Tombol Navigasi */}
           <div className="flex items-center justify-between gap-1 pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
             {/* Navigasi Bulan Mundur */}
             <button
@@ -462,9 +478,10 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
               <span>Tutup</span>
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </AnimatePresence>
+  </div>
   );
 };
 

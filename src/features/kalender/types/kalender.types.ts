@@ -42,6 +42,17 @@ export interface Wewaran {
   wuku: ElemenKalender;
   /** Neptu = urip Saptawara + urip Pancawara (integer 7–18), dihitung backend Go tanpa hit DB */
   neptu?: number;
+  ingkel?: ElemenKalender;
+  jejepan?: ElemenKalender;
+  lintang?: ElemenKalender;
+  panca_sudha?: ElemenKalender;
+  pangarasan?: ElemenKalender;
+  rakam?: ElemenKalender;
+  watek_madya?: ElemenKalender;
+  watek_alit?: ElemenKalender;
+  eka_jala_rsi?: ElemenKalender;
+  zodiak?: ElemenKalender;
+  pratiti?: ElemenKalender;
 }
 
 // ---------------------------------------------------------------------------
@@ -98,6 +109,12 @@ export interface KalenderHarian {
   sasih: SasihInfo;
   pengalantaka: PengalantakaInfo;
   hari_raya: HariRayaItem[];
+  padewasan?: {
+    id?: string;
+    nama: string;
+    keterangan?: string;
+    severity_code?: string;
+  }[];
 }
 
 /**

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, ChevronDown, AlertCircle } from 'lucide-react';
 import { AestheticDatePicker } from '@/components/ui/AestheticDatePicker';
 import { getTodayWITA } from '@/features/kalender/utils/calendarUtils';
@@ -86,11 +86,15 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Sinkronisasi state lokal jika props berubah (misal saat navigasi URL)
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [initialBirthDate, initialSebelumJam6];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     setDisplayDate(toDisplayDate(initialBirthDate || ''));
     setSebelumJam6(initialSebelumJam6 || false);
     setValidationError(null);
-  }, [initialBirthDate, initialSebelumJam6]);
+
+  }
 
   // -------------------------------------------------------------------------
   // BLOK 2: HANDLER VALIDASI & SUBMIT FORM

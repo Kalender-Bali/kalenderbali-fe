@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   User,
   Heart,
@@ -71,21 +71,37 @@ export const JodohFormSection: React.FC<JodohFormSectionProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Sinkronisasi state lokal jika props awal berubah (misal: tombol Back browser atau Swap)
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [initialNamaDiri];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     setNamaDiri(initialNamaDiri);
-  }, [initialNamaDiri]);
 
-  useEffect(() => {
+  }
+
+  const [previousInputs2, setPreviousInputs2] = useState<readonly unknown[] | null>(null);
+  const currentInputs2 = [initialTanggalLahirDiri];
+  if (previousInputs2 === null || currentInputs2.some((value, index) => !Object.is(value, previousInputs2[index]))) {
+    setPreviousInputs2(currentInputs2);
     setTanggalLahirDiri(initialTanggalLahirDiri);
-  }, [initialTanggalLahirDiri]);
 
-  useEffect(() => {
+  }
+
+  const [previousInputs3, setPreviousInputs3] = useState<readonly unknown[] | null>(null);
+  const currentInputs3 = [initialNamaPasangan];
+  if (previousInputs3 === null || currentInputs3.some((value, index) => !Object.is(value, previousInputs3[index]))) {
+    setPreviousInputs3(currentInputs3);
     setNamaPasangan(initialNamaPasangan);
-  }, [initialNamaPasangan]);
 
-  useEffect(() => {
+  }
+
+  const [previousInputs4, setPreviousInputs4] = useState<readonly unknown[] | null>(null);
+  const currentInputs4 = [initialTanggalLahirPasangan];
+  if (previousInputs4 === null || currentInputs4.some((value, index) => !Object.is(value, previousInputs4[index]))) {
+    setPreviousInputs4(currentInputs4);
     setTanggalLahirPasangan(initialTanggalLahirPasangan);
-  }, [initialTanggalLahirPasangan]);
+
+  }
 
   // -------------------------------------------------------------------------
   // BLOK 2: HANDLER AKSI TUKAR POSISI (SWAP)

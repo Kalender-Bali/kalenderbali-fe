@@ -115,7 +115,7 @@ export const DashboardMiniCalendar: React.FC<DashboardMiniCalendarProps> = ({
               key={day.dateString}
               type="button"
               onClick={() => onSelectDate(day.dateString)}
-              className={`min-h-[64px] sm:min-h-[72px] lg:min-h-[76px] p-1.5 sm:p-2 rounded-xl text-left flex flex-col justify-between transition-all cursor-pointer [touch-action:manipulation] relative ${
+              className={`min-h-[64px] sm:min-h-[72px] lg:min-h-[76px] p-1.5 sm:p-2 rounded-xl text-left flex flex-col justify-between transition-all duration-150 active:scale-[0.96] cursor-pointer [touch-action:manipulation] relative ${
                 day.isToday || day.isSelected
                   ? 'border-2 border-primary bg-primary-subtle dark:bg-primary-subtle ring-2 ring-primary/20'
                   : day.isCurrentMonth

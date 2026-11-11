@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { useState, useEffect } from 'react';
 import { Mail, X, AlertCircle, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
 import { authService } from '../services/authService';
@@ -44,12 +45,17 @@ export default function EmailVerificationModal({
   const [cooldown, setCooldown] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
+  const [previousTimerKey, setPreviousTimerKey] = useState('');
+  const timerKey = `${isOpen}:${email}`;
+  if (previousTimerKey !== timerKey) {
+    setPreviousTimerKey(timerKey);
+    setCooldown(60);
+    setCanResend(false);
+  }
+
   // Timer hitung mundur 60 detik untuk tombol kirim ulang kode
   useEffect(() => {
     if (!isOpen) return;
-
-    setCooldown(60);
-    setCanResend(false);
 
     const timer = setInterval(() => {
       setCooldown((prev) => {
@@ -100,7 +106,8 @@ export default function EmailVerificationModal({
       setTimeout(() => {
         onVerified();
       }, 1000);
-    } catch (err: any) {
+    } catch (caught) {
+    const err = toApiError(caught);
       const remaining = err.remainingAttempts;
       if (remaining !== undefined) {
         setErrorMessage(`Kode salah. Sisa kesempatan mencoba: ${remaining} kali.`);
@@ -123,7 +130,8 @@ export default function EmailVerificationModal({
       setSuccessMessage('Kode verifikasi baru telah dikirimkan ke email Anda.');
       setCooldown(60);
       setCanResend(false);
-    } catch (err: any) {
+    } catch (caught) {
+    const err = toApiError(caught);
       setErrorMessage(err.message || 'Gagal mengirim ulang kode. Silakan coba lagi.');
     }
   };

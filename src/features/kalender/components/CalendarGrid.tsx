@@ -1,7 +1,9 @@
 import React from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import type { CalendarGridDay } from '../types/kalender.types';
 import { getHariRayaBadgeStyle } from '../utils/calendarUtils';
+import { EASE_SMOOTH } from '@/lib/animations';
 
 /**
  * ============================================================================
@@ -35,6 +37,8 @@ interface CalendarGridProps {
 const HARI_SINGKAT = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];
 
 export const CalendarGrid: React.FC<CalendarGridProps> = ({
+  year,
+  month,
   gridCells,
   onSelectDate,
   onPrevMonth,
@@ -50,17 +54,24 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 min-h-[46px]">
         {/* Sisi Kiri: Tombol Hari Ini (Hanya muncul jika tanggal/bulan tidak di hari ini) */}
         <div>
-          {canResetToday && (
-            <button
-              type="button"
-              onClick={onResetToday}
-              className="inline-flex items-center gap-1.5 h-9 px-3.5 text-xs font-bold text-white bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] rounded-xl shadow-xs transition-all active:scale-98 cursor-pointer animate-in fade-in duration-150 [touch-action:manipulation]"
-              title="Kembali ke tanggal hari ini"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-white" />
-              <span>Hari ini</span>
-            </button>
-          )}
+          <AnimatePresence>
+            {canResetToday && (
+              <motion.button
+                key="btn-reset-today"
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                transition={{ duration: 0.16, ease: EASE_SMOOTH }}
+                type="button"
+                onClick={onResetToday}
+                className="inline-flex items-center gap-1.5 h-9 px-3.5 text-xs font-bold text-white bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] rounded-xl shadow-xs transition-all active:scale-98 cursor-pointer [touch-action:manipulation]"
+                title="Kembali ke tanggal hari ini"
+              >
+                <RotateCcw className="w-3.5 h-3.5 text-white" />
+                <span>Hari ini</span>
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Sisi Kanan: Navigasi Panah < dan > */}
@@ -105,7 +116,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       {/* ========================================================= */}
       {/* 3. MATRIKS SEL TANGGAL (GRID 7 KOLOM - TEPI TEGAS)        */}
       {/* ========================================================= */}
-      <div className="grid grid-cols-7 border-t border-l border-slate-200/90 dark:border-slate-800 mt-1">
+      <motion.div
+        key={`${year}-${month}`}
+        initial={{ opacity: 0.65 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2, ease: EASE_SMOOTH }}
+        className="grid grid-cols-7 border-t border-l border-slate-200/90 dark:border-slate-800 mt-1"
+      >
         {gridCells.map((cell, idx) => {
           const { dateString, dayNumber, isCurrentMonth, isToday, isSelected, data } = cell;
           const hariRayaList = data?.hari_raya || [];
@@ -180,7 +197,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             </div>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 };

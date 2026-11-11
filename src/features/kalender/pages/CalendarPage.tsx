@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { EASE_SMOOTH } from '@/lib/animations';
 import { useKalenderTahun, useMonthlyPiodalan } from '../hooks/useKalender';
 import {
   exportHariRayaToICS,
@@ -177,7 +179,12 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="space-y-6 w-full max-w-[1560px] mx-auto pb-12">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.24, ease: EASE_SMOOTH }}
+      className="space-y-6 w-full max-w-[1560px] mx-auto pb-12"
+    >
       {/* ========================================================= */}
       {/* 1. HEADER HALAMAN & TOMBOL AKSI CEPAT                     */}
       {/* ========================================================= */}
@@ -236,6 +243,8 @@ export default function CalendarPage() {
         {/* Kolom Kiri (~67%): Matriks Bulanan 7 Kolom */}
         <div className="lg:col-span-8">
           <CalendarGrid
+            year={activeYear}
+            month={activeMonth}
             gridCells={gridCells}
             onSelectDate={handleSelectDate}
             onPrevMonth={handlePrevMonth}
@@ -278,6 +287,6 @@ export default function CalendarPage() {
         dateString={selectedDate}
         dayData={selectedData}
       />
-    </div>
+    </motion.div>
   );
 }

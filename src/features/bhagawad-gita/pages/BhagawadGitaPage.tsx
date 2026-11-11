@@ -64,13 +64,17 @@ export default function BhagawadGitaPage() {
   });
 
   // Sinkronkan state saat URL query berubah (misal navigasi Back/Forward browser)
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [searchParams];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     const tabParam = searchParams.get('tab') as BhagawadGitaTab | null;
     setActiveTab(tabParam === 'topics' ? tabParam : 'chapters');
     setIsSemanticMode(searchParams.get('mode') === 'semantic');
     setSelectedTopicId(searchParams.get('topic') || undefined);
     setSearchQuery(searchParams.get('q') || '');
-  }, [searchParams]);
+
+  }
 
   // Handler pergantian mode: Pencarian Teks vs Pencarian Pintar (IR)
   const handleModeChange = (semantic: boolean) => {

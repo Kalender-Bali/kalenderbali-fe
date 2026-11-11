@@ -11,12 +11,13 @@
  *     bersama oleh Hero "Hari Ini", Mini Kalender, dan daftar Hari Raya Berikutnya.
  *  3. TIMEZONE LOCK: Mengunci evaluasi tanggal harian ke zona waktu absolut
  *     WITA (UTC+8 / Asia/Makassar) menggunakan getTodayWITA().
- *  4. DECOUPLED MOCK: Membungkus data Dewasa Ayu dan Piodalan terdekat sehingga
- *     siap disambungkan ke API backend tanpa merusak komponen antarmuka.
+ *  4. Memakai ringkasan padewasan dan aturan piodalan dari data API.
  * ============================================================================
  */
 
 import { useState, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchDewasaAyuToday } from '@/features/ala-ayuning-dewasa/api/alaAyuningApi';
 import { useKalenderTahun } from '@/features/kalender/hooks/useKalender';
 import { useAllPuras } from '@/features/piodalan/hooks/usePiodalan';
 import {
@@ -34,9 +35,6 @@ import type {
   PiodalanDashboardItem,
   UpcomingHariRayaItem,
 } from '../types/dashboard.types';
-import {
-  DEFAULT_DEWASA_AYU,
-} from '../data/dashboardMockData';
 import {
   extractTopUpcomingHariRaya,
   extractTopUpcomingPiodalan,
@@ -81,10 +79,21 @@ export function useDashboardData() {
   const { kalenderData: todayYearCalendarDays = [] } = useKalenderTahun(todayParsed.year);
 
   // Konsumsi data tahun berikutnya untuk kesinambungan agenda melewati batas pergantian tahun
-  const { kalenderData: nextCalendarYearDays = [] } = useKalenderTahun(calendarYear + 1);
+  const { kalenderData: nextCalendarYearDays = [] } = useKalenderTahun(calendarYear + 1, undefined, {
+    enabled: rawCalendarDays.length > 0 && calendarYear < 2200,
+  });
 
-  // Konsumsi master data 461 pura resmi dari Backend Go (staleTime 24 jam di RAM)
+  const { kalenderData: nextTodayYearCalendarDays = [] } = useKalenderTahun(todayParsed.year + 1, undefined, {
+    enabled: todayYearCalendarDays.length > 0 && todayParsed.year < 2200,
+  });
+
+  // Konsumsi master data pura resmi dari Backend Go (staleTime 24 jam di RAM)
   const { data: purasList = [] } = useAllPuras();
+  const dewasaToday = useQuery({
+    queryKey: ['ala-ayuning-dewasa', 'today', todayWITA],
+    queryFn: fetchDewasaAyuToday,
+    staleTime: 1000 * 60 * 5,
+  });
 
   // ---------------------------------------------------------------------------
   // 3. Kompilasi Data Hero "HARI INI"
@@ -92,17 +101,17 @@ export function useDashboardData() {
   // Mengagregasikan identitas wewaran hari ini (Saptawara, Pancawara, Wuku, Sasih,
   // Pengalantaka, Urip, Arah, dan Dina ka-) dari data tanggal todayWITA.
   const heroData: DashboardHeroData = useMemo(() => {
-    const todayDay = daysMap.get(todayWITA);
+    const todayDay = todayYearCalendarDays.find((day) => day.tanggal === todayWITA);
 
-    const saptawaraName = todayDay?.wewaran?.saptawara?.nama || 'Redite';
-    const pancawaraName = todayDay?.wewaran?.pancawara?.nama || 'Umanis';
-    const wukuName = todayDay?.wewaran?.wuku?.nama || 'Sinta';
-    const rawSasih = todayDay?.sasih?.nama_sasih || 'kapat';
+    const saptawaraName = todayDay?.wewaran?.saptawara?.nama || '-';
+    const pancawaraName = todayDay?.wewaran?.pancawara?.nama || '-';
+    const wukuName = todayDay?.wewaran?.wuku?.nama || '-';
+    const rawSasih = todayDay?.sasih?.nama_sasih || '-';
     const sasihName = rawSasih.charAt(0).toUpperCase() + rawSasih.slice(1);
 
     // Ambil pengalantaka (Penanggal / Panglong beserta angkanya)
-    const pengalantakaFase = todayDay?.pengalantaka?.pengalantaka || 'Panglong';
-    const penanggalAngka = todayDay?.pengalantaka?.penanggal_1 || 14;
+    const pengalantakaFase = todayDay?.pengalantaka?.pengalantaka || '-';
+    const penanggalAngka = todayDay?.pengalantaka?.penanggal_1 ?? '-';
     const pengalantakaFormatted = `${pengalantakaFase} ${penanggalAngka}`;
 
     // Hitung Urip, Arah Pengider-ider, dan Dina Ka- (1 s.d. 7) via helper matematis
@@ -117,12 +126,12 @@ export function useDashboardData() {
       wuku: wukuName,
       sasih: sasihName,
       pengalantaka: pengalantakaFormatted,
-      dinaKa: warigaSummary.dinaKa,
-      urip: warigaSummary.totalUrip,
-      arah: `Arah ${warigaSummary.arah.toLowerCase()}`,
-      quoteHariIni: 'Hari baik untuk belajar dan sembahyang',
+      dinaKa: todayDay ? warigaSummary.dinaKa : null,
+      urip: todayDay?.wewaran.neptu ?? null,
+      arah: todayDay ? `Arah ${warigaSummary.arah.toLowerCase()}` : 'Arah belum tersedia',
+      quoteHariIni: dewasaToday.data?.headline || 'Petunjuk padewasan belum tersedia.',
     };
-  }, [daysMap, todayWITA]);
+  }, [todayYearCalendarDays, todayWITA, dewasaToday.data]);
 
   // ---------------------------------------------------------------------------
   // 4. Generator Matriks Sel Mini Kalender Bulanan (Senin s.d. Minggu)
@@ -200,15 +209,19 @@ export function useDashboardData() {
   // ---------------------------------------------------------------------------
   // 8. Integrasi Data Dewasa Ayu Hari Ini & Piodalan Terdekat (Masing-masing 3 Item)
   // ---------------------------------------------------------------------------
-  const dewasaAyu: DewasaAyuDashboard = DEFAULT_DEWASA_AYU;
+  const dewasaAyu: DewasaAyuDashboard = {
+    status: dewasaToday.data?.status_label === 'BAIK' ? 'BAIK' : 'NETRAL',
+    statusLabel: dewasaToday.isLoading ? 'MEMUAT' : dewasaToday.data?.status_label || 'BELUM TERSEDIA',
+    headline: dewasaToday.data?.headline || (dewasaToday.isLoading ? 'Memuat petunjuk padewasan hari ini.' : 'Petunjuk padewasan belum tersedia.'),
+    items: (dewasaToday.data?.items ?? []).map((item) => ({
+      id: item.id, nama: item.nama, keterangan: item.keterangan || '', tag: 'PADEWASAN',
+    })),
+    actionUrl: '/ala-ayuning-dewasa',
+  };
 
   // Ekstraksi 3 piodalan pura terdekat setelah hari ini dari data real kalender & pura resmi
   const realUpcomingPiodalan: PiodalanDashboardItem[] = useMemo(() => {
-    // Gabungkan hari kalender tahun ini dan tahun depan jika kalender aktif di tahun berikutnya
-    const daysPool =
-      calendarYear === todayParsed.year + 1 && rawCalendarDays.length > 0
-        ? [...todayYearCalendarDays, ...rawCalendarDays]
-        : todayYearCalendarDays;
+    const daysPool = [...todayYearCalendarDays, ...nextTodayYearCalendarDays];
 
     return extractTopUpcomingPiodalan(
       daysPool,
@@ -216,7 +229,7 @@ export function useDashboardData() {
       todayWITA,
       3
     );
-  }, [todayYearCalendarDays, rawCalendarDays, purasList, todayWITA, calendarYear, todayParsed.year]);
+  }, [todayYearCalendarDays, nextTodayYearCalendarDays, purasList, todayWITA]);
 
   // Seluruh data piodalan di dashboard 100% menggunakan data real hasil kalkulasi master pura resmi backend Go
   const piodalan: PiodalanDashboardItem[] = realUpcomingPiodalan;

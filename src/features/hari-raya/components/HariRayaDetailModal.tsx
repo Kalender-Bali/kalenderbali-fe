@@ -110,7 +110,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
       // Abaikan jika storage diblokir peramban
     }
     const name = cardItem.nama || masterItem?.nama || 'Hari Raya';
-    setNotificationFeedback(`Pengingat untuk ${name} berhasil diaktifkan.`);
+    setNotificationFeedback(`Pengingat untuk ${name} telah diunduh. Impor berkas .ics ke aplikasi kalender Anda.`);
     setTimeout(() => setNotificationFeedback(null), 4000);
   };
 
@@ -124,7 +124,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
     } catch {
       // Abaikan jika storage diblokir peramban
     }
-    setNotificationFeedback('Pengingat telah dinonaktifkan.');
+    setNotificationFeedback('Preferensi lokal dihapus. Hapus juga acara di aplikasi kalender jika sudah diimpor.');
     setTimeout(() => setNotificationFeedback(null), 3000);
   };
 
@@ -274,7 +274,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
           )}
 
           <div className="flex items-center justify-end gap-2.5">
-            {/* Tombol "Aktifkan pengingat" di samping kiri tombol "Tutup" (Warna Teal Utama #0e9f90) */}
+            {/* Tombol "Unduh pengingat kalender" di samping kiri tombol "Tutup" (Warna Teal Utama #0e9f90) */}
             <button
               type="button"
               onClick={() => setIsReminderModalOpen(true)}
@@ -284,12 +284,12 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
               {isReminderActive ? (
                 <>
                   <BellRing className="w-4 h-4 text-white shrink-0" />
-                  <span>Pengingat Aktif</span>
+                  <span>Unduh Lagi</span>
                 </>
               ) : (
                 <>
                   <Bell className="w-4 h-4 text-white shrink-0" />
-                  <span>Aktifkan pengingat</span>
+                  <span>Unduh pengingat kalender</span>
                 </>
               )}
             </button>

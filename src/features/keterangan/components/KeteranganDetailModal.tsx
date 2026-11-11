@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import {
   AlertCircle,
   ExternalLink,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { KeteranganType, KeteranganValue } from '../types/keterangan.types';
 import { useKeteranganTypeDetail } from '../hooks/useKeterangan';
+import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
 
 /**
  * ============================================================================
@@ -97,7 +99,6 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  // Jangan render apapun jika modal dalam keadaan tertutup atau kategori belum dipilih
   if (!isOpen || !category) return null;
 
   const isZodiacCategory = category.code.toLowerCase() === 'zodiak';
@@ -106,18 +107,33 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-200"
-      onClick={onClose}
+      className="fixed inset-0 flex items-center justify-center p-4 z-[100]"
       aria-modal="true"
       role="dialog"
     >
-      <div
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+      {/* Backdrop Blur */}
+      <motion.div
+        key="keterangan-modal-backdrop"
+        variants={modalOverlayVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
+        onClick={onClose}
+      />
+
+      <motion.div
+        key="keterangan-modal-content"
+        variants={modalContentVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden z-10"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* =============================================================== */}
-        {/* 1. HEADER MODAL: Judul Kategori, Filosofi, & Tombol Tutup (X)     */}
-        {/* =============================================================== */}
+            {/* =============================================================== */}
+            {/* 1. HEADER MODAL: Judul Kategori, Filosofi, & Tombol Tutup (X)     */}
+            {/* =============================================================== */}
         <div className="p-6 sm:p-7 bg-gradient-to-r from-teal-50/60 via-slate-50/40 to-emerald-50/30 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 shrink-0">
           <div className="space-y-1.5 min-w-0 pr-2">
             {/* Lencana Modul Kategori */}
@@ -367,7 +383,7 @@ export const KeteranganDetailModal: React.FC<KeteranganDetailModalProps> = ({
             Tutup
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>,
     document.body
   );

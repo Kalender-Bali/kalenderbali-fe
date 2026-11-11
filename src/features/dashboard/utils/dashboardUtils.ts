@@ -17,6 +17,8 @@ import {
   formatFullIndoDate,
   getTodayWITA,
   toISODateString,
+  matchPurasForDay,
+  normalizeCalendarString,
 } from '@/features/kalender/utils/calendarUtils';
 import type {
   DashboardMiniCalendarDay,
@@ -380,37 +382,12 @@ export function extractTopUpcomingHariRaya(
 // ---------------------------------------------------------------------------
 
 /**
- * Normalisasi string wewaran/sasih agar toleran terhadap variasi kapitalisasi dan penulisan.
- */
-const normString = (s?: string | null): string => {
-  if (!s) return '';
-  const lower = s.toLowerCase().trim();
-  if (lower === 'kedasa') return 'kadasa';
-  if (lower === 'kenam') return 'kanem';
-  return lower;
-};
-
-/**
  * Kapitalisasi huruf pertama string (contoh: "buda" -> "Buda").
  */
 const capFirstLetter = (text?: string | null): string => {
   if (!text) return '';
   const trimmed = text.trim();
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
-};
-
-/**
- * Bobot prioritas kategori pura untuk penentuan urutan nama pura terkemuka:
- * Kahyangan Jagat / Sad Kahyangan (1) > Dang Kahyangan (2) > Kahyangan Tiga (3) > Swagina (4) > Kawitan (5) > Lainnya (6).
- */
-const getPuraPriorityScore = (type?: string | null): number => {
-  const t = (type || '').toLowerCase();
-  if (t.includes('kahyangan jagat') || t.includes('sad kahyangan')) return 1;
-  if (t.includes('dang kahyangan')) return 2;
-  if (t.includes('kahyangan tiga')) return 3;
-  if (t.includes('swagina')) return 4;
-  if (t.includes('kawitan')) return 5;
-  return 6;
 };
 
 /**
@@ -444,31 +421,6 @@ export function extractTopUpcomingPiodalan(
     return [];
   }
 
-  // 1. Indeks pura ke dalam hash map untuk pencarian O(1)
-  const pawukonMap = new Map<string, PuraBackendItem[]>();
-  const sasihMap = new Map<string, PuraBackendItem[]>();
-
-  for (const p of puras) {
-    const pWuku = normString(p.wuku);
-    const pSapta = normString(p.saptawara);
-    const pPanca = normString(p.pancawara);
-    if (pWuku && pSapta && pPanca) {
-      const key = `${pWuku}|${pSapta}|${pPanca}`;
-      const list = pawukonMap.get(key) || [];
-      list.push(p);
-      pawukonMap.set(key, list);
-    }
-
-    const pSasih = normString(p.sasih);
-    const pPT = normString(p.purnama_tilem);
-    if (pSasih && pPT) {
-      const key = `${pSasih}|${pPT}`;
-      const list = sasihMap.get(key) || [];
-      list.push(p);
-      sasihMap.set(key, list);
-    }
-  }
-
   // 2. Urutkan hari kalender secara kronologis
   const sortedDays = [...allDays].sort((a, b) => a.tanggal.localeCompare(b.tanggal));
   const results: PiodalanDashboardItem[] = [];
@@ -479,39 +431,11 @@ export function extractTopUpcomingPiodalan(
       continue;
     }
 
-    const dWuku = normString(day.wewaran?.wuku?.nama);
-    const dSapta = normString(day.wewaran?.saptawara?.nama);
-    const dPanca = normString(day.wewaran?.pancawara?.nama);
-    const dSasih = normString(day.sasih?.nama_sasih);
-    const dPT = normString(day.pengalantaka?.purnama_tilem);
-
-    const pawukonPuras =
-      dWuku && dSapta && dPanca
-        ? pawukonMap.get(`${dWuku}|${dSapta}|${dPanca}`) || []
-        : [];
-
-    const sasihPuras =
-      dSasih && (dPT === 'purnama' || dPT === 'tilem')
-        ? sasihMap.get(`${dSasih}|${dPT}`) || []
-        : [];
-
-    // Gabungkan pura yang piodalannya jatuh pada tanggal ini (dedup by id)
-    const combinedMap = new Map<number, PuraBackendItem>();
-    for (const p of pawukonPuras) combinedMap.set(p.id, p);
-    for (const p of sasihPuras) combinedMap.set(p.id, p);
-
-    const matchedPuras = Array.from(combinedMap.values());
-    if (matchedPuras.length === 0) {
-      continue;
-    }
-
-    // Urutkan pura berdasarkan prioritas kesakralan pura terkemuka
-    matchedPuras.sort((a, b) => {
-      const prioA = getPuraPriorityScore(a.type);
-      const prioB = getPuraPriorityScore(b.type);
-      if (prioA !== prioB) return prioA - prioB;
-      return a.name.localeCompare(b.name, 'id');
-    });
+    const matchedPuras = matchPurasForDay(day, puras);
+    if (matchedPuras.length === 0) continue;
+    const pawukonPuras = matchedPuras.filter(p => p.benchmark?.toLowerCase() !== 'sasih');
+    const sasihPuras = matchedPuras.filter(p => p.benchmark?.toLowerCase() === 'sasih');
+    const dPT = normalizeCalendarString(day.pengalantaka?.purnama_tilem);
 
     const topTemples = matchedPuras.slice(0, 3).map((p) => p.name);
 

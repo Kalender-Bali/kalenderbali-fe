@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
 import { useQuery } from '@tanstack/react-query';
 import { X, Sparkles, ArrowRight } from 'lucide-react';
 import type { OtonanResponseData } from '../types/otonan.types';
 import { fetchDayWariga } from '../api/otonanApi';
 import { formatIndoDate, getIndoDayName } from '../utils/otonanUtils';
-import {
-  calculateIngkel,
-  calculateNeptu,
-  calculateZodiak,
-  WARIGA_FALLBACK_VALUES,
-} from '../utils/warigaUtils';
+import { calculateZodiak } from '../utils/warigaUtils';
+import { WarigaDataState } from '@/features/otonan/components/WarigaDataState';
 import { WarigaExplanationModal } from './WarigaExplanationModal';
+import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
 
 /**
  * ============================================================================
@@ -95,7 +93,7 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
   // -------------------------------------------------------------------------
   // 2. QUERY DATA KALENDER HARIAN DARI BACKEND GO
   // -------------------------------------------------------------------------
-  const { data: dayData, isLoading } = useQuery({
+  const { data: dayData, isLoading, isError, refetch } = useQuery({
     queryKey: ['kalender', 'day', selectedDate],
     queryFn: async () => {
       if (!selectedDate) return null;
@@ -116,17 +114,15 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
   const sasih = dayData?.sasih;
   const pengalantaka = dayData?.pengalantaka;
 
-  const saptawaraName = w?.saptawara?.nama || birthElements?.saptawara || 'Redite';
-  const pancawaraName = w?.pancawara?.nama || birthElements?.pancawara || 'Umanis';
-  const wukuName = w?.wuku?.nama || birthElements?.wuku || 'Sinta';
+  const saptawaraName = w?.saptawara?.nama || birthElements?.saptawara || '-';
+  const pancawaraName = w?.pancawara?.nama || birthElements?.pancawara || '-';
+  const wukuName = w?.wuku?.nama || birthElements?.wuku || '-';
 
-  // Perhitungan dinamis / fallback budaya
-  const calculatedIngkel = calculateIngkel(wukuName) || WARIGA_FALLBACK_VALUES.ingkel;
-  const calculatedNeptu = calculateNeptu(saptawaraName, pancawaraName) || WARIGA_FALLBACK_VALUES.neptu;
-  const calculatedZodiak = calculateZodiak(selectedDate) || WARIGA_FALLBACK_VALUES.zodiak;
+  // Pertahankan konvensi Zodiak yang ada; atribut adat memakai hasil API.
+  const calculatedZodiak = calculateZodiak(selectedDate);
 
   // Kapitalisasi nama Sasih
-  const rawSasih = sasih?.nama_sasih || 'kasa';
+  const rawSasih = sasih?.nama_sasih || '-';
   const formattedSasih = rawSasih.charAt(0).toUpperCase() + rawSasih.slice(1);
 
   // Label tanggal & hari
@@ -139,10 +135,10 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
   // 4. SUSUNAN BARIS WARIGA PER SEKSI DENGAN METADATA KATEGORI
   // -------------------------------------------------------------------------
   const wewaranRows: WarigaRowItem[] = [
-    { label: 'Ekawara', value: w?.ekawara?.nama && w.ekawara.nama !== '-' ? w.ekawara.nama : 'Luang' },
-    { label: 'Dwiwara', value: w?.dwiwara?.nama || 'Pepet' },
-    { label: 'Triwara', value: w?.triwara?.nama || 'Beteng' },
-    { label: 'Caturwara', value: w?.caturwara?.nama || 'Sri' },
+    { label: 'Ekawara', value: w?.ekawara?.nama || '-' },
+    { label: 'Dwiwara', value: w?.dwiwara?.nama || '-' },
+    { label: 'Triwara', value: w?.triwara?.nama || '-' },
+    { label: 'Caturwara', value: w?.caturwara?.nama || '-' },
     {
       label: 'Pancawara',
       value: pancawaraName,
@@ -150,7 +146,7 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
       categoryCode: 'pancawara',
       categoryName: 'Pancawara',
     },
-    { label: 'Sadwara', value: w?.sadwara?.nama || 'Was' },
+    { label: 'Sadwara', value: w?.sadwara?.nama || '-' },
     {
       label: 'Saptawara',
       value: saptawaraName,
@@ -158,9 +154,9 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
       categoryCode: 'saptawara',
       categoryName: 'Saptawara',
     },
-    { label: 'Astawara', value: w?.astawara?.nama || 'Sri' },
-    { label: 'Sangawara', value: w?.sangawara?.nama || 'Jangur' },
-    { label: 'Dasawara', value: w?.dasawara?.nama || 'Duka' },
+    { label: 'Astawara', value: w?.astawara?.nama || '-' },
+    { label: 'Sangawara', value: w?.sangawara?.nama || '-' },
+    { label: 'Dasawara', value: w?.dasawara?.nama || '-' },
   ];
 
   const elemenLainnyaRows: WarigaRowItem[] = [
@@ -173,64 +169,64 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
     },
     {
       label: 'Ingkel',
-      value: calculatedIngkel,
+      value: w?.ingkel?.nama || '-',
       hasArrow: true,
       categoryCode: 'ingkel',
       categoryName: 'Ingkel',
     },
     {
       label: 'Jejepan',
-      value: WARIGA_FALLBACK_VALUES.jejepan,
+      value: w?.jejepan?.nama || '-',
       hasArrow: true,
       categoryCode: 'jejepan',
       categoryName: 'Jejepan',
     },
     {
       label: 'Lintang',
-      value: WARIGA_FALLBACK_VALUES.lintang,
+      value: w?.lintang?.nama || '-',
       hasArrow: true,
       categoryCode: 'lintang',
       categoryName: 'Lintang',
     },
     {
       label: 'Panca Sudha',
-      value: WARIGA_FALLBACK_VALUES.panca_sudha,
+      value: w?.panca_sudha?.nama || '-',
       hasArrow: true,
       categoryCode: 'panca_sudha',
       categoryName: 'Panca Sudha',
     },
     {
       label: 'Pangarasan',
-      value: WARIGA_FALLBACK_VALUES.pangarasan,
+      value: w?.pangarasan?.nama || '-',
       hasArrow: true,
       categoryCode: 'pangarasan',
       categoryName: 'Pangarasan',
     },
     {
       label: 'Rakam',
-      value: WARIGA_FALLBACK_VALUES.rakam,
+      value: w?.rakam?.nama || '-',
       hasArrow: true,
       categoryCode: 'rakam',
       categoryName: 'Rakam',
     },
     {
       label: 'Watek Madya',
-      value: WARIGA_FALLBACK_VALUES.watek_madya,
+      value: w?.watek_madya?.nama || '-',
       hasArrow: true,
       categoryCode: 'watek_madya',
       categoryName: 'Watek Madya',
     },
     {
       label: 'Watek Alit',
-      value: WARIGA_FALLBACK_VALUES.watek_alit,
+      value: w?.watek_alit?.nama || '-',
       hasArrow: true,
       categoryCode: 'watek_alit',
       categoryName: 'Watek Alit',
     },
-    { label: 'Neptu', value: calculatedNeptu },
+    { label: 'Neptu', value: w?.neptu ?? '-' },
     {
       label: 'Eka Jala Rsi',
-      value: WARIGA_FALLBACK_VALUES.eka_jala_rsi,
+      value: w?.eka_jala_rsi?.nama || '-',
       hasArrow: true,
       categoryCode: 'eka_jala_rsi',
       categoryName: 'Eka Jala Rsi',
@@ -244,21 +240,21 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
     },
     {
       label: 'Pratiti',
-      value: WARIGA_FALLBACK_VALUES.pratiti,
+      value: w?.pratiti?.nama || '-',
       hasArrow: true,
       categoryCode: 'pratiti',
       categoryName: 'Pratiti',
     },
   ];
 
-  const pengalantakaRows: WarigaRowItem[] = [
-    { label: 'Tahun Saka', value: sasih?.tahun_saka || 1950 },
+  const tahunSakaSasihRows: WarigaRowItem[] = [
+    { label: 'Tahun Saka', value: sasih?.tahun_saka ?? '-' },
     { label: 'Sasih', value: formattedSasih },
   ];
 
-  const tahunSakaSasihRows: WarigaRowItem[] = [
-    { label: 'Pengalantaka', value: pengalantaka?.pengalantaka || 'Pangelong' },
-    { label: 'Angka Pengalantaka', value: pengalantaka?.penanggal_1 ?? 9 },
+  const pengalantakaRows: WarigaRowItem[] = [
+    { label: 'Pengalantaka', value: pengalantaka?.pengalantaka || '-' },
+    { label: 'Angka Pengalantaka', value: pengalantaka?.penanggal_1 ?? '-' },
   ];
 
   const renderSectionHeader = (title: string) => (
@@ -270,7 +266,7 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
   );
 
   const renderRow = (item: WarigaRowItem) => {
-    const isClickable = Boolean(item.hasArrow && item.categoryCode);
+    const isClickable = Boolean(item.hasArrow && item.categoryCode && item.value !== '-');
 
     return (
       <div
@@ -301,7 +297,7 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
           >
             {item.value}
           </span>
-          {item.hasArrow && (
+          {isClickable && (
             <div
               className="p-1 rounded-md text-[#0d9488] group-hover:bg-teal-50 transition-colors"
               title={`Buka penjelasan ${item.label}`}
@@ -315,20 +311,30 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overscroll-contain animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overscroll-contain">
       {/* 1. Backdrop Gelap dengan Efek Blur Menyeluruh ke Seluruh Halaman */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
-        aria-hidden="true"
-      />
+          <motion.div
+            key="otonan-modal-backdrop"
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={onClose}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+            aria-hidden="true"
+          />
 
-      {/* 2. Kontainer Kotak Modal Dialog (Melebar proporsional max-w-2xl) */}
-      <div
-        className="relative w-full max-w-2xl bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden z-10 max-h-[88vh] flex flex-col zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Banner Header dengan Sentuhan Gradien Lembut Sesuai Hari Raya & Zodiac Modal */}
+          {/* 2. Kontainer Kotak Modal Dialog (Melebar proporsional max-w-2xl) */}
+          <motion.div
+            key="otonan-modal-content"
+            variants={modalContentVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative w-full max-w-2xl bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden z-10 max-h-[88vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Banner Header dengan Sentuhan Gradien Lembut Sesuai Hari Raya & Zodiac Modal */}
         <div className="relative bg-gradient-to-r from-teal-50 via-slate-50 to-emerald-50 px-6 sm:px-8 py-4 border-b border-slate-200/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="p-1.5 rounded-lg bg-teal-100/80 text-teal-800">
@@ -358,7 +364,10 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
             </h3>
             <p className="text-xs sm:text-sm font-semibold text-slate-500">
               {dayName} · Otonan {saptawaraName} {pancawaraName} {wukuName}
-              {currentOtonan ? ` (Siklus ke-${currentOtonan.perayaan_ke})` : ''}
+              {data?.input_dinormalisasi?.tipe_pencarian === 'tanggal_lahir' &&
+              currentOtonan?.perayaan_ke != null
+                ? ` (Siklus ke-${currentOtonan.perayaan_ke})`
+                : ''}
             </p>
           </div>
 
@@ -372,16 +381,8 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
 
           {/* Kotak Kontainer Tabel Wariga */}
           <div className="bg-[#f8fafc] border border-slate-200/80 rounded-2xl overflow-hidden text-left shadow-2xs">
-            {isLoading ? (
-              <div className="p-6 space-y-3.5 animate-pulse">
-                <div className="h-5 bg-slate-200 rounded w-1/4 mb-3" />
-                {[1, 2, 3, 4, 5, 6].map((idx) => (
-                  <div key={idx} className="flex justify-between py-2 border-b border-slate-100">
-                    <div className="h-4 bg-slate-200 rounded w-28" />
-                    <div className="h-4 bg-slate-200 rounded w-24" />
-                  </div>
-                ))}
-              </div>
+            {isLoading || isError || !dayData ? (
+              <WarigaDataState isLoading={isLoading} isError={isError} onRetry={() => { void refetch(); }} />
             ) : (
               <div className="divide-y-0">
                 {/* Seksi 1: Wewaran */}
@@ -414,7 +415,7 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
             Tutup
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* 3. SUB-MODAL TINGKAT DUA: PENJELASAN MAKNA ELEMEN (GAMBAR 2) */}
       {selectedExplanation && (

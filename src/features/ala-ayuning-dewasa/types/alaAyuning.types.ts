@@ -154,7 +154,7 @@ export interface AlaAyuningAPIEnvelope<T> {
     total_hari?: number;
     data_version?: string;
     execution_time_ms?: number;
-    [key: string]: any;
+    [key: string]: unknown;
   };
   error?: {
     code: string;

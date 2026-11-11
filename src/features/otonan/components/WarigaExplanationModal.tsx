@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
 import { useQuery } from '@tanstack/react-query';
 import { X, Sparkles } from 'lucide-react';
 import { fetchKeteranganValueByName } from '../api/otonanApi';
+import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
 
 /**
  * ============================================================================
@@ -84,20 +86,30 @@ export const WarigaExplanationModal: React.FC<WarigaExplanationModalProps> = ({
   const description = detail?.description?.trim() || '';
 
   const modalContent = (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 overscroll-contain animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 overscroll-contain">
       {/* 1. Backdrop Gelap dengan Efek Blur di atas Modal Detail Wariga */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
-        aria-hidden="true"
-      />
+          <motion.div
+            key="wariga-explanation-backdrop"
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={onClose}
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs"
+            aria-hidden="true"
+          />
 
-      {/* 2. Kontainer Kotak Sub-Modal Dialog */}
-      <div
-        className="relative w-full max-w-lg bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden z-20 max-h-[85vh] flex flex-col zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Banner Header dengan Sentuhan Gradien Lembut */}
+          {/* 2. Kontainer Kotak Sub-Modal Dialog */}
+          <motion.div
+            key="wariga-explanation-modal"
+            variants={modalContentVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative w-full max-w-lg bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden z-20 max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Banner Header dengan Sentuhan Gradien Lembut */}
         <div className="relative bg-gradient-to-r from-teal-50 via-slate-50 to-emerald-50 px-6 sm:px-8 py-4 border-b border-slate-200/80 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="p-1.5 rounded-lg bg-teal-100/80 text-teal-800">
@@ -172,7 +184,7 @@ export const WarigaExplanationModal: React.FC<WarigaExplanationModalProps> = ({
             Kembali
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 

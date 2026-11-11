@@ -31,7 +31,7 @@ export interface KeteranganPaginationProps {
  *  - Jika halaman aktif di tengah: Tampilkan [1, '..', curr-1, curr, curr+1, '..', totalPages].
  * ============================================================================
  */
-export function getPaginationRange(
+function getPaginationRange(
   currentPage: number,
   totalPages: number
 ): (number | string)[] {

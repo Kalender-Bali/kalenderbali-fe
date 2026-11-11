@@ -87,8 +87,8 @@ export interface OtonanHasilItem {
   /** Tanggal jatuhnya otonan dalam format Masehi "YYYY-MM-DD" */
   tanggal: string;
 
-  /** Angka siklus otonan (contoh: 48 = otonan ke-48 sejak kelahiran) */
-  perayaan_ke: number;
+  /** Nomor otonan sejak kelahiran; null jika mencari berdasarkan elemen kalender. */
+  perayaan_ke: number | null;
 
   /** Rincian elemen kalender Bali pada hari tersebut */
   detail_elemen: OtonanDetailElemen;
@@ -121,7 +121,7 @@ export interface OtonanResponseData {
  */
 export interface OtonanAPIEnvelope {
   data: OtonanResponseData | null;
-  meta: Record<string, any> | null;
+  meta: Record<string, unknown> | null;
   error: {
     code: string;
     message: string;

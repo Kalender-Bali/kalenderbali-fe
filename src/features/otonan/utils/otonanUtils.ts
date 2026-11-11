@@ -278,7 +278,7 @@ export function calculateCycleTimelineNodes(
 
 export interface OtonanICSEventData {
   tanggal: string; // "YYYY-MM-DD"
-  perayaanKe: number;
+  perayaanKe: number | null;
   saptawara: string;
   pancawara: string;
   wuku: string;
@@ -308,9 +308,10 @@ export function downloadOtonanICS(eventData: OtonanICSEventData): void {
   const nd = String(nextDay.getUTCDate()).padStart(2, '0');
   const dtEnd = `${ny}${nm}${nd}`;
 
-  const uid = `otonan-${dtStart}-${perayaanKe}@kalenderbali.app`;
-  const summary = `Otonan ke-${perayaanKe} (${saptawara} ${pancawara} ${wuku})`;
-  const description = `Hari kelahiran dalam penanggalan Bali: ${saptawara} ${pancawara} ${wuku}. Siklus ke-${perayaanKe}. Sasih: ${
+  const uid = `otonan-${dtStart}-${perayaanKe ?? `${saptawara}-${pancawara}-${wuku}`}@kalenderbali.app`;
+  const summary = `${perayaanKe != null ? `Otonan ke-${perayaanKe}` : 'Otonan'} (${saptawara} ${pancawara} ${wuku})`;
+  const cycleDescription = perayaanKe != null ? ` Siklus ke-${perayaanKe}.` : '';
+  const description = `Hari kelahiran dalam penanggalan Bali: ${saptawara} ${pancawara} ${wuku}.${cycleDescription} Sasih: ${
     sasih || '-'
   }. Dihitung otomatis oleh Kalender Bali Digital.`;
 

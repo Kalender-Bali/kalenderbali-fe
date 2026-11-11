@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { useQuery } from '@tanstack/react-query';
 import {
   searchOtonan,
@@ -91,9 +92,9 @@ export function useOtonanSearch(
     enabled: enabled && isParamsValid,
     staleTime: 1000 * 60 * 30, // Fresh selama 30 menit
     gcTime: 1000 * 60 * 60 * 24, // 24 jam di cache RAM browser
-    retry: (failureCount, error: any) => {
+    retry: (failureCount, error: unknown) => {
       // Langsung lemparkan error tanpa jeda retry jika input/kombinasi tidak valid (HTTP 4xx)
-      if (error?.status >= 400 && error?.status < 500) {
+      if ((toApiError(error).status ?? toApiError(error).response?.status ?? 0) >= 400 && (toApiError(error).status ?? toApiError(error).response?.status ?? 0) < 500) {
         return false;
       }
       return failureCount < 1;

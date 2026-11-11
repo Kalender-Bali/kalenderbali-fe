@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
 import {
   X,
   BookOpen,
@@ -11,6 +12,7 @@ import {
   HelpCircle,
   Scale,
 } from 'lucide-react';
+import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
 
 /**
  * ============================================================================
@@ -83,16 +85,31 @@ export const JodohGuideModal: React.FC<JodohGuideModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-labelledby="jodoh-guide-modal-title"
-      className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-[100] animate-in fade-in duration-150"
-      onClick={(e) => {
-        // Klik di area backdrop menutup modal
-        if (e.target === e.currentTarget) onClose();
-      }}
+      className="fixed inset-0 flex items-center justify-center p-3 sm:p-4 z-[100]"
     >
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150">
-        {/* =================================================================== */}
-        {/* BLOK 2: HEADER MODAL DENGAN GRADASI HALUS & TOMBOL TUTUP X          */}
-        {/* =================================================================== */}
+      {/* Backdrop Blur */}
+          <motion.div
+            key="jodoh-backdrop"
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            onClick={onClose}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
+          />
+
+          <motion.div
+            key="jodoh-modal-content"
+            variants={modalContentVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* =================================================================== */}
+            {/* BLOK 2: HEADER MODAL DENGAN GRADASI HALUS & TOMBOL TUTUP X          */}
+            {/* =================================================================== */}
         <div className="p-5 sm:p-6 bg-gradient-to-r from-teal-50/70 via-slate-50/40 to-emerald-50/40 border-b border-slate-100 flex items-start justify-between gap-4 shrink-0">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#0d9488]">
@@ -547,7 +564,7 @@ export const JodohGuideModal: React.FC<JodohGuideModalProps> = ({
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>,
     document.body
   );

@@ -1,3 +1,4 @@
+import type { KeteranganValue } from '../types/keterangan.types';
 import { apiClient } from '@/lib/axios';
 import type { HariRayaKeterangan } from '../types/hariRaya.types';
 
@@ -19,7 +20,7 @@ export async function fetchHariRayaKeteranganList(): Promise<HariRayaKeterangan[
 
   const values = response.data?.data?.values || [];
 
-  return values.map((val: any) => ({
+  return values.map((val: KeteranganValue) => ({
     id: String(val.id),
     name: val.name,
     description: val.description ? val.description.trim() : '',

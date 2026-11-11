@@ -1,4 +1,6 @@
+import type { KeteranganValue } from '@/features/keterangan/types/keterangan.types';
 import { apiClient } from '@/lib/axios';
+import type { KalenderApiResponse, KalenderHarian } from '@/features/kalender/types/kalender.types';
 import type {
   OtonanAPIEnvelope,
   OtonanResponseData,
@@ -38,7 +40,7 @@ import type {
  */
 export async function searchOtonan(params: OtonanSearchParams): Promise<OtonanResponseData> {
   // Susun query parameters bersih (eliminasi nilai undefined / string kosong)
-  const queryParams: Record<string, any> = {
+  const queryParams: Record<string, string | number | boolean | undefined> = {
     tipe_pencarian: params.tipe_pencarian,
     tahun_target: params.tahun_target,
   };
@@ -91,7 +93,7 @@ export async function fetchMasterWewaran(
   }
 
   // Petakan data ke struktur ringkas MasterWewaranItem
-  return values.map((val: any) => ({
+  return values.map((val: KeteranganValue) => ({
     id: String(val.id),
     name: String(val.name),
     description: val.description ? String(val.description).trim() : undefined,
@@ -148,21 +150,13 @@ export async function fetchOtonanDaySasih(dateStr: string): Promise<string> {
  * Digunakan untuk mengisi modal dialog "Detail Wariga".
  *
  * @param dateStr Tanggal Masehi dalam format YYYY-MM-DD
- * @returns Promise berisi objek KalenderHarian atau null jika gagal
+ * @returns Data harian atau null jika tidak tersedia; kegagalan jaringan diteruskan ke query.
  */
-export async function fetchDayWariga(dateStr: string): Promise<any | null> {
-  try {
-    const response = await apiClient.get('/kalender', {
-      params: {
-        start_date: dateStr,
-        end_date: dateStr,
-      },
-    });
-
-    return response.data?.data?.[0] || null;
-  } catch {
-    return null;
-  }
+export async function fetchDayWariga(dateStr: string): Promise<KalenderHarian | null> {
+  const response = await apiClient.get<KalenderApiResponse>('/kalender', {
+    params: { start_date: dateStr, end_date: dateStr },
+  });
+  return response.data?.data?.find((day) => day.tanggal === dateStr) ?? null;
 }
 
 // ============================================================================
@@ -197,7 +191,7 @@ export async function fetchKeteranganValueByName(
         const values = res.data?.data?.values;
         if (Array.isArray(values)) {
           const match = values.find(
-            (v: any) =>
+            (v: KeteranganValue) =>
               v.name?.toLowerCase().trim() === cleanName ||
               (Array.isArray(v.aliases) && v.aliases.includes(cleanName))
           );
@@ -223,7 +217,7 @@ export async function fetchKeteranganValueByName(
     const matches = searchRes.data?.data;
     if (Array.isArray(matches) && matches.length > 0) {
       const exactTypeMatch = matches.find(
-        (m: any) =>
+        (m: KeteranganValue) =>
           m.type_code === typeCode ||
           m.name?.toLowerCase().trim() === cleanName ||
           (Array.isArray(m.aliases) && m.aliases.includes(cleanName))

@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { useState, useEffect } from 'react';
 import { UserCheck, X, AlertCircle, Loader2 } from 'lucide-react';
 import { authService } from '../services/authService';
@@ -49,14 +50,18 @@ export default function GoogleCompleteProfileModal({
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [isOpen, initialName];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     if (isOpen) {
       setName(initialName || '');
       setPhone('');
       setPassword('');
       setErrorMessage(null);
     }
-  }, [isOpen, initialName]);
+
+  }
 
   // Listener tombol Escape
   useEffect(() => {
@@ -91,7 +96,8 @@ export default function GoogleCompleteProfileModal({
       });
 
       onSuccess();
-    } catch (err: any) {
+    } catch (caught) {
+    const err = toApiError(caught);
       setErrorMessage(err.message || 'Gagal melengkapi profil. Silakan coba lagi.');
     } finally {
       setIsLoading(false);

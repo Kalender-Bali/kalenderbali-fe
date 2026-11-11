@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { Sun, Moon, Palette, Check } from 'lucide-react';
 import {
   useThemeStore,
   ACCENT_OPTIONS,
 } from '@/stores/useThemeStore';
+import { popoverVariants } from '@/lib/animations';
 
 /**
  * Komponen ThemeSelector
@@ -64,9 +66,17 @@ export function ThemeSelector() {
       {/* ========================================================= */}
       {/* POPOVER / DROPDOWN PANEL PENGATURAN TEMA                  */}
       {/* ========================================================= */}
-      {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150 select-none">
-          {/* Header Panel */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="theme-popover"
+            variants={popoverVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 select-none"
+          >
+            {/* Header Panel */}
           <div className="p-3.5 bg-gradient-to-r from-slate-50 via-teal-50/20 to-slate-50 dark:from-slate-800/60 dark:via-slate-800/40 dark:to-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div
@@ -295,8 +305,9 @@ export function ThemeSelector() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </AnimatePresence>
+  </div>
   );
 }

@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { apiClient } from '@/lib/axios';
 import type {
   RamalanSifatRequest,
@@ -64,24 +65,25 @@ export async function searchRamalanSifat(payload: RamalanSifatRequest): Promise<
     }
 
     return response.data.data;
-  } catch (error: any) {
+  } catch (caught) {
+    const error = toApiError(caught);
     // ------------------------------------------------------------------------
     // BLOK 2: PENANGANAN KESALAHAN RESPON DARI BACKEND
     // ------------------------------------------------------------------------
     // Menangkap pesan kesalahan ramah pengguna dari error envelope server Go
     if (error?.response?.data?.error?.message) {
-      throw new Error(error.response.data.error.message);
+      throw new Error(error.response.data.error.message, { cause: caught });
     }
 
     if (error?.response?.data?.message) {
-      throw new Error(error.response.data.message);
+      throw new Error(error.response.data.message, { cause: caught });
     }
 
     if (error?.message) {
-      throw new Error(error.message);
+      throw new Error(error.message, { cause: caught });
     }
 
-    throw new Error('Terjadi kesalahan saat menghubungkan ke server Kalender Bali.');
+    throw new Error('Terjadi kesalahan saat menghubungkan ke server Kalender Bali.', { cause: caught });
   }
 }
 

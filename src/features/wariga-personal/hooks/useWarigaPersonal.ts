@@ -127,7 +127,7 @@ export function useWarigaPersonal() {
   const selectedItem = useMemo(() => {
     if (!selectedDate || !data?.hasil) return null;
     return data.hasil.find((item) => item.tanggal === selectedDate) || null;
-  }, [selectedDate, data?.hasil]);
+  }, [selectedDate, data]);
 
   // -------------------------------------------------------------------------
   // BLOK 6: SINKRONISASI AKSI PENGGUNA KE URL QUERY PARAMS
@@ -203,17 +203,17 @@ export function useWarigaPersonal() {
   // -------------------------------------------------------------------------
   const handleSelectDate = useCallback((dateString: string) => {
     setSelectedDate(dateString);
-  }, []);
+  }, [setSelectedDate]);
 
   const handleCloseDetailModal = useCallback(() => {
     setSelectedDate(null);
-  }, []);
+  }, [setSelectedDate]);
 
-  const openWarigaModal = useCallback(() => setIsWarigaModalOpen(true), []);
-  const closeWarigaModal = useCallback(() => setIsWarigaModalOpen(false), []);
+  const openWarigaModal = useCallback(() => setIsWarigaModalOpen(true), [setIsWarigaModalOpen]);
+  const closeWarigaModal = useCallback(() => setIsWarigaModalOpen(false), [setIsWarigaModalOpen]);
 
-  const openDewasaModal = useCallback(() => setIsDewasaModalOpen(true), []);
-  const closeDewasaModal = useCallback(() => setIsDewasaModalOpen(false), []);
+  const openDewasaModal = useCallback(() => setIsDewasaModalOpen(true), [setIsDewasaModalOpen]);
+  const closeDewasaModal = useCallback(() => setIsDewasaModalOpen(false), [setIsDewasaModalOpen]);
 
   // -------------------------------------------------------------------------
   // BLOK 8: RETURN API SURFACE LENGKAP & BERSIH

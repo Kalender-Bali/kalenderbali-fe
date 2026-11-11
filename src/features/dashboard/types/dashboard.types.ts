@@ -44,10 +44,10 @@ export interface DashboardHeroData {
   pengalantaka: string;
 
   /** Urutan hari dalam wuku (1-7): "Dina ka-7" untuk Redite s.d. Saniscara */
-  dinaKa: number;
+  dinaKa: number | null;
 
   /** Angka Urip gabungan Saptawara + Pancawara (contoh: Redite 5 + Umanis 5 = 10) */
-  urip: number;
+  urip: number | null;
 
   /** Arah mata angin pengider-ider berdasarkan Pancawara (contoh: "Arah timur") */
   arah: string;
@@ -145,7 +145,7 @@ export interface DewasaAyuItem {
  */
 export interface DewasaAyuDashboard {
   /** Kategori status hari: "BAIK" | "KURANG_BAIK" */
-  status: 'BAIK' | 'KURANG_BAIK';
+  status: 'BAIK' | 'KURANG_BAIK' | 'NETRAL';
 
   /** Label status yang ditampilkan pada pill badge: "BAIK" */
   statusLabel: string;

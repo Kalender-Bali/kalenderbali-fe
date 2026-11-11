@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, ChevronDown, RotateCcw } from 'lucide-react';
 import { AestheticDatePicker } from '@/components/ui/AestheticDatePicker';
 import type {
@@ -123,7 +123,10 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
   }, [isWewaranComplete, saptawaraId, pancawaraId, wukuId, pawukonDays]);
 
   // Sinkronisasi state lokal jika activeParams berubah dari URL
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [activeParams];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     if (activeParams) {
       setActiveTab(activeParams.tipe_pencarian);
       if (activeParams.tanggal_lahir) setBirthDate(activeParams.tanggal_lahir);
@@ -133,7 +136,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
       if (activeParams.pancawara_id) setPancawaraId(String(activeParams.pancawara_id));
       if (activeParams.wuku_id) setWukuId(String(activeParams.wuku_id));
     }
-  }, [activeParams]);
+
+  }
 
   // -------------------------------------------------------------------------
   // 3. HANDLER REAKTIF DROPDOWN WEWARAN (PILIH BEBAS DARI MANA SAJA)

@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { apiClient } from '@/lib/axios';
 import type {
   PadewasanItem,
@@ -68,12 +69,13 @@ export async function fetchPadewasanHarian(tanggal: string): Promise<PadewasanIt
     }
 
     return [];
-  } catch (error: any) {
+  } catch (caught) {
+    const error = toApiError(caught);
     const errorMsg =
       error?.response?.data?.error?.message ||
       error?.message ||
       'Gagal memuat data padewasan harian dari server.';
-    throw new Error(errorMsg);
+    throw new Error(errorMsg, { cause: caught });
   }
 }
 
@@ -106,12 +108,13 @@ export async function fetchPadewasanRentang(
     );
 
     return response.data?.data || [];
-  } catch (error: any) {
+  } catch (caught) {
+    const error = toApiError(caught);
     const errorMsg =
       error?.response?.data?.error?.message ||
       error?.message ||
       'Gagal memuat rentang padewasan dari server.';
-    throw new Error(errorMsg);
+    throw new Error(errorMsg, { cause: caught });
   }
 }
 
@@ -155,12 +158,13 @@ export async function searchPadewasanByName(
     }
 
     return response.data.data;
-  } catch (error: any) {
+  } catch (caught) {
+    const error = toApiError(caught);
     const errorMsg =
       error?.response?.data?.error?.message ||
       error?.message ||
       'Gagal melakukan pencarian padewasan berdasarkan nama.';
-    throw new Error(errorMsg);
+    throw new Error(errorMsg, { cause: caught });
   }
 }
 
@@ -183,7 +187,8 @@ export async function fetchMasterPadewasan(): Promise<PadewasanItem[]> {
     );
 
     return response.data?.data || [];
-  } catch (error: any) {
+  } catch (caught) {
+    const error = toApiError(caught);
     console.error('Gagal mengambil master data padewasan:', error);
     return [];
   }
@@ -208,7 +213,8 @@ export async function fetchDewasaAyuToday(): Promise<DewasaAyuTodayResponse | nu
     );
 
     return response.data?.data || null;
-  } catch (error: any) {
+  } catch (caught) {
+    const error = toApiError(caught);
     console.error('Gagal mengambil rekomendasi dewasa ayu hari ini:', error);
     return null;
   }

@@ -498,12 +498,17 @@ export const normalizeCalendarString = (s?: string | null): string => {
   if (lower === 'kedasa') return 'kadasa';
   if (lower === 'ketiga') return 'katiga';
   if (lower === 'kelima') return 'kalima';
-  if (lower === 'kenam') return 'kanem';
+  if (lower === 'kenam' || lower === 'kaenam') return 'kanem';
   if (lower === 'kepitu') return 'kapitu';
   if (lower === 'kesanga') return 'kasanga';
   if (lower === 'dunggulan') return 'dungulan';
   if (lower === 'kulawu' || lower === 'kelawu') return 'klawu';
   if (lower === 'klurut') return 'krulut';
+  if (['jyestha', 'jyesta', 'jiyesta'].includes(lower)) return 'jiyestha';
+  if (lower === 'sada') return 'sadha';
+  if (lower === 'wrespati') return 'wraspati';
+  if (lower === 'budha') return 'buda';
+  if (lower === 'keliwon') return 'kliwon';
   return lower;
 };
 
@@ -543,21 +548,23 @@ export function matchPurasForDay(
     const bench = (p.benchmark || '').toLowerCase();
 
     // 1. Berbasis Pawukon (siklus 210 hari)
-    if (bench.includes('pawukon') || (!bench.includes('sasih') && p.wuku)) {
+    const hasPawukon = Boolean(p.wuku || p.saptawara || p.pancawara);
+    const hasSasih = Boolean(p.sasih || p.purnama_tilem);
+    if (hasPawukon && (!bench.includes('sasih') || !hasSasih)) {
       const pWuku = normalizeCalendarString(p.wuku);
       const pSapta = normalizeCalendarString(p.saptawara);
       const pPanca = normalizeCalendarString(p.pancawara);
-      if (pWuku === dWuku && pSapta === dSapta && pPanca === dPanca) {
+      if ((!pWuku || pWuku === dWuku) && (!pSapta || pSapta === dSapta) && (!pPanca || pPanca === dPanca)) {
         matched.push(p);
         continue;
       }
     }
 
     // 2. Berbasis Sasih (Candra)
-    if (bench.includes('sasih') || p.sasih) {
+    if (hasSasih && (!hasPawukon || bench.includes('sasih'))) {
       const pSasih = normalizeCalendarString(p.sasih);
       const pPT = normalizeCalendarString(p.purnama_tilem);
-      if (pSasih === dSasih && pPT === dPT && (dPT === 'purnama' || dPT === 'tilem')) {
+      if ((!pSasih || pSasih === dSasih) && (!pPT || pPT === dPT)) {
         matched.push(p);
       }
     }
@@ -577,7 +584,7 @@ export function matchPurasForDay(
 /**
  * Mengekstrak ringkasan agenda piodalan seluruh pura dalam satu bulan kalender aktif.
  * Mengembalikan total pura yang melangsungkan upacara pada bulan tersebut dan hingga 3 piodalan terdekat.
- * 
+ *
  * Aturan Piodalan Terdekat:
  * 1. Hanya menampilkan piodalan yang belum lewat dari hari ini (dateStr >= todayISO).
  * 2. Menampung hingga 3 agenda piodalan terdekat.
@@ -696,4 +703,215 @@ export function extractMonthPiodalanSummary(
   }
 
   return { totalPuras, upcomingItems };
+}
+
+// ---------------------------------------------------------------------------
+// 8. Generator Rangkuman Sintesis Padewasan (Dianjurkan vs Pantangan)
+// ---------------------------------------------------------------------------
+
+export interface PadewasanSummary {
+  dianjurkan: string;
+  pantangan: string | null;
+}
+
+const PADEWASAN_DOMAIN_RULES = [
+  // Prioritas Utama: Pantangan Yadnya & Larangan Kritis
+  {
+    type: 'pantangan' as const,
+    label: 'Manusa Yadnya (wiwaha, potong rambut, mapendes)',
+    pattern: /manusa yadnya|wiwaha|mapendes|potong rambut/i,
+  },
+  {
+    type: 'pantangan' as const,
+    label: 'Pitra Yadnya (ngaben, atiwa-tiwa, nyekah)',
+    pattern: /pitra yadnya|ngaben|penguburan|atiwa-tiwa|nyekah/i,
+  },
+  {
+    type: 'pantangan' as const,
+    label: 'mengatapi rumah atau melaspas',
+    pattern: /mengatapi rumah|melaspas|atap rumah/i,
+  },
+  {
+    type: 'pantangan' as const,
+    label: 'bepergian jauh atau urusan penting',
+    pattern: /bepergian|pekerjaan penting bepergian/i,
+  },
+  {
+    type: 'pantangan' as const,
+    label: 'membangun atau memasuki rumah baru',
+    pattern: /membangun rumah|memasuki rumah baru|pindah rumah/i,
+  },
+  {
+    type: 'pantangan' as const,
+    label: 'upacara keagamaan tertentu',
+    pattern: /semua upacara|dewasa ayu/i,
+  },
+  {
+    type: 'pantangan' as const,
+    label: 'bercocok tanam tertentu',
+    pattern: /bercocok tanam|menanam padi/i,
+  },
+
+  // Prioritas Utama: Dianjurkan / Favorable
+  {
+    type: 'baik' as const,
+    label: 'upacara Dewa Yadnya dan peribadatan',
+    pattern: /dewa yadnya|ibadah|tempat suci|pemujaan|merajan|sanggah|pura/i,
+  },
+  {
+    type: 'baik' as const,
+    label: 'pernikahan dan upacara perkawinan',
+    pattern: /perkawinan|nikah|pernikahan|wiwaha/i,
+  },
+  {
+    type: 'baik' as const,
+    label: 'memulai usaha dan perniagaan',
+    pattern: /usaha|perusahaan|dagang|berjualan|rejeki/i,
+  },
+  {
+    type: 'baik' as const,
+    label: 'membangun rumah dan sarana fisik',
+    pattern: /membangun rumah|pindah rumah|bikin rumah|membuat lumbung|dapur/i,
+  },
+  {
+    type: 'baik' as const,
+    label: 'bercocok tanam dan pertanian',
+    pattern: /bercocok tanam|tanam|padi|bibit|kebun|sawah|biji/i,
+  },
+  {
+    type: 'baik' as const,
+    label: 'kegiatan Panca Yadnya',
+    pattern: /panca yadnya|segala jenis upacara|upacara yadnya/i,
+  },
+  {
+    type: 'baik' as const,
+    label: 'tapa brata, yoga, dan penyucian diri',
+    pattern: /tapa|brata|yoga|semadi|bersuci|penyucian/i,
+  },
+  {
+    type: 'baik' as const,
+    label: 'membuat perlengkapan dan alat kerja',
+    pattern: /membuat alat|kerajinan|senjata|bata|genteng|meramu obat/i,
+  },
+];
+
+/**
+ * Menyintesis seluruh unsur padewasan harian menjadi rangkuman seimbang:
+ *  - Dianjurkan: Kumpulan aktivitas berwatak baik/ayu yang selaras pada hari tersebut.
+ *  - Pantangan: Kumpulan larangan penting/pantangan yang harus dihindari.
+ */
+export function getPadewasanSummary(
+  items?: { nama: string; keterangan?: string }[]
+): PadewasanSummary {
+  if (!items || items.length === 0) {
+    return {
+      dianjurkan: 'Tidak ada petunjuk khusus pada tanggal ini.',
+      pantangan: null,
+    };
+  }
+
+  const baikDetected = new Set<string>();
+  const pantanganDetected = new Set<string>();
+  const rawBaikFallback: string[] = [];
+  const rawPantanganFallback: string[] = [];
+
+  // 1. Pindai aturan terstruktur berdasarkan urutan prioritas budaya
+  for (const rule of PADEWASAN_DOMAIN_RULES) {
+    for (const it of items) {
+      const text = it.keterangan || '';
+      const sentences = text.split(/(?<=[.;])\s+/);
+
+      for (const raw of sentences) {
+        const s = raw.trim();
+        if (!s) continue;
+
+        const isNeg = /tidak baik|kurang baik|pantangan|hindari|jangan/i.test(s);
+        if (rule.type === 'pantangan' && isNeg && rule.pattern.test(s)) {
+          pantanganDetected.add(rule.label);
+        } else if (rule.type === 'baik' && !isNeg && /baik/i.test(s) && rule.pattern.test(s)) {
+          baikDetected.add(rule.label);
+        }
+      }
+    }
+  }
+
+  // 2. Kumpulkan kalimat fallback jika aturan domain tidak mencakup kriteria unik
+  for (const it of items) {
+    const text = it.keterangan || '';
+    const sentences = text.split(/(?<=[.;])\s+/);
+
+    for (const raw of sentences) {
+      const s = raw.trim();
+      if (!s) continue;
+
+      const isNeg = /tidak baik|kurang baik|pantangan|hindari|jangan/i.test(s);
+      let matched = false;
+
+      for (const rule of PADEWASAN_DOMAIN_RULES) {
+        if ((rule.type === 'pantangan' && isNeg && rule.pattern.test(s)) ||
+            (rule.type === 'baik' && !isNeg && /baik/i.test(s) && rule.pattern.test(s))) {
+          matched = true;
+          break;
+        }
+      }
+
+      if (!matched) {
+        if (isNeg) {
+          const clean = s
+            .replace(/^bersifat\s+[^,]+,?\s*/i, '')
+            .replace(/^(terutama\s+)?tidak baik\s+(untuk\s+|melakukan\s+)?/i, '')
+            .replace(/^kurang baik\s+(untuk\s+)?/i, '')
+            .replace(/[.;]+$/, '')
+            .trim();
+          if (clean.length > 3) rawPantanganFallback.push(clean);
+        } else if (/baik/i.test(s)) {
+          const clean = s
+            .replace(/^baik\s+(untuk\s+|melakukan\s+|membuat\s+)?/i, '')
+            .replace(/[.;]+$/, '')
+            .trim();
+          if (clean.length > 3) rawBaikFallback.push(clean);
+        }
+      }
+    }
+  }
+
+  // Lengkapi dengan fallback jika deteksi kategori masih di bawah ambang batas
+  for (const fb of rawBaikFallback) {
+    if (baikDetected.size >= 3) break;
+    baikDetected.add(fb);
+  }
+
+  for (const fb of rawPantanganFallback) {
+    if (pantanganDetected.size >= 3) break;
+    pantanganDetected.add(fb);
+  }
+
+  const formatList = (set: Set<string>, max = 3): string | null => {
+    const list = Array.from(set).slice(0, max);
+    if (list.length === 0) return null;
+    if (list.length === 1) {
+      const item = list[0].replace(/[.;]+$/, '').trim();
+      return item.charAt(0).toUpperCase() + item.slice(1) + '.';
+    }
+    if (list.length === 2) {
+      const first = list[0].replace(/[.;]+$/, '').trim();
+      const second = list[1].replace(/[.;]+$/, '').trim();
+      return first.charAt(0).toUpperCase() + first.slice(1) + ' serta ' + second + '.';
+    }
+    const last = list.pop()!.replace(/[.;]+$/, '').trim();
+    return (
+      list.map((t, idx) => {
+        const clean = t.replace(/[.;]+$/, '').trim();
+        return idx === 0 ? clean.charAt(0).toUpperCase() + clean.slice(1) : clean;
+      }).join(', ') +
+      ', serta ' +
+      last +
+      '.'
+    );
+  };
+
+  return {
+    dianjurkan: formatList(baikDetected, 3) || 'Melakukan aktivitas sehari-hari yang wajar.',
+    pantangan: formatList(pantanganDetected, 3),
+  };
 }

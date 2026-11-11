@@ -248,8 +248,9 @@ html.dark .bg-\[\#f4f7f6\]:not([data-theme-preview="light"]):not([data-theme-pre
   background-color: #0b1120 !important;
 }
 
-/* Seluruh Teks Heading & Konten Gelap (#0f172a, slate-900, slate-800) Otomatis Terang */
+/* Seluruh Teks Heading & Konten Gelap (#0f172a, #1e293b, slate-900, slate-800) Otomatis Terang */
 html.dark .text-\[\#0f172a\],
+html.dark .text-\[\#1e293b\],
 html.dark .text-slate-900,
 html.dark .text-slate-800 {
   color: #f8fafc !important;
@@ -318,20 +319,29 @@ html.dark aside nav button:not([class*="bg-primary"]):not(:hover) {
   border-color: transparent !important;
 }
 
-/* Chrome Layout: Sidebar, Sticky Navbar, dan Footer Seragam Menggunakan Slate-900 (#0f172a) */
+/* Chrome Layout: Sidebar, Sticky Navbar, dan Footer Utama Seragam Menggunakan Slate-900 (#0f172a) */
 html.dark header.sticky,
 html.dark aside,
-html.dark footer {
+html.dark footer.border-t {
   background-color: #0f172a !important;
 }
 
+html.dark main footer {
+  background-color: transparent !important;
+}
+
 /* Hover background untuk button & list item */
+html.dark [class*="hover:bg-slate-50"]:hover:not([data-theme-preview="light"] *),
+html.dark [class*="hover:bg-slate-100"]:hover:not([data-theme-preview="light"] *),
+html.dark .hover\:bg-white:hover:not([data-theme-preview="light"] *),
 html.dark .hover\:bg-slate-50:hover:not([data-theme-preview="light"] *),
-html.dark .hover\:bg-slate-100:hover:not([data-theme-preview="light"] *) {
+html.dark .hover\:bg-slate-100:hover:not([data-theme-preview="light"] *),
+html.dark .hover\:bg-slate-50\/80:hover:not([data-theme-preview="light"] *),
+html.dark .hover\:bg-slate-50\/70:hover:not([data-theme-preview="light"] *),
+html.dark .hover\:bg-slate-100\/80:hover:not([data-theme-preview="light"] *) {
   background-color: #1e293b !important;
 }
 
-html.dark .hover\:bg-white:hover:not([data-theme-preview="light"] *),
 html.dark .hover\:bg-slate-50\/70:hover:not([data-theme-preview="light"] *) {
   background-color: #273549 !important;
 }
@@ -341,6 +351,7 @@ html.dark .hover\:border-slate-300:hover:not([data-theme-preview="light"] *) {
 }
 
 html.dark .hover\:text-slate-700:hover,
+html.dark .hover\:text-slate-800:hover,
 html.dark .hover\:text-slate-900:hover {
   color: #f8fafc !important;
 }
@@ -408,7 +419,8 @@ html.dark [class*=" border-emerald-200/"]:not([data-theme-preview="light"]):not(
 html.dark [class^="border-emerald-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
 html.dark [class~="border-emerald-300"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
 html.dark [class*=" border-emerald-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
-html.dark [class^="border-emerald-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+html.dark [class^="border-emerald-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="border-[#bbf7d0]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
   border-color: rgba(16, 185, 129, 0.4) !important;
 }
 
@@ -416,7 +428,8 @@ html.dark [class~="text-emerald-700"],
 html.dark [class~="text-emerald-800"],
 html.dark [class~="text-emerald-900"],
 html.dark [class*="text-[#065f46]"],
-html.dark [class*="text-[#15803d]"] {
+html.dark [class*="text-[#15803d]"],
+html.dark [class*="text-[#22c55e]"] {
   color: #6ee7b7 !important; /* emerald-300 */
 }
 
@@ -576,7 +589,39 @@ html.dark [class*="text-[#0369a1]"] {
   color: #7dd3fc !important; /* sky-300 */
 }
 
-/* 9. Varian Teal Brand Berteks Gelap Otomatis Menjadi Terang Kontras */
+/* 9. Varian Indigo (Urip & Arah, Wawasan Filosofis) */
+html.dark [class~="bg-indigo-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-indigo-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-indigo-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="bg-indigo-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" bg-indigo-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="bg-indigo-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*="bg-[#e0e7ff]"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  background-color: rgba(99, 102, 241, 0.16) !important;
+}
+
+html.dark [class~="border-indigo-100"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-indigo-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-indigo-100/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-indigo-200"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-indigo-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-indigo-200/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class~="border-indigo-300"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class*=" border-indigo-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
+html.dark [class^="border-indigo-300/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+html.dark [class~="text-indigo-600"],
+html.dark [class~="text-indigo-700"],
+html.dark [class~="text-indigo-800"],
+html.dark [class~="text-indigo-900"],
+html.dark [class*="text-[#3730a3]"],
+html.dark [class*="text-[#4338ca]"] {
+  color: #a5b4fc !important; /* indigo-300 */
+}
+
+/* 10. Varian Teal Brand Berteks Gelap Otomatis Menjadi Terang Kontras */
 html.dark [class~="bg-teal-50"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
 html.dark [class*=" bg-teal-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),
 html.dark [class^="bg-teal-50/"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *),

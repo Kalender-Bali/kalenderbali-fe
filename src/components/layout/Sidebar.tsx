@@ -33,6 +33,28 @@ interface NavGroup {
   children: { to: string; label: string }[];
 }
 
+/**
+ * Prapemuatan (Hover Prefetching) untuk rute-rute lazy loading (fe_strategy.md 8.12).
+ * Mengunduh chunk modul di latar belakang saat kursor menyentuh menu, sehingga
+ * saat diklik modul sudah tersedia di RAM browser dan Skeleton Suspense tidak berkedip.
+ */
+const routePrefetchers: Record<string, () => void> = {
+  '/ala-ayuning-dewasa': () => { import('@/features/ala-ayuning-dewasa/pages/AlaAyuningDewasaPage'); },
+  '/mengatur-dewasa': () => { import('@/features/mengatur-dewasa/pages/MengaturDewasaPage'); },
+  '/wariga-personal': () => { import('@/features/wariga-personal/pages/WarigaPersonalPage'); },
+  '/ramalan-sifat': () => { import('@/features/ramalan-sifat/pages/RamalanSifatPage'); },
+  '/garis-hidup': () => { import('@/features/garis-hidup/pages/GarisHidupPage'); },
+  '/jodoh': () => { import('@/features/jodoh/pages/JodohPage'); },
+  '/bhagawadgita': () => { import('@/features/bhagawad-gita/pages/BhagawadGitaPage'); },
+};
+
+const handlePrefetch = (to: string) => {
+  const prefetcher = routePrefetchers[to];
+  if (prefetcher) {
+    prefetcher();
+  }
+};
+
 export default function Sidebar() {
   // Mengambil state, status menu persisten, dan fungsi navigasi dari Zustand store
   const { isCollapsed, isMobileOpen, closeMobile, openMenus, toggleSubmenu } =
@@ -248,6 +270,8 @@ export default function Sidebar() {
                         key={subItem.to}
                         to={subItem.to}
                         onClick={closeMobile}
+                        onMouseEnter={() => handlePrefetch(subItem.to)}
+                        onTouchStart={() => handlePrefetch(subItem.to)}
                         className={({ isActive }) =>
                           `flex items-center min-h-9 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
                             isActive

@@ -12,6 +12,7 @@ import RegisterPage from '@/features/auth/pages/RegisterPage';
 
 // Import komponen notifikasi alert sukses global
 import SuccessAlert from '@/components/ui/SuccessAlert';
+import ScrollToTop from '@/components/layout/ScrollToTop';
 
 // Import komponen-komponen halaman fitur utama Kalender Bali
 import DashboardPage from '@/features/dashboard/pages/DashboardPage';
@@ -59,6 +60,10 @@ const BhagawadGitaChapterPage = lazy(() => import('@/features/bhagawad-gita/page
 const BhagawadGitaTopicPage = lazy(() => import('@/features/bhagawad-gita/pages/BhagawadGitaTopicPage'));
 import { BhagawadGitaSkeleton } from '@/features/bhagawad-gita/components/BhagawadGitaSkeleton';
 
+// Import komponen halaman Member Premium dengan Route-Level Code Splitting (fe_strategy.md 8.12)
+const PremiumPage = lazy(() => import('@/features/premium/pages/PremiumPage'));
+import { PremiumSkeleton } from '@/features/premium/components/PremiumSkeleton';
+
 // Import komponen-komponen halaman Manajemen Admin
 import AdminUserPage from '@/features/admin/pages/AdminUserPage';
 import AdminTransactionPage from '@/features/admin/pages/AdminTransactionPage';
@@ -75,6 +80,9 @@ import AdminContributionPage from '@/features/admin/pages/AdminContributionPage'
 export default function AppRoutes() {
   return (
     <BrowserRouter>
+      {/* Pengembalian posisi scroll ke atas saat navigasi */}
+      <ScrollToTop />
+
       {/* Floating Alert Sukses (Berhasil login / logout / register) */}
       <SuccessAlert />
 
@@ -261,6 +269,22 @@ export default function AppRoutes() {
           <Route path="about_us" element={<Navigate to="/kontak" replace />} />
           <Route path="about" element={<Navigate to="/kontak" replace />} />
           <Route path="tentang-kami" element={<Navigate to="/kontak" replace />} />
+
+          {/* ==================================================================== */}
+          {/* HALAMAN MEMBER PREMIUM & LANGGANAN (PRODUK & TRANSAKSI REAL BE GO)   */}
+          {/* ==================================================================== */}
+          <Route
+            path="premium"
+            element={
+              <Suspense fallback={<PremiumSkeleton />}>
+                <PremiumPage />
+              </Suspense>
+            }
+          />
+          <Route path="jadi-member-premium" element={<Navigate to="/premium" replace />} />
+          <Route path="jadi_member_premium" element={<Navigate to="/premium" replace />} />
+          <Route path="membership" element={<Navigate to="/premium" replace />} />
+          <Route path="layanan/premium" element={<Navigate to="/premium" replace />} />
 
           {/* ==================================================================== */}
           {/* RUTE KHUSUS ADMINISTRATOR (DILINDUNGI OLEH ADMINROUTE)              */}

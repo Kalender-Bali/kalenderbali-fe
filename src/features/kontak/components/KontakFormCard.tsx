@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Send, ChevronDown, CheckCircle2, MessageSquare } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAlertStore } from '@/stores/useAlertStore';
@@ -31,7 +31,10 @@ export const KontakFormCard: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
 
   // Sinkronkan nama dan email secara otomatis jika pengguna dalam sesi login
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [isAuthenticated, user];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     if (isAuthenticated && user) {
       setFormData((prev) => ({
         ...prev,
@@ -39,7 +42,8 @@ export const KontakFormCard: React.FC = () => {
         email: user.email || '',
       }));
     }
-  }, [isAuthenticated, user]);
+
+  }
 
   const categories = [
     'Pertanyaan Umum',

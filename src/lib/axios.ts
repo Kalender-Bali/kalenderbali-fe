@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { CALENDAR_RULES_VERSION, usesCalendarRules } from './calendarCache';
 
 /**
  * ==============================================================================
@@ -25,6 +26,14 @@ export const apiClient = axios.create({
  */
 apiClient.interceptors.request.use(
   (config) => {
+    if ((!config.method || config.method.toLowerCase() === 'get') && usesCalendarRules(config.url)) {
+      if (config.params instanceof URLSearchParams) {
+        config.params = new URLSearchParams(config.params);
+        config.params.set('rules_version', CALENDAR_RULES_VERSION);
+      } else {
+        config.params = { ...config.params, rules_version: CALENDAR_RULES_VERSION };
+      }
+    }
     // Ambil token aktif dari state Zustand
     const token = useAuthStore.getState().token;
     if (token) {

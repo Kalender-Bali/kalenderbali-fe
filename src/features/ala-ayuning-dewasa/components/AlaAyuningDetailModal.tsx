@@ -1,8 +1,10 @@
 import React, { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
 import { X, ShieldCheck, AlertOctagon, CheckCircle2, Info } from 'lucide-react';
 import type { PadewasanItem } from '../types/alaAyuning.types';
 import { getAlahingDewasaMeta } from '../types/alaAyuning.types';
+import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
 
 /**
  * ============================================================================
@@ -73,19 +75,34 @@ export const AlaAyuningDetailModal: React.FC<AlaAyuningDetailModalProps> = ({
 
   return createPortal(
     <div
-      className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-150 select-none"
-      onClick={onClose}
+      className="fixed inset-0 flex items-center justify-center p-4 z-[100] select-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-padewasan-title"
     >
-      <div
-        className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-150 select-text"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* =================================================================== */}
-        {/* BLOK 1: HEADER DIALOG MODAL (GRADIENT LEMBUT SESUAI AGENTS.MD)      */}
-        {/* =================================================================== */}
+      {/* Backdrop Blur */}
+          <motion.div
+            key="ala-ayuning-backdrop"
+            variants={modalOverlayVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"
+            onClick={onClose}
+          />
+
+          <motion.div
+            key="ala-ayuning-modal"
+            variants={modalContentVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden select-text z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* =================================================================== */}
+            {/* BLOK 1: HEADER DIALOG MODAL (GRADIENT LEMBUT SESUAI AGENTS.MD)      */}
+            {/* =================================================================== */}
         <div className="p-6 bg-gradient-to-r from-teal-50/70 via-slate-50/50 to-emerald-50/40 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -180,7 +197,7 @@ export const AlaAyuningDetailModal: React.FC<AlaAyuningDetailModalProps> = ({
             <span>Tutup</span>
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>,
     document.body
   );

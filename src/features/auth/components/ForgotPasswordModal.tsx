@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { useState, useEffect } from 'react';
 import { KeyRound, X, AlertCircle, CheckCircle2, Loader2, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { authService } from '../services/authService';
@@ -46,7 +47,10 @@ export default function ForgotPasswordModal({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Inisialisasi email saat modal dibuka
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [isOpen, initialEmail];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     if (isOpen) {
       setEmail(initialEmail);
       setStep(1);
@@ -56,7 +60,8 @@ export default function ForgotPasswordModal({
       setConfirmPassword('');
       setErrorMessage(null);
     }
-  }, [isOpen, initialEmail]);
+
+  }
 
   // Listener tombol Escape untuk menutup dialog
   useEffect(() => {
@@ -84,7 +89,8 @@ export default function ForgotPasswordModal({
     try {
       await authService.forgotPassword(email.trim());
       setStep(2);
-    } catch (err: any) {
+    } catch (caught) {
+    const err = toApiError(caught);
       setErrorMessage(err.message || 'Gagal mengirimkan kode reset. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
@@ -108,7 +114,8 @@ export default function ForgotPasswordModal({
       });
       setResetGrant(res.reset_grant);
       setStep(3);
-    } catch (err: any) {
+    } catch (caught) {
+    const err = toApiError(caught);
       const remaining = err.remainingAttempts;
       if (remaining !== undefined) {
         setErrorMessage(`Kode salah. Sisa kesempatan mencoba: ${remaining} kali.`);
@@ -141,7 +148,8 @@ export default function ForgotPasswordModal({
         new_password: newPassword,
       });
       setStep(4);
-    } catch (err: any) {
+    } catch (caught) {
+    const err = toApiError(caught);
       setErrorMessage(err.message || 'Gagal mereset kata sandi. Silakan ulangi langkah.');
     } finally {
       setIsLoading(false);

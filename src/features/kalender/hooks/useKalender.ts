@@ -25,7 +25,7 @@ import { matchPurasForDay, extractMonthPiodalanSummary } from '../utils/calendar
  * ============================================================================
  */
 
-export function useKalenderTahun(year: number, activeMonth?: number) {
+export function useKalenderTahun(year: number, activeMonth?: number, options?: { enabled?: boolean }) {
   const queryClient = useQueryClient();
 
   // -------------------------------------------------------------------------
@@ -40,6 +40,7 @@ export function useKalenderTahun(year: number, activeMonth?: number) {
   } = useQuery({
     queryKey: ['kalender', year],
     queryFn: () => fetchKalenderTahun(year),
+    enabled: options?.enabled ?? true,
     // Data penanggalan matematis bersifat pasti dan permanen untuk tahun tersebut
     staleTime: Infinity,
     // Pertahankan di memori RAM browser selama 24 jam
@@ -70,7 +71,7 @@ export function useKalenderTahun(year: number, activeMonth?: number) {
   useEffect(() => {
     // Hanya lakukan prefetch tahun berikutnya (year + 1) jika user sudah berada
     // di pengujung tahun (November atau Desember) untuk menyambut pergantian tahun.
-    if (activeMonth && activeMonth >= 11 && year < 2200) {
+    if (rawData.length > 0 && activeMonth && activeMonth >= 11 && year < 2200 && options?.enabled !== false) {
       const nextYear = year + 1;
       queryClient.prefetchQuery({
         queryKey: ['kalender', nextYear],
@@ -78,7 +79,7 @@ export function useKalenderTahun(year: number, activeMonth?: number) {
         staleTime: Infinity,
       });
     }
-  }, [year, activeMonth, queryClient]);
+  }, [year, activeMonth, queryClient, rawData.length, options?.enabled]);
 
   // -------------------------------------------------------------------------
   // 4. Helper Penyarik Data (Derived Helpers Tanpa Duplikasi State)

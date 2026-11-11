@@ -9,6 +9,7 @@ import {
   Check,
 } from 'lucide-react';
 import type { HariRayaUpcomingInfo } from '../types/hariRaya.types';
+import { downloadReminderCalendar } from '../utils/reminderCalendar';
 
 /**
  * ============================================================================
@@ -18,9 +19,8 @@ import type { HariRayaUpcomingInfo } from '../types/hariRaya.types';
  * perayaan hari raya terdekat.
  *
  * Catatan Arsitektur:
- * Karena backend Push Notification belum tersedia di server, modal ini
- * menyajikan alur simulasi dummy interaktif yang menyimpan preferensi
- * ke memori lokal peramban (localStorage) dengan feedback visual yang realistis.
+ * Mengunduh berkas kalender .ics dengan alarm untuk diimpor ke aplikasi kalender.
+ * Pilihan alarm disimpan di localStorage; situs tidak mengirim push notification.
  * ============================================================================
  */
 
@@ -107,6 +107,11 @@ export const HariRayaReminderModal: React.FC<HariRayaReminderModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!remindHMinus1 && !remindHariH) return;
+    downloadReminderCalendar(upcomingInfo.item.tanggal, holidayName, { remindHMinus1, remindHariH });
+    try {
+      localStorage.setItem('hari_raya_reminder_settings', JSON.stringify({ remindHMinus1, remindHariH }));
+    } catch { /* Unduhan kalender tetap berfungsi ketika storage diblokir. */ }
     onSaveReminder({ remindHMinus1, remindHariH });
     onClose();
   };
@@ -144,7 +149,7 @@ export const HariRayaReminderModal: React.FC<HariRayaReminderModalProps> = ({
               Pasang Pengingat: {holidayName}
             </h2>
             <p className="text-xs text-slate-500 font-medium">
-              Dapatkan pemberitahuan tepat waktu menjelang pelaksanaan rahina suci.
+              Unduh lalu impor berkas .ics ke aplikasi kalender Anda untuk memasang alarm. Situs ini tidak mengirim notifikasi saat ditutup.
             </p>
           </div>
 
@@ -249,7 +254,7 @@ export const HariRayaReminderModal: React.FC<HariRayaReminderModalProps> = ({
                 onClick={handleDeactivate}
                 className="h-10 px-4 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-all cursor-pointer active:scale-98"
               >
-                Hapus Pengingat
+                Hapus Preferensi Lokal
               </button>
             ) : (
               <button
@@ -263,11 +268,12 @@ export const HariRayaReminderModal: React.FC<HariRayaReminderModalProps> = ({
 
             <button
               type="submit"
+              disabled={!remindHMinus1 && !remindHariH}
               className="h-10 px-5 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-2 active:scale-98 ml-auto"
             >
               <Check className="w-4 h-4" />
               <span>
-                {isCurrentlyActive ? 'Perbarui Pengingat' : 'Aktifkan Pengingat'}
+                Unduh Pengingat Kalender
               </span>
             </button>
           </div>

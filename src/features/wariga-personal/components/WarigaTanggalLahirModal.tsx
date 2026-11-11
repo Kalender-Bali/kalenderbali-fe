@@ -97,7 +97,7 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
   const wl = identitasKelahiran?.wariga_lengkap;
 
   // Format kapitalisasi nama sasih (contoh: "sadha" -> "Sadha")
-  const rawSasih = sasih?.nama_sasih || sasih?.nama;
+  const rawSasih = sasih?.nama_sasih;
   const namaSasihFormatted = rawSasih
     ? rawSasih.charAt(0).toUpperCase() + rawSasih.slice(1)
     : '-';
@@ -111,7 +111,7 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
   // 2. Seksi Pengalantaka (Paritas baris 3-4 sistem lama)
   const sectionPengalantaka: WarigaRowItem[] = [
     { label: 'Pengalantaka', value: pengalantaka?.pengalantaka || '-' },
-    { label: 'Angka Pengalantaka', value: pengalantaka?.penanggal_1 ?? (pengalantaka?.angka_pengalantaka ?? '-') },
+    { label: 'Angka Pengalantaka', value: pengalantaka?.penanggal_1 ?? '-' },
   ];
 
   // 3. Seksi Wewaran (Paritas baris 5-18 sistem lama)
@@ -207,7 +207,7 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
     },
     {
       label: 'Neptu',
-      value: w?.neptu ?? wl?.neptu ?? ((w?.saptawara?.urip || 0) + (w?.pancawara?.urip || 0) || identitasKelahiran?.total_urip_kelahiran || '-'),
+      value: w?.neptu ?? wl?.neptu ?? identitasKelahiran?.total_urip_kelahiran ?? '-',
     },
     {
       label: 'Eka Jala Rsi',
@@ -218,7 +218,7 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
     },
     {
       label: 'Zodiak',
-      value: w?.zodiak?.nama || wl?.zodiak?.nama || dayData?.zodiak?.nama || '-',
+      value: w?.zodiak?.nama || wl?.zodiak?.nama || '-',
       hasArrow: true,
       categoryCode: 'zodiak',
       categoryName: 'Zodiak',

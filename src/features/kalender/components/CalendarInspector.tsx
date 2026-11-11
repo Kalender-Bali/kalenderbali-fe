@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { Landmark, ChevronRight, Sparkles } from 'lucide-react';
 import type { KalenderHarian, HariRayaItem } from '../types/kalender.types';
 import {
@@ -8,10 +9,9 @@ import {
   getHariRayaBadgeStyle,
 } from '../utils/calendarUtils';
 import { useDayPiodalan } from '../hooks/useKalender';
-import {
-  getDewasaAyuForDate,
-} from '../data/dummyCalendarData';
 import { HariRayaDetailModal } from './HariRayaDetailModal';
+import { DayPiodalanModal } from './DayPiodalanModal';
+import { EASE_SMOOTH } from '@/lib/animations';
 
 /**
  * ============================================================================
@@ -25,9 +25,8 @@ import { HariRayaDetailModal } from './HariRayaDetailModal';
  *     - Menampilkan daftar perayaan keagamaan pada tanggal yang dipilih.
  *     - Interaktif: Mengklik hari raya memunculkan HariRayaDetailModal dengan
  *       makna & penjelasan filosofis lengkap (sesuai Gambar 2).
- *  5. Kartu "DEWASA AYU": Panduan hari baik contextual.
- *  6. Daftar "Piodalan hari ini": Nama pura, lokasi, dan jarak.
- *  7. Tombol Aksi: "Lihat detail hari" untuk membuka modal wewaran & urip lengkap.
+ *  5. Daftar "Piodalan hari ini": Nama pura, lokasi, dan jarak.
+ *  6. Tombol Aksi: "Lihat detail hari" untuk membuka modal wewaran & urip lengkap.
  * ============================================================================
  */
 
@@ -51,6 +50,9 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
   // State untuk mengontrol pop-up penjelasan hari raya yang diklik
   const [selectedHoliday, setSelectedHoliday] = useState<HariRayaItem | null>(null);
 
+  // State untuk mengontrol pop-up daftar piodalan lengkap
+  const [isPiodalanModalOpen, setIsPiodalanModalOpen] = useState(false);
+
   // Status hari Minggu
   const isSunday = indoDayName === 'Minggu';
 
@@ -64,14 +66,17 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
   // Daftar hari raya / rerainan pada tanggal terpilih
   const hariRayaList = selectedData?.hari_raya || [];
 
-  // Data Dewasa Ayu & Piodalan Real dari Mesin Pencarian Go (Hybrid Resilient Engine)
-  const dewasaAyu = getDewasaAyuForDate(selectedDate);
+  // Data Piodalan Real dari Mesin Pencarian Go (Hybrid Resilient Engine)
   const { data: dayPiodalanData, isLoading: isLoadingDayPio } = useDayPiodalan(
     selectedDate,
     selectedData
   );
   const piodalanList = dayPiodalanData?.items || [];
   const piodalanTotal = dayPiodalanData?.totalCount ?? 0;
+
+  // Batasi maksimal 5 piodalan di panel inspector agar tidak overflow
+  const displayedPiodalans = piodalanList.slice(0, 5);
+  const hasMorePiodalans = piodalanTotal > 5;
 
   // Status Purnama / Tilem jika ada pada tanggal ini
   const purnamaTilem =
@@ -85,7 +90,13 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
         {/* ========================================================= */}
         {/* KONTEN ATAS & TENGAH (FLEX-1 UNTUK MENGISI TINGGI)        */}
         {/* ========================================================= */}
-        <div className="flex-1 flex flex-col space-y-5 sm:space-y-6">
+        <motion.div
+          key={selectedDate}
+          initial={{ opacity: 0.6, y: 3 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, ease: EASE_SMOOTH }}
+          className="flex-1 flex flex-col space-y-5 sm:space-y-6"
+        >
           {/* ========================================================= */}
           {/* 1. HEADER DETAIL TANGGAL                                  */}
           {/* ========================================================= */}
@@ -106,7 +117,7 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
           <div className="flex items-center gap-4">
             <span
               className={`text-6xl sm:text-7xl font-extrabold tabular-nums leading-none tracking-tight ${
-                isSunday ? 'text-rose-600' : 'text-[#0f172a]'
+                isSunday ? 'text-rose-600 dark:text-rose-400' : 'text-[#0f172a] dark:text-white'
               }`}
             >
               {day}
@@ -115,8 +126,8 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
               <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest block">
                 {monthName} {year}
               </span>
-              <span className="text-base sm:text-lg font-bold text-[#0f172a] block leading-tight">
-                <span className={isSunday ? 'text-rose-600' : ''}>{indoDayName}</span> · {saptawaraName}
+              <span className="text-base sm:text-lg font-bold text-[#0f172a] dark:text-slate-100 block leading-tight">
+                <span className={isSunday ? 'text-rose-600 dark:text-rose-400' : ''}>{indoDayName}</span> · {saptawaraName}
               </span>
             </div>
           </div>
@@ -125,10 +136,10 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
           {/* 3. PILL SASIH, WUKU, & PURNAMA/TILEM (AGENTS.md Bab 3.C)  */}
           {/* ========================================================= */}
           <div className="flex flex-wrap gap-2.5">
-            <span className="inline-flex items-center text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#fffbeb] text-[#b45309] border border-amber-200/60">
+            <span className="inline-flex items-center text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#fffbeb] dark:bg-amber-950/40 text-[#b45309] dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
               Sasih {namaSasih}
             </span>
-            <span className="inline-flex items-center text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#ede9fe] text-[#6d28d9] border border-violet-200/60">
+            <span className="inline-flex items-center text-xs font-bold px-3.5 py-1.5 rounded-full bg-[#ede9fe] dark:bg-purple-950/40 text-[#6d28d9] dark:text-purple-300 border border-violet-200/60 dark:border-purple-800/60">
               Wuku {wukuName}
             </span>
             {purnamaTilem && (() => {
@@ -198,13 +209,13 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
                 })}
               </div>
             ) : (
-              <div className="p-3.5 rounded-xl border border-slate-200/70 bg-[#f8fafc] flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center shrink-0 text-slate-400">
-                  <Sparkles className="w-4 h-4 opacity-40 text-slate-500" />
+              <div className="p-3.5 rounded-xl border border-slate-200/70 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-800/40 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 text-slate-400">
+                  <Sparkles className="w-4 h-4 opacity-40 text-slate-500 dark:text-slate-400" />
                 </div>
                 <div className="min-w-0 text-left">
-                  <span className="text-xs font-bold text-slate-700 block">Hari Biasa</span>
-                  <span className="text-[11px] text-slate-400 font-medium block truncate">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200 block">Hari Biasa</span>
+                  <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium block truncate">
                     Tidak ada rahinan / perayaan khusus
                   </span>
                 </div>
@@ -213,63 +224,66 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
           </div>
 
           {/* ========================================================= */}
-          {/* 5. KARTU DEWASA AYU (PANDUAN HARI BAIK - EMERALD SUKSES)  */}
-          {/* ========================================================= */}
-          <div className="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl p-4 space-y-1.5">
-            <span className="text-[11px] font-extrabold text-emerald-800 dark:text-emerald-300 uppercase tracking-widest block">
-              {dewasaAyu.title}
-            </span>
-            <p className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-slate-100 leading-snug">
-              {dewasaAyu.advice}
-            </p>
-          </div>
-
-          {/* ========================================================= */}
-          {/* 6. DAFTAR PIODALAN HARI INI                               */}
+          {/* 5. DAFTAR PIODALAN HARI INI                               */}
           {/* ========================================================= */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm font-bold text-[#0f172a]">
+              <span className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-white">
                 Piodalan hari ini
               </span>
-              <span className="text-xs font-bold text-[#0d9488] tabular-nums">
-                {isLoadingDayPio ? 'Memuat...' : `${piodalanTotal} lokasi`}
-              </span>
+              {isLoadingDayPio ? (
+                <span className="text-xs font-bold text-[#0d9488] dark:text-teal-400 tabular-nums">
+                  Memuat...
+                </span>
+              ) : hasMorePiodalans ? (
+                <button
+                  type="button"
+                  onClick={() => setIsPiodalanModalOpen(true)}
+                  className="text-xs font-bold text-[#0d9488] dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline cursor-pointer transition-colors"
+                  title={`Lihat seluruh ${piodalanTotal} piodalan pada tanggal ini`}
+                >
+                  Lihat selengkapnya ↗
+                </button>
+              ) : (
+                <span className="text-xs font-bold text-[#0d9488] dark:text-teal-400 tabular-nums">
+                  {piodalanTotal} lokasi
+                </span>
+              )}
             </div>
 
             <div className="space-y-2.5">
               {isLoadingDayPio ? (
-                <div className="p-3.5 rounded-xl border border-slate-100/90 bg-[#f8fafc] text-center">
+                <div className="p-3.5 rounded-xl border border-slate-100/90 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-800/40 text-center">
                   <span className="text-xs text-slate-400 font-medium">
                     Memeriksa agenda piodalan pura...
                   </span>
                 </div>
               ) : piodalanList.length === 0 ? (
-                <div className="p-3.5 rounded-xl border border-slate-100/90 bg-[#f8fafc] text-center">
+                <div className="p-3.5 rounded-xl border border-slate-100/90 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-800/40 text-center">
                   <span className="text-xs text-slate-400 font-medium">
                     Tidak ada perayaan piodalan pura pada tanggal ini.
                   </span>
                 </div>
               ) : (
-                piodalanList.map((pio) => (
+                displayedPiodalans.map((pio) => (
                   <div
                     key={pio.id}
-                    className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-100/90 bg-[#f8fafc] hover:bg-slate-100/70 transition-colors [touch-action:manipulation]"
+                    className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-100/90 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-800/50 hover:bg-slate-100/70 dark:hover:bg-slate-800 transition-colors [touch-action:manipulation]"
                   >
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                         pio.accentColor === 'amber'
-                          ? 'bg-[#fef3c7] text-[#d97706]'
-                          : 'bg-[#e6f7f5] text-[#0d9488]'
+                          ? 'bg-[#fef3c7] dark:bg-amber-950/60 text-[#d97706] dark:text-amber-400'
+                          : 'bg-[#e6f7f5] dark:bg-teal-950/60 text-[#0d9488] dark:text-teal-400'
                       }`}
                     >
                       <Landmark className="w-4 h-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <span className="text-xs sm:text-sm font-bold text-[#0f172a] block truncate">
+                      <span className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-white block truncate">
                         {pio.puraName}
                       </span>
-                      <span className="text-xs text-slate-400 font-medium block truncate tabular-nums">
+                      <span className="text-xs text-slate-400 dark:text-slate-400 font-medium block truncate tabular-nums">
                         {pio.location} · {pio.distance}
                       </span>
                     </div>
@@ -278,16 +292,16 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ========================================================= */}
-        {/* 7. TOMBOL AKSI DI BAWAH (STANDAR SECONDARY AGENTS.md)    */}
+        {/* 6. TOMBOL AKSI DI BAWAH (STANDAR SECONDARY AGENTS.md)    */}
         {/* ========================================================= */}
         <div className="pt-5 mt-auto">
           <button
             type="button"
             onClick={onOpenDetailModal}
-            className="h-11 w-full rounded-xl border border-slate-200 bg-white hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center justify-center gap-2 shadow-2xs active:scale-98 [touch-action:manipulation]"
+            className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 dark:active:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center justify-center gap-2 shadow-2xs active:scale-98 [touch-action:manipulation]"
           >
             Lihat detail hari
           </button>
@@ -295,7 +309,7 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
       </div>
 
       {/* ========================================================= */}
-      {/* 8. MODAL POP-UP PENJELASAN MAKNA HARI RAYA                */}
+      {/* 7. MODAL POP-UP PENJELASAN MAKNA HARI RAYA                */}
       {/* ========================================================= */}
       {selectedHoliday && (
         <HariRayaDetailModal
@@ -305,6 +319,17 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
           holidayName={selectedHoliday.nama}
         />
       )}
+
+      {/* ========================================================= */}
+      {/* 8. MODAL POP-UP DAFTAR LENGKAP PIODALAN HARI INI          */}
+      {/* ========================================================= */}
+      <DayPiodalanModal
+        isOpen={isPiodalanModalOpen}
+        onClose={() => setIsPiodalanModalOpen(false)}
+        dateString={selectedDate}
+        dayData={selectedData}
+        piodalanList={piodalanList}
+      />
     </>
   );
 };

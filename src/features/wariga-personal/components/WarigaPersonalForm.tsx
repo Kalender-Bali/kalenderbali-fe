@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, ChevronDown } from 'lucide-react';
 import { getTodayWITA } from '@/features/kalender/utils/calendarUtils';
 import { WarigaDatePicker } from './WarigaDatePicker';
@@ -106,21 +106,37 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   // Sinkronisasi saat initial props berubah (misal dari navigasi URL)
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [initialBirthDate];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     setDisplayDate(toDisplayDate(initialBirthDate));
-  }, [initialBirthDate]);
 
-  useEffect(() => {
+  }
+
+  const [previousInputs2, setPreviousInputs2] = useState<readonly unknown[] | null>(null);
+  const currentInputs2 = [initialSebelumJam6];
+  if (previousInputs2 === null || currentInputs2.some((value, index) => !Object.is(value, previousInputs2[index]))) {
+    setPreviousInputs2(currentInputs2);
     setSebelumJam6(initialSebelumJam6);
-  }, [initialSebelumJam6]);
 
-  useEffect(() => {
+  }
+
+  const [previousInputs3, setPreviousInputs3] = useState<readonly unknown[] | null>(null);
+  const currentInputs3 = [initialMonth];
+  if (previousInputs3 === null || currentInputs3.some((value, index) => !Object.is(value, previousInputs3[index]))) {
+    setPreviousInputs3(currentInputs3);
     setMonth(initialMonth);
-  }, [initialMonth]);
 
-  useEffect(() => {
+  }
+
+  const [previousInputs4, setPreviousInputs4] = useState<readonly unknown[] | null>(null);
+  const currentInputs4 = [initialYear];
+  if (previousInputs4 === null || currentInputs4.some((value, index) => !Object.is(value, previousInputs4[index]))) {
+    setPreviousInputs4(currentInputs4);
     setYear(initialYear);
-  }, [initialYear]);
+
+  }
 
   // -------------------------------------------------------------------------
   // BLOK 2: HANDLER SUBMIT DENGAN VALIDASI INPUT LENGKAP

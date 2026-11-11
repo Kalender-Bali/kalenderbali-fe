@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { EASE_SMOOTH } from '@/lib/animations';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { DashboardHero } from '../components/DashboardHero';
 import { DashboardMiniCalendar } from '../components/DashboardMiniCalendar';
@@ -51,7 +53,6 @@ export default function DashboardPage() {
     calendarGridCells,
     handlePrevMonth,
     handleNextMonth,
-    handleSelectDate,
     upcomingHariRaya,
     dewasaAyu,
     piodalan,
@@ -64,7 +65,6 @@ export default function DashboardPage() {
   // Handler interaksi tanggal di mini kalender:
   // Mengarahkan pengguna langsung ke tanggal tersebut di halaman Kalender Bali
   const onCalendarDateClick = (dateString: string) => {
-    handleSelectDate(dateString);
     navigate(`/kalender?date=${dateString}`);
   };
 
@@ -120,7 +120,12 @@ export default function DashboardPage() {
   // 5. RENDER UTAMA HALAMAN DASHBOARD
   // ---------------------------------------------------------------------------
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: EASE_SMOOTH }}
+      className="space-y-6"
+    >
       {/* =================================================================== */}
       {/* HEADER UTAMA: BREADCRUMB, JUDUL H1, & DESKRIPSI (GAYA SERAGAM)      */}
       {/* =================================================================== */}
@@ -195,6 +200,6 @@ export default function DashboardPage() {
           <DashboardPiodalan data={piodalan} />
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 }

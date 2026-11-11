@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'motion/react';
+import { popoverVariants } from '@/lib/animations';
 import {
   Menu,
   Bell,
@@ -278,7 +280,7 @@ export default function Navbar() {
           {/* Tombol Badge "★ Premium" (Pill Dinamis Mengikuti Aksen Tema Aktif) */}
           <button
             type="button"
-            onClick={() => navigate('/bantuan')}
+            onClick={() => navigate('/premium')}
             className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-primary-subtle hover:bg-primary-light/50 dark:hover:bg-primary-border/25 active:scale-95 text-primary-text text-xs font-bold rounded-full border border-primary-border transition-all shadow-2xs cursor-pointer [touch-action:manipulation]"
             title="Fitur Premium & Donasi Komunitas"
           >
@@ -315,9 +317,17 @@ export default function Navbar() {
             </button>
 
             {/* POPOVER DAFTAR RAHINA TERDEKAT (AGENTS.md Bagian 5.2: w-80 sm:w-96) */}
-            {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-                {/* Header Popover dengan nuansa gradient halus & eyebrow */}
+            <AnimatePresence>
+              {showNotifications && (
+                <motion.div
+                  key="notification-popover"
+                  variants={popoverVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 select-none"
+                >
+                  {/* Header Popover dengan nuansa gradient halus & eyebrow */}
                 <div className="p-4 bg-gradient-to-r from-teal-50/60 via-slate-50/40 to-emerald-50/30 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3">
                   <div>
                     <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d9488] block">
@@ -346,19 +356,19 @@ export default function Navbar() {
                   {/* Status Loading Skeleton (AGENTS.md Bagian 4.8) */}
                   {isLoading && (
                     <div className="p-4 space-y-3">
-                      <div className="h-4 bg-slate-100 rounded-lg animate-pulse w-3/4" />
-                      <div className="h-3 bg-slate-100 rounded-lg animate-pulse w-1/2" />
-                      <div className="h-4 bg-slate-100 rounded-lg animate-pulse w-4/5" />
+                      <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse w-3/4" />
+                      <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse w-1/2" />
+                      <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse w-4/5" />
                     </div>
                   )}
 
                   {/* Status Jika Tidak Ada Rahina Mendatang */}
                   {!isLoading && upcomingEvents.length === 0 && (
-                    <div className="p-6 text-center text-xs text-slate-500 space-y-1">
-                      <p className="font-medium text-slate-700">
+                    <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                      <p className="font-medium text-slate-700 dark:text-slate-300">
                         Tidak ada perayaan terdekat dalam waktu dekat.
                       </p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-slate-400 dark:text-slate-500">
                         Perayaan berikutnya akan segera muncul pada pergantian siklus wuku.
                       </p>
                     </div>
@@ -372,7 +382,7 @@ export default function Navbar() {
                       return (
                         <div
                           key={`${item.date}-${item.holiday.id || idx}`}
-                          className="p-3.5 hover:bg-slate-50/80 transition-colors flex items-start justify-between gap-3 group"
+                          className="p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/80 transition-colors flex items-start justify-between gap-3 group"
                         >
                           {/* Sisi Kiri: Klik untuk Buka di Kalender */}
                           <div
@@ -380,22 +390,22 @@ export default function Navbar() {
                             className="flex-1 cursor-pointer"
                           >
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-bold text-xs text-[#0f172a] group-hover:text-[#0d9488] transition-colors">
+                              <span className="font-bold text-xs text-[#0f172a] dark:text-slate-100 group-hover:text-primary transition-colors">
                                 {item.holiday.nama}
                               </span>
                             </div>
 
                             {/* Konteks Wewaran & Sasih */}
-                            <div className="text-[11px] text-slate-500 mt-0.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                               {item.wewaranText} · {item.sasihText}
                             </div>
 
                             {/* Tanggal Terformat Lengkap dengan Tabular Nums */}
                             <div className="flex items-center gap-2 mt-1.5">
-                              <span className="text-[10px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80 tabular-nums">
+                              <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200/80 dark:border-slate-700/80 tabular-nums">
                                 {item.formattedDate}
                               </span>
-                              <span className="text-[10px] text-[#0d9488] font-bold inline-flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <span className="text-[10px] text-primary font-bold inline-flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span>Buka Kalender</span>
                                 <ChevronRight size={11} />
                               </span>
@@ -421,7 +431,7 @@ export default function Navbar() {
                                 e.stopPropagation();
                                 setSelectedHoliday(item.holiday);
                               }}
-                              className="min-w-7 min-h-7 flex items-center justify-center text-slate-400 hover:text-[#0d9488] hover:bg-teal-50 active:scale-95 rounded-lg transition-all cursor-pointer [touch-action:manipulation]"
+                              className="min-w-7 min-h-7 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary-subtle dark:hover:bg-slate-800 active:scale-95 rounded-lg transition-all cursor-pointer [touch-action:manipulation]"
                               title="Baca Makna & Filosofi Hari Raya Ini"
                             >
                               <Info size={14} />
@@ -433,11 +443,11 @@ export default function Navbar() {
                 </div>
 
                 {/* Footer Popover: Link ke Kalender Lengkap */}
-                <div className="py-2.5 px-4 bg-slate-50/70 border-t border-slate-100 text-center">
+                <div className="py-2.5 px-4 bg-slate-50/70 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 text-center">
                   <NavLink
                     to="/kalender"
                     onClick={() => setShowNotifications(false)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0d9488] hover:text-[#0c8a7d] transition-colors py-1"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-hover transition-colors py-1"
                   >
                     <Calendar size={13} />
                     <span>
@@ -446,9 +456,10 @@ export default function Navbar() {
                     </span>
                   </NavLink>
                 </div>
-              </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
+        </div>
 
           {/* Garis Pembatas Vertikal Halus */}
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1 hidden sm:block" />
@@ -520,9 +531,17 @@ export default function Navbar() {
               </button>
 
               {/* Popover Dropdown Akun Pengguna */}
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-60 sm:w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
-                  {/* Header Profil Ringkas */}
+              <AnimatePresence>
+                {showUserMenu && (
+                  <motion.div
+                    key="user-menu-popover"
+                    variants={popoverVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    className="absolute right-0 mt-2 w-60 sm:w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 select-none"
+                  >
+                    {/* Header Profil Ringkas */}
                   <div className="p-3.5 bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3">
                     {user.avatarUrl ? (
                       <img
@@ -585,11 +604,12 @@ export default function Navbar() {
                       <span>Keluar (Logout)</span>
                     </button>
                   </div>
-                </div>
+                </motion.div>
               )}
-            </div>
-          )}
-        </div>
+            </AnimatePresence>
+          </div>
+        )}
+      </div>
       </header>
 
       {/* ========================================================= */}

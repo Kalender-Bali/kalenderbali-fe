@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { useState, useEffect, useMemo } from 'react';
 import {
   Users,
@@ -28,7 +29,9 @@ export default function AdminUserPage() {
     try {
       const data = await adminService.getAllMembers();
       setMembers(data);
-    } catch (err: any) {
+      setErrorMsg(null);
+    } catch (caught) {
+    const err = toApiError(caught);
       setErrorMsg(err.message || 'Gagal memuat daftar pengguna.');
     } finally {
       setIsLoading(false);
@@ -36,7 +39,15 @@ export default function AdminUserPage() {
   };
 
   useEffect(() => {
-    fetchMembers();
+    let active = true;
+    void adminService.getAllMembers().then((data) => {
+      if (active) { setMembers(data); setErrorMsg(null); }
+    }).catch((error: unknown) => {
+      if (active) setErrorMsg(toApiError(error).message || 'Gagal memuat daftar pengguna.');
+    }).finally(() => {
+      if (active) setIsLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   // Filter daftar pengguna berdasarkan input pencarian dan tab role
@@ -79,7 +90,8 @@ export default function AdminUserPage() {
       setMembers((prev) =>
         prev.map((item) => (item.id === member.id ? { ...item, role: targetRole } : item))
       );
-    } catch (err: any) {
+    } catch (caught) {
+    const err = toApiError(caught);
       alert(err.message || 'Gagal memperbarui peran pengguna.');
     } finally {
       setUpdatingId(null);

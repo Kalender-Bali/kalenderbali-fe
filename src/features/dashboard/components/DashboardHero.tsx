@@ -83,7 +83,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
               {heroData.wuku}
             </span>
             <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate">
-              Dina ka-{heroData.dinaKa}
+              Dina ka-{heroData.dinaKa ?? '-'}
             </span>
           </div>
 
@@ -93,7 +93,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
               URIP
             </span>
             <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] dark:text-white tabular-nums tracking-tight block my-0.5">
-              {heroData.urip}
+              {heroData.urip ?? '-'}
             </span>
             <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate capitalize">
               {heroData.arah}

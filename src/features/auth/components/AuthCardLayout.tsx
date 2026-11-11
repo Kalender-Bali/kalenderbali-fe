@@ -62,9 +62,9 @@ export default function AuthCardLayout({
       {/* NAVIGASI DI LUAR KARTU (Footer Links) Sesuai Gambar Referensi         */}
       {/* ==================================================================== */}
       {footer && (
-        <footer className="mt-6 text-center space-y-2.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+        <div className="mt-6 text-center space-y-2.5 text-xs text-slate-500 dark:text-slate-400 font-medium bg-transparent">
           {footer}
-        </footer>
+        </div>
       )}
     </main>
   );

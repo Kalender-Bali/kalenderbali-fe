@@ -124,7 +124,7 @@ export function useHariRayaData(year: number, activeMonth: number = 9) {
 
   // 3. Silent Background Prefetching Tahun Berikutnya (fe_strategy.md Bab 4)
   useEffect(() => {
-    if (activeMonth >= 11 && year < 2200) {
+    if (rawCalendarDays.length > 0 && activeMonth >= 11 && year < 2200) {
       const nextYear = year + 1;
       queryClient.prefetchQuery({
         queryKey: ['kalender', nextYear],
@@ -132,7 +132,7 @@ export function useHariRayaData(year: number, activeMonth: number = 9) {
         staleTime: Infinity,
       });
     }
-  }, [year, activeMonth, queryClient]);
+  }, [year, activeMonth, queryClient, rawCalendarDays.length]);
 
   // 4. Ekstrak seluruh kartu hari raya sepanjang tahun (Semua 12 Bulan)
   const allCards = useMemo(() => {

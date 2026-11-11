@@ -116,9 +116,13 @@ export default function KeteranganDetailPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Reset nomor halaman kembali ke halaman 1 saat pencarian atau kategori berganti
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [searchTerm, typeCode];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     setCurrentPage(1);
-  }, [searchTerm, typeCode]);
+
+  }
 
   // Perhitungan matematis total halaman dan indeks rentang item aktif
   const totalEntries = filteredValues.length;

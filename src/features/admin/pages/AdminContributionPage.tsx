@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { useState, useEffect, useMemo } from 'react';
 import {
   FileCheck2,
@@ -29,7 +30,9 @@ export default function AdminContributionPage() {
     try {
       const data = await adminService.getAllMembers();
       setMembers(data);
-    } catch (err: any) {
+      setErrorMsg(null);
+    } catch (caught) {
+    const err = toApiError(caught);
       setErrorMsg(err.message || 'Gagal memuat data pengajuan kontributor.');
     } finally {
       setIsLoading(false);
@@ -37,7 +40,15 @@ export default function AdminContributionPage() {
   };
 
   useEffect(() => {
-    fetchContributors();
+    let active = true;
+    void adminService.getAllMembers().then((data) => {
+      if (active) { setMembers(data); setErrorMsg(null); }
+    }).catch((error: unknown) => {
+      if (active) setErrorMsg(toApiError(error).message || 'Gagal memuat data pengajuan kontributor.');
+    }).finally(() => {
+      if (active) setIsLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   // Filter anggota yang memiliki status kontribusi
@@ -89,7 +100,8 @@ export default function AdminContributionPage() {
           item.id === member.id ? { ...item, contribution_status: newStatus } : item
         )
       );
-    } catch (err: any) {
+    } catch (caught) {
+    const err = toApiError(caught);
       alert(err.message || 'Gagal memproses permohonan kontributor.');
     } finally {
       setProcessingId(null);
@@ -172,7 +184,7 @@ export default function AdminContributionPage() {
               <button
                 key={tab.id}
                 type="button"
-                onClick={() => setSelectedTab(tab.id as any)}
+                onClick={() => setSelectedTab(tab.id as typeof selectedTab)}
                 className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer [touch-action:manipulation] ${
                   selectedTab === tab.id
                     ? 'bg-white text-slate-900 shadow-2xs'

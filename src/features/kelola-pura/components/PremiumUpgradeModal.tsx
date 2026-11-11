@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { Crown, Sparkles } from 'lucide-react';
-import { useAlertStore } from '@/stores/useAlertStore';
 
 /**
  * ==============================================================================
@@ -44,7 +44,7 @@ export const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
     'Akses penuh perhitungan wariga terperinci',
   ],
 }) => {
-  const { showAlert } = useAlertStore();
+  const navigate = useNavigate();
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -128,7 +128,7 @@ export const PremiumUpgradeModal: React.FC<PremiumUpgradeModalProps> = ({
             type="button"
             onClick={() => {
               onClose();
-              showAlert('Fitur upgrade akun akan dialihkan ke halaman langganan.');
+              navigate('/premium');
             }}
             className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 active:scale-95 transition-all shadow-xs cursor-pointer"
           >

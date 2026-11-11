@@ -173,21 +173,13 @@ export async function fetchPiodalanDates(
  * - Elemen Lainnya (Panca Sudha, Pangarasan, Rakam, Neptu, Zodiak, Pratiti)
  *
  * @param dateStr Tanggal Masehi dalam format YYYY-MM-DD
- * @returns Promise berisi objek data harian kalender atau null
+ * @returns Data harian atau null jika kosong; kegagalan jaringan diteruskan ke query.
  */
 export async function fetchDayWariga(dateStr: string): Promise<KalenderHarian | null> {
-  try {
-    const response = await apiClient.get('/kalender', {
-      params: {
-        start_date: dateStr,
-        end_date: dateStr,
-      },
-    });
-
-    return (response.data?.data?.[0] as KalenderHarian) || null;
-  } catch {
-    return null;
-  }
+  const response = await apiClient.get<{ data: KalenderHarian[] }>('/kalender', {
+    params: { start_date: dateStr, end_date: dateStr },
+  });
+  return response.data?.data?.find((day) => day.tanggal === dateStr) ?? null;
 }
 
 // ==============================================================================

@@ -1,3 +1,4 @@
+import { toApiError } from '@/lib/apiError';
 import { useState, useEffect, useMemo } from 'react';
 import {
   CreditCard,
@@ -27,7 +28,9 @@ export default function AdminTransactionPage() {
     try {
       const data = await adminService.getAllPurchases();
       setPurchases(data);
-    } catch (err: any) {
+      setErrorMsg(null);
+    } catch (caught) {
+    const err = toApiError(caught);
       setErrorMsg(err.message || 'Gagal memuat data transaksi pengguna.');
     } finally {
       setIsLoading(false);
@@ -35,7 +38,15 @@ export default function AdminTransactionPage() {
   };
 
   useEffect(() => {
-    fetchPurchases();
+    let active = true;
+    void adminService.getAllPurchases().then((data) => {
+      if (active) { setPurchases(data); setErrorMsg(null); }
+    }).catch((error: unknown) => {
+      if (active) setErrorMsg(toApiError(error).message || 'Gagal memuat data transaksi pengguna.');
+    }).finally(() => {
+      if (active) setIsLoading(false);
+    });
+    return () => { active = false; };
   }, []);
 
   // Filter daftar transaksi

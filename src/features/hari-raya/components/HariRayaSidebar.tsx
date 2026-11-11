@@ -21,8 +21,8 @@ import { HariRayaReminderModal } from './HariRayaReminderModal';
  *      nama hari raya besar, subtitle paksa bulan, tanggal lengkap,
  *      dan uraian makna filosofis langsung di kartu tanpa tombol pop-up.
  *    - Blok "Ringkasan": Menyajikan Wuku dan Sasih riil dari backend Go.
- *    - Tombol Aksi: "Aktifkan pengingat" untuk hari raya terdekat
- *      (membuka HariRayaReminderModal dummy flow).
+ *    - Tombol Aksi: "Unduh pengingat kalender" untuk hari raya terdekat
+ *      (membuka HariRayaReminderModal untuk mengunduh kalender pengingat).
  * ============================================================================
  */
 
@@ -57,7 +57,7 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
     }
 
     const targetName = upcomingInfo?.item.nama || 'rahina terdekat';
-    setNotificationFeedback(`Pengingat untuk ${targetName} berhasil diaktifkan.`);
+    setNotificationFeedback(`Pengingat untuk ${targetName} telah diunduh. Impor berkas .ics ke aplikasi kalender Anda.`);
     setTimeout(() => setNotificationFeedback(null), 4000);
   };
 
@@ -70,7 +70,7 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
       // Abaikan jika localStorage tidak didukung / diblokir peramban
     }
 
-    setNotificationFeedback('Pengingat telah dinonaktifkan.');
+    setNotificationFeedback('Preferensi lokal dihapus. Hapus juga acara di aplikasi kalender jika sudah diimpor.');
     setTimeout(() => setNotificationFeedback(null), 3000);
   };
 
@@ -174,7 +174,7 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
         </div>
 
         {/* =============================================================== */}
-        {/* SUB-SEKSI: Tombol "Aktifkan pengingat" untuk Hari Raya Terdekat   */}
+        {/* SUB-SEKSI: Tombol "Unduh pengingat kalender" untuk Hari Raya Terdekat   */}
         {/* =============================================================== */}
         <div className="pt-2 space-y-3">
           {/* Feedback Banner jika Pengingat Disimpan atau Dibatalkan */}
@@ -185,7 +185,7 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
             </div>
           )}
 
-          {/* Tombol Interaktif "Aktifkan pengingat" untuk Hari Raya Terdekat (Warna Teal Utama #0e9f90) */}
+          {/* Tombol Interaktif "Unduh pengingat kalender" untuk Hari Raya Terdekat (Warna Teal Utama #0e9f90) */}
           <button
             type="button"
             onClick={() => setIsReminderModalOpen(true)}
@@ -196,13 +196,13 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
               <>
                 <BellRing className="w-4 h-4 text-white shrink-0" />
                 <span className="truncate">
-                  Pengingat Aktif ({upcomingInfo?.item.nama || 'Rahina'})
+                  Unduh Lagi ({upcomingInfo?.item.nama || 'Rahina'})
                 </span>
               </>
             ) : (
               <>
                 <Bell className="w-4 h-4 text-white shrink-0" />
-                <span>Aktifkan pengingat</span>
+                <span>Unduh pengingat kalender</span>
               </>
             )}
           </button>
@@ -210,7 +210,7 @@ export const HariRayaSidebar: React.FC<HariRayaSidebarProps> = ({
       </div>
 
       {/* ================================================================= */}
-      {/* MODAL POP-UP: Set Pengingat Hari Raya Terdekat (Dummy Flow)       */}
+      {/* MODAL POP-UP: Set Pengingat Hari Raya Terdekat (Unduh berkas kalender)       */}
       {/* ================================================================= */}
       <HariRayaReminderModal
         isOpen={isReminderModalOpen}

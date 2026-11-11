@@ -45,7 +45,7 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
 
     downloadOtonanICS({
       tanggal: item.tanggal,
-      perayaanKe: item.perayaan_ke,
+      perayaanKe: normalized?.tipe_pencarian === 'tanggal_lahir' ? item.perayaan_ke : null,
       saptawara,
       pancawara,
       wuku,
@@ -69,6 +69,8 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
         const dayName = getIndoDayName(item.tanggal);
         const countdown = getCountdownDays(item.tanggal);
         const formattedDate = formatIndoDate(item.tanggal, { format: 'long' });
+        const hasBirthCycle =
+          normalized?.tipe_pencarian === 'tanggal_lahir' && item.perayaan_ke != null;
 
         const saptawaraName =
           item.detail_elemen?.saptawara || birthElements?.saptawara || 'Redite';
@@ -99,17 +101,19 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
               </div>
 
               {/* Sisi Kanan: Stat Counter Box Siklus ke-N (Sesuai AGENTS.md Bab 4.3) */}
-              <div className="bg-[#e6f7f5] dark:bg-teal-950/40 border border-[#ccf0ea] dark:border-teal-800/50 rounded-xl p-3 sm:p-4 text-center min-w-[125px] shrink-0 self-start sm:self-auto">
-                <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
-                  SIKLUS KE
-                </span>
-                <span className="text-3xl sm:text-4xl font-extrabold text-[#0f172a] dark:text-teal-200 tabular-nums tracking-tight block my-0.5">
-                  {item.perayaan_ke}
-                </span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">
-                  sejak tanggal lahir
-                </span>
-              </div>
+              {hasBirthCycle && (
+                <div className="bg-[#e6f7f5] dark:bg-teal-950/40 border border-[#ccf0ea] dark:border-teal-800/50 rounded-xl p-3 sm:p-4 text-center min-w-[125px] shrink-0 self-start sm:self-auto">
+                  <span className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
+                    SIKLUS KE
+                  </span>
+                  <span className="text-3xl sm:text-4xl font-extrabold text-[#0f172a] dark:text-teal-200 tabular-nums tracking-tight block my-0.5">
+                    {item.perayaan_ke}
+                  </span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium block">
+                    sejak tanggal lahir
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Baris Tengah: 4 Pilar Wariga Semantik (Sesuai AGENTS.md Bab 3.C) */}

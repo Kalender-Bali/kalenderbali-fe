@@ -7,12 +7,8 @@ import {
 } from 'lucide-react';
 import type { PiodalanScheduleItem } from '../types/piodalan.types';
 import { useDayWariga } from '../hooks/usePiodalan';
-import {
-  calculateIngkel,
-  calculateNeptu,
-  calculateZodiak,
-  WARIGA_FALLBACK_VALUES,
-} from '@/features/otonan/utils/warigaUtils';
+import { calculateZodiak } from '@/features/otonan/utils/warigaUtils';
+import { WarigaDataState } from '@/features/otonan/components/WarigaDataState';
 import { WarigaExplanationModal } from '@/features/otonan/components/WarigaExplanationModal';
 
 /**
@@ -92,7 +88,7 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
   }, [isOpen, onClose, explanationTarget]);
 
   // Query data penanggalan harian kalender Go untuk Detail Wariga 15 Dimensi
-  const { data: dayWariga } = useDayWariga(schedule?.dateStr);
+  const { data: dayWariga, isLoading, isError, refetch } = useDayWariga(isOpen ? schedule?.dateStr : undefined);
 
   if (!isOpen || !schedule) return null;
 
@@ -101,22 +97,20 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
   const s = dayWariga?.sasih;
   const p = dayWariga?.pengalantaka;
 
-  const saptawaraName = w?.saptawara?.nama || schedule.rawPura?.saptawara || 'Redite';
-  const pancawaraName = w?.pancawara?.nama || schedule.rawPura?.pancawara || 'Umanis';
-  const wukuName = w?.wuku?.nama || schedule.rawPura?.wuku || 'Sinta';
+  const saptawaraName = w?.saptawara?.nama || schedule.rawPura?.saptawara || '-';
+  const pancawaraName = w?.pancawara?.nama || schedule.rawPura?.pancawara || '-';
+  const wukuName = w?.wuku?.nama || schedule.rawPura?.wuku || '-';
 
-  const calculatedIngkel = calculateIngkel(wukuName);
-  const calculatedNeptu = calculateNeptu(saptawaraName, pancawaraName);
   const calculatedZodiak = calculateZodiak(schedule.dateStr);
 
   // --------------------------------------------------------------------------
   // DAFTAR BARIS TABEL WARIGA (SESUAI POLA STANDAR OTONAN & KALENDER BALI)
   // --------------------------------------------------------------------------
   const wewaranRows: WarigaRowData[] = [
-    { label: 'Ekawara', value: w?.ekawara?.nama && w.ekawara.nama !== '-' ? w.ekawara.nama : 'Luang' },
-    { label: 'Dwiwara', value: w?.dwiwara?.nama || 'Pepet' },
-    { label: 'Triwara', value: w?.triwara?.nama || 'Beteng' },
-    { label: 'Caturwara', value: w?.caturwara?.nama || 'Sri' },
+    { label: 'Ekawara', value: w?.ekawara?.nama || '-' },
+    { label: 'Dwiwara', value: w?.dwiwara?.nama || '-' },
+    { label: 'Triwara', value: w?.triwara?.nama || '-' },
+    { label: 'Caturwara', value: w?.caturwara?.nama || '-' },
     {
       label: 'Pancawara',
       value: pancawaraName,
@@ -124,7 +118,7 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
       categoryCode: 'pancawara',
       categoryName: 'Pancawara',
     },
-    { label: 'Sadwara', value: w?.sadwara?.nama || 'Was' },
+    { label: 'Sadwara', value: w?.sadwara?.nama || '-' },
     {
       label: 'Saptawara',
       value: saptawaraName,
@@ -132,9 +126,9 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
       categoryCode: 'saptawara',
       categoryName: 'Saptawara',
     },
-    { label: 'Astawara', value: w?.astawara?.nama || 'Sri' },
-    { label: 'Sangawara', value: w?.sangawara?.nama || 'Jangur' },
-    { label: 'Dasawara', value: w?.dasawara?.nama || 'Duka' },
+    { label: 'Astawara', value: w?.astawara?.nama || '-' },
+    { label: 'Sangawara', value: w?.sangawara?.nama || '-' },
+    { label: 'Dasawara', value: w?.dasawara?.nama || '-' },
   ];
 
   const elemenLainnyaRows: WarigaRowData[] = [
@@ -147,64 +141,64 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
     },
     {
       label: 'Ingkel',
-      value: calculatedIngkel,
+      value: w?.ingkel?.nama || '-',
       hasArrow: true,
       categoryCode: 'ingkel',
       categoryName: 'Ingkel',
     },
     {
       label: 'Jejepan',
-      value: WARIGA_FALLBACK_VALUES.jejepan,
+      value: w?.jejepan?.nama || '-',
       hasArrow: true,
       categoryCode: 'jejepan',
       categoryName: 'Jejepan',
     },
     {
       label: 'Lintang',
-      value: WARIGA_FALLBACK_VALUES.lintang,
+      value: w?.lintang?.nama || '-',
       hasArrow: true,
       categoryCode: 'lintang',
       categoryName: 'Lintang',
     },
     {
       label: 'Panca Sudha',
-      value: WARIGA_FALLBACK_VALUES.panca_sudha,
+      value: w?.panca_sudha?.nama || '-',
       hasArrow: true,
       categoryCode: 'panca_sudha',
       categoryName: 'Panca Sudha',
     },
     {
       label: 'Pangarasan',
-      value: WARIGA_FALLBACK_VALUES.pangarasan,
+      value: w?.pangarasan?.nama || '-',
       hasArrow: true,
       categoryCode: 'pangarasan',
       categoryName: 'Pangarasan',
     },
     {
       label: 'Rakam',
-      value: WARIGA_FALLBACK_VALUES.rakam,
+      value: w?.rakam?.nama || '-',
       hasArrow: true,
       categoryCode: 'rakam',
       categoryName: 'Rakam',
     },
     {
       label: 'Watek Madya',
-      value: WARIGA_FALLBACK_VALUES.watek_madya,
+      value: w?.watek_madya?.nama || '-',
       hasArrow: true,
       categoryCode: 'watek_madya',
       categoryName: 'Watek Madya',
     },
     {
       label: 'Watek Alit',
-      value: WARIGA_FALLBACK_VALUES.watek_alit,
+      value: w?.watek_alit?.nama || '-',
       hasArrow: true,
       categoryCode: 'watek_alit',
       categoryName: 'Watek Alit',
     },
-    { label: 'Neptu', value: calculatedNeptu },
+    { label: 'Neptu', value: w?.neptu ?? '-' },
     {
       label: 'Eka Jala Rsi',
-      value: WARIGA_FALLBACK_VALUES.eka_jala_rsi,
+      value: w?.eka_jala_rsi?.nama || '-',
       hasArrow: true,
       categoryCode: 'eka_jala_rsi',
       categoryName: 'Eka Jala Rsi',
@@ -218,7 +212,7 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
     },
     {
       label: 'Pratiti',
-      value: WARIGA_FALLBACK_VALUES.pratiti,
+      value: w?.pratiti?.nama || '-',
       hasArrow: true,
       categoryCode: 'pratiti',
       categoryName: 'Pratiti',
@@ -226,17 +220,17 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
   ];
 
   const pengalantakaRows: WarigaRowData[] = [
-    { label: 'Pengalantaka', value: p?.pengalantaka || 'Pangelong' },
-    { label: 'Angka Pengalantaka', value: p?.penanggal_1 ?? 9 },
+    { label: 'Pengalantaka', value: p?.pengalantaka || '-' },
+    { label: 'Angka Pengalantaka', value: p?.penanggal_1 ?? '-' },
   ];
 
   const tahunSakaSasihRows: WarigaRowData[] = [
-    { label: 'Tahun Saka', value: s?.tahun_saka || 1948 },
+    { label: 'Tahun Saka', value: s?.tahun_saka ?? '-' },
     {
       label: 'Sasih',
       value: s?.nama_sasih
         ? s.nama_sasih.charAt(0).toUpperCase() + s.nama_sasih.slice(1)
-        : 'Kapat',
+        : '-',
     },
   ];
 
@@ -249,7 +243,7 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
   );
 
   const renderRow = (item: WarigaRowData) => {
-    const isClickable = Boolean(item.hasArrow && item.categoryCode);
+    const isClickable = Boolean(item.hasArrow && item.categoryCode && item.value !== '-');
 
     return (
       <div
@@ -280,7 +274,7 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
           >
             {item.value}
           </span>
-          {item.hasArrow && (
+          {isClickable && (
             <div
               className="p-1 rounded-md text-[#0d9488] group-hover:bg-teal-50 transition-colors"
               title={`Buka penjelasan ${item.label}`}
@@ -352,21 +346,27 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
 
           {/* Kotak Kontainer Tabel Wariga */}
           <div className="bg-[#f8fafc] rounded-xl border border-slate-200/70 overflow-hidden shadow-2xs divide-y divide-slate-100">
-            {/* 1. Kelompok Wewaran */}
-            {renderSectionHeader('Wewaran (Siklus Hari)')}
-            <div className="bg-white">{wewaranRows.map(renderRow)}</div>
+            {isLoading || isError || !dayWariga ? (
+              <WarigaDataState isLoading={isLoading} isError={isError} onRetry={() => { void refetch(); }} />
+            ) : (
+              <>
+                {/* 1. Kelompok Wewaran */}
+                {renderSectionHeader('Wewaran (Siklus Hari)')}
+                <div className="bg-white">{wewaranRows.map(renderRow)}</div>
 
-            {/* 2. Kelompok Pengalantaka */}
-            {renderSectionHeader('Pengalantaka (Siklus Bulan)')}
-            <div className="bg-white">{pengalantakaRows.map(renderRow)}</div>
+                {/* 2. Kelompok Pengalantaka */}
+                {renderSectionHeader('Pengalantaka (Siklus Bulan)')}
+                <div className="bg-white">{pengalantakaRows.map(renderRow)}</div>
 
-            {/* 3. Kelompok Elemen Lainnya */}
-            {renderSectionHeader('Elemen Penanggalan Lainnya')}
-            <div className="bg-white">{elemenLainnyaRows.map(renderRow)}</div>
+                {/* 3. Kelompok Elemen Lainnya */}
+                {renderSectionHeader('Elemen Penanggalan Lainnya')}
+                <div className="bg-white">{elemenLainnyaRows.map(renderRow)}</div>
 
-            {/* 4. Kelompok Tahun Saka & Sasih */}
-            {renderSectionHeader('Tahun Saka & Sasih')}
-            <div className="bg-white">{tahunSakaSasihRows.map(renderRow)}</div>
+                {/* 4. Kelompok Tahun Saka & Sasih */}
+                {renderSectionHeader('Tahun Saka & Sasih')}
+                <div className="bg-white">{tahunSakaSasihRows.map(renderRow)}</div>
+              </>
+            )}
           </div>
         </div>
 

@@ -1,15 +1,14 @@
 /**
  * ============================================================================
- * UTILITAS PERHITUNGAN & DUMMY WARIGA (MODAL DETAIL WARIGA)
+ * UTILITAS PENDUKUNG WARIGA
  * ============================================================================
  * Berkas ini menyediakan data dan fungsi pendukung untuk modal "Detail Wariga":
- *  1. Perhitungan matematis akurat untuk elemen kalender tradisional:
+ *  1. Fungsi pendukung yang memakai aturan kalender yang sudah ada:
  *     - Ingkel (siklus 6 berdasarkan nomor wuku 1-30)
  *     - Neptu (penjumlahan urip Saptawara + Pancawara)
  *     - Zodiak (berdasarkan posisi tanggal & bulan Masehi)
- *  2. Data dummy / fallback untuk elemen budaya yang belum dihitung di backend Go:
- *     - Jejepan, Lintang, Panca Sudha, Pangarasan, Rakam, Watek Madya, Watek Alit,
- *       Eka Jala Rsi, Pratiti.
+ * Modal memakai hasil API untuk atribut adat; utilitas lokal tidak menyediakan
+ * nilai dummy sebagai pengganti hasil kalender yang belum tersedia.
  * ============================================================================
  */
 
@@ -53,11 +52,13 @@ export const WUKU_LIST = [
  *  1 -> Wong, 2 -> Sato, 3 -> Mina, 4 -> Manuk, 5 -> Taru, 0 -> Buku
  */
 export function calculateIngkel(wukuName?: string): string {
-  if (!wukuName) return 'Taru';
+  if (!wukuName) return '-';
+  const normalizedName = wukuName.trim().toLowerCase();
+  const name = ['klawu', 'kulawu', 'kulau'].includes(normalizedName) ? 'kelawu' : normalizedName;
   const index = WUKU_LIST.findIndex(
-    (w) => w.toLowerCase() === wukuName.trim().toLowerCase()
+    (w) => w.toLowerCase() === name
   );
-  if (index === -1) return 'Taru';
+  if (index === -1) return '-';
 
   const wukuNo = index + 1;
   const mod = wukuNo % 6;
@@ -122,7 +123,7 @@ export function calculateNeptu(
  * Menghitung rasi Zodiak berdasarkan tanggal Masehi (format YYYY-MM-DD)
  */
 export function calculateZodiak(dateStr?: string): string {
-  if (!dateStr || !dateStr.includes('-')) return 'Cancer';
+  if (!dateStr || !dateStr.includes('-')) return '-';
   const parts = dateStr.split('-');
   const month = parseInt(parts[1], 10);
   const day = parseInt(parts[2], 10);
@@ -140,25 +141,6 @@ export function calculateZodiak(dateStr?: string): string {
   if (month === 11) return day <= 21 ? 'Scorpio' : 'Sagitarius';
   if (month === 12) return day <= 21 ? 'Sagitarius' : 'Capricorn';
 
-  return 'Cancer';
+  return '-';
 }
-
-/**
- * Nilai dummy / simulasi referensi budaya untuk elemen wariga
- * yang belum tersedia di backend Go (kalenderbali-be) tetapi ada di backend Laravel lama.
- */
-export const WARIGA_FALLBACK_VALUES = {
-  ingkel: 'Taru',
-  jejepan: 'Wong',
-  lintang: 'Puwuh Atarung',
-  panca_sudha: 'Satria Wirang',
-  pangarasan: 'Laku Bintang',
-  rakam: 'Kala Tinantang',
-  watek_madya: 'Buta',
-  watek_alit: 'Uler',
-  neptu: 13,
-  eka_jala_rsi: 'Sidha Kasobagian',
-  zodiak: 'Cancer',
-  pratiti: 'Jaramarana',
-};
 

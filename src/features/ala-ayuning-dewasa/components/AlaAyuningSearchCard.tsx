@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, ChevronDown } from 'lucide-react';
 import { AestheticDatePicker } from '@/components/ui/AestheticDatePicker';
 import type { PadewasanItem, AlaAyuningSearchMode } from '../types/alaAyuning.types';
@@ -94,15 +94,23 @@ export const AlaAyuningSearchCard: React.FC<AlaAyuningSearchCardProps> = ({
   const yearOptions = Array.from({ length: 16 }, (_, i) => currentYear - 5 + i);
 
   // Sinkronisasi state lokal saat props dari URL berubah
-  useEffect(() => {
+  const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
+  const currentInputs1 = [selectedDate];
+  if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
+    setPreviousInputs1(currentInputs1);
     setLocalDate(selectedDate);
-  }, [selectedDate]);
 
-  useEffect(() => {
+  }
+
+  const [previousInputs2, setPreviousInputs2] = useState<readonly unknown[] | null>(null);
+  const currentInputs2 = [selectedName, selectedMonth, selectedYear, masterList];
+  if (previousInputs2 === null || currentInputs2.some((value, index) => !Object.is(value, previousInputs2[index]))) {
+    setPreviousInputs2(currentInputs2);
     setLocalName(selectedName || masterList[0]?.nama || '');
     setLocalMonth(selectedMonth);
     setLocalYear(selectedYear);
-  }, [selectedName, selectedMonth, selectedYear, masterList]);
+
+  }
 
   // Handler submit mode tanggal
   const handleDateSubmit = (e: React.FormEvent) => {
