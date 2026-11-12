@@ -1,3 +1,4 @@
+import { hasActivePremium } from '@/lib/subscription';
 import React from 'react';
 import { Crown, Sparkles, History, ShieldCheck } from 'lucide-react';
 import type { AuthUser } from '@/stores/useAuthStore';
@@ -12,6 +13,7 @@ interface PremiumHeroProps {
   user: AuthUser | null;
   activeSubscription?: UserEntitlement | null;
   onOpenHistory: () => void;
+  isSubscriptionUnavailable?: boolean;
 }
 
 /**
@@ -29,9 +31,13 @@ export const PremiumHero: React.FC<PremiumHeroProps> = ({
   user,
   activeSubscription,
   onOpenHistory,
+  isSubscriptionUnavailable = false,
 }) => {
   // Evaluasi apakah user memiliki status premium aktif saat ini
-  const isUserPremium = Boolean(user?.isPremium || activeSubscription?.is_premium);
+  const isUserPremium = activeSubscription
+    ? hasActivePremium({ isPremium: activeSubscription.is_premium, premiumExpiresAt: activeSubscription.active_until })
+    : hasActivePremium(user);
+  const subscriptionUnknown = Boolean(user) && (isSubscriptionUnavailable || (!activeSubscription && user?.subscriptionUnavailable));
 
   // Format tanggal kedaluwarsa langganan dengan tabular numbers
   const formattedExpiryDate = activeSubscription?.active_until
@@ -126,13 +132,13 @@ export const PremiumHero: React.FC<PremiumHeroProps> = ({
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
                   }`}
                 >
-                  {isUserPremium ? 'MEMBER PREMIUM' : 'AKUN STANDAR (GRATIS)'}
+                  {subscriptionUnknown ? 'BELUM DAPAT DIPERIKSA' : isUserPremium ? 'MEMBER PREMIUM' : 'AKUN STANDAR (GRATIS)'}
                 </span>
               </div>
 
               <p className="text-sm font-semibold text-[#0f172a] dark:text-white">
                 {user ? user.name : 'Pengunjung Tamu'}
-                {formattedExpiryDate && isUserPremium && (
+                {formattedExpiryDate && isUserPremium && !subscriptionUnknown && (
                   <span className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-2">
                     • Aktif s.d.{' '}
                     <strong className="text-amber-700 dark:text-amber-400 tabular-nums">
@@ -145,7 +151,7 @@ export const PremiumHero: React.FC<PremiumHeroProps> = ({
           </div>
 
           <div className="text-xs text-slate-400 dark:text-slate-500 font-medium">
-            {isUserPremium
+            {subscriptionUnknown ? 'Status langganan belum berhasil diperbarui.' : isUserPremium
               ? 'Anda memiliki akses penuh ke seluruh fitur eksklusif.'
               : 'Tingkatkan paket untuk membuka seluruh fitur premium.'}
           </div>

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { fetchZodiacList } from '../api/zodiacApi';
 import type { ZodiacItem } from '../types/zodiac.types';
 
@@ -23,7 +23,7 @@ import type { ZodiacItem } from '../types/zodiac.types';
  * Mengambil seluruh 12 zodiak dari server dan menyimpannya di cache TanStack Query.
  */
 export function useZodiacList() {
-  return useQuery<ZodiacItem[], Error>({
+  return useReadQuery<ZodiacItem[], Error>({
     queryKey: ['keterangan', 'types', 'zodiak'],
     queryFn: fetchZodiacList,
     staleTime: Infinity,

@@ -109,7 +109,7 @@ export interface IdentitasKelahiran {
 
 /**
  * PeriodeInfo merangkum rentang waktu kalender yang sedang aktif
- * dan status hak akses pengguna (Guest vs Member/Admin).
+ * dan status akses rekomendasi berdasarkan langganan aktif/admin.
  */
 export interface PeriodeInfo {
   /** Tanggal awal periode evaluasi (YYYY-MM-DD) */
@@ -141,7 +141,7 @@ export interface RingkasanStatistik {
 
 /**
  * RekomendasiHari menyajikan tanggal-tanggal berenergi terbaik (Guru & Ratu)
- * yang dihitung otomatis oleh backend Go untuk pengguna Member/Admin.
+ * yang dihitung otomatis oleh backend Go untuk pengguna dengan langganan aktif/admin.
  */
 export interface RekomendasiHari {
   /** Tanggal Masehi ("YYYY-MM-DD") */

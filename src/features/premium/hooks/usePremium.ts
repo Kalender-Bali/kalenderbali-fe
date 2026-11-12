@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { useNavigate } from 'react-router-dom';
 import { premiumApi } from '../api/premiumApi';
-import { useAuthStore } from '@/stores/useAuthStore';
+import { useAuthStore, useAuthQueryScope } from '@/stores/useAuthStore';
 import { authService } from '@/features/auth/services/authService';
 import { useAlertStore } from '@/stores/useAlertStore';
 import type { SubscriptionProduct } from '../types/premium.types';
@@ -19,6 +20,7 @@ export function usePremium() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuthStore();
+  const authScope = useAuthQueryScope();
   const { showAlert } = useAlertStore();
 
   // State proses checkout agar tombol memiliki feedback loading
@@ -31,7 +33,7 @@ export function usePremium() {
   // QUERY 1: KATALOG PRODUK LANGGANAN DARI BACKEND GO (100% REAL)
   // StaleTime 30 menit sesuai pedoman fe_strategy.md agar zero-loading
   // ============================================================================
-  const productsQuery = useQuery({
+  const productsQuery = useReadQuery({
     queryKey: ['subscription', 'products'],
     queryFn: premiumApi.getSubscriptionProducts,
     staleTime: 1000 * 60 * 30, // 30 Menit fresh di RAM
@@ -41,8 +43,9 @@ export function usePremium() {
   // ============================================================================
   // QUERY 2: STATUS LANGGANAN AKTIF PENGGUNA SAAT INI (100% REAL)
   // ============================================================================
-  const activeSubscriptionQuery = useQuery({
-    queryKey: ['subscription', 'my-active-product'],
+  const activeSubscriptionQuery = useReadQuery({
+    queryKey: ['subscription', 'my-active-product', authScope],
+    meta: { authScoped: true },
     queryFn: premiumApi.getMyActiveSubscription,
     enabled: Boolean(isAuthenticated),
     staleTime: 1000 * 60 * 5, // 5 Menit
@@ -51,8 +54,9 @@ export function usePremium() {
   // ============================================================================
   // QUERY 3: RIWAYAT TRANSAKSI PEMBELIAN PENGGUNA (100% REAL)
   // ============================================================================
-  const purchasesHistoryQuery = useQuery({
-    queryKey: ['subscription', 'my-purchases'],
+  const purchasesHistoryQuery = useReadQuery({
+    queryKey: ['subscription', 'my-purchases', authScope],
+    meta: { authScoped: true },
     queryFn: premiumApi.getMyPurchases,
     enabled: Boolean(isAuthenticated),
     staleTime: 1000 * 60 * 5,
@@ -82,11 +86,14 @@ export function usePremium() {
         // ALUR A: Buka popup interaktif Midtrans Snap di layar
         snap.pay(order.token, {
           onSuccess: async () => {
-            // Sinkronkan status akun di store seketika
-            await authService.syncUserSubscription();
-            // Perbarui data cache query
-            queryClient.invalidateQueries({ queryKey: ['subscription'] });
-            showAlert(`Pembayaran paket ${product.name} berhasil! Akun Anda kini berstatus Premium.`);
+            try {
+              const current = await authService.syncUserSubscription();
+              showAlert(current?.isPremium ? `Paket ${product.name} sudah aktif.` : 'Pembayaran diterima. Aktivasi langganan masih diproses.');
+            } catch {
+              showAlert('Pembayaran diterima, tetapi status langganan belum berhasil diperiksa. Silakan coba lagi di halaman Premium.');
+            } finally {
+              queryClient.invalidateQueries({ queryKey: ['subscription'] });
+            }
           },
           onPending: () => {
             queryClient.invalidateQueries({ queryKey: ['subscription'] });
@@ -126,9 +133,13 @@ export function usePremium() {
 
     activeSubscription: activeSubscriptionQuery.data,
     isLoadingActiveSubscription: activeSubscriptionQuery.isLoading,
+    activeSubscriptionError: activeSubscriptionQuery.isError ? activeSubscriptionQuery.error : null,
+    refetchActiveSubscription: activeSubscriptionQuery.refetch,
 
     purchasesHistory: purchasesHistoryQuery.data || [],
     isLoadingHistory: purchasesHistoryQuery.isLoading,
+    historyError: purchasesHistoryQuery.isError ? purchasesHistoryQuery.error : null,
+    refetchHistory: purchasesHistoryQuery.refetch,
 
     processingProductId,
     handleCheckout,

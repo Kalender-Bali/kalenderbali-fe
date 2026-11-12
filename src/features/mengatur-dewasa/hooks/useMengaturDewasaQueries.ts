@@ -1,5 +1,8 @@
+import { withReadRetry } from '@/lib/readRetry';
+import { readQueryFeedback } from '@/lib/useReadQuery';
 import { useCallback, useEffect, useRef } from 'react';
-import { useMutation, useQueries, useQuery } from '@tanstack/react-query';
+import { useMutation, useQueries } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { useAuthStore } from '@/stores/useAuthStore';
 import {
   fetchDewasaActivities,
@@ -14,7 +17,7 @@ import type { MengaturDewasaSearchRequest } from '../types/mengaturDewasa.types'
 const catalogStaleTime = 5 * 60 * 1000;
 
 export function useDewasaActivities() {
-  return useQuery({
+  return useReadQuery({
     queryKey: ['mengatur-dewasa', 'activities'],
     queryFn: ({ signal }) => fetchDewasaActivities(signal),
     staleTime: catalogStaleTime,
@@ -24,7 +27,7 @@ export function useDewasaActivities() {
 }
 
 export function useDewasaActivity(id: string | null) {
-  return useQuery({
+  return useReadQuery({
     queryKey: ['mengatur-dewasa', 'activities', id],
     queryFn: ({ signal }) => {
       if (!id) throw new Error('Pilih template kegiatan terlebih dahulu.');
@@ -37,7 +40,7 @@ export function useDewasaActivity(id: string | null) {
 }
 
 export function useDewasaCriteriaFields(enabled = true) {
-  return useQuery({
+  return useReadQuery({
     queryKey: ['mengatur-dewasa', 'criteria-fields'],
     queryFn: ({ signal }) => fetchDewasaCriteriaFields(signal),
     staleTime: catalogStaleTime,
@@ -55,11 +58,11 @@ export function useDewasaCriteriaOptions(fields: string[]) {
       staleTime: catalogStaleTime,
       networkMode: 'always',
     })),
-  });
+  }).map(readQueryFeedback);
 }
 
 export function useDewasaCriteriaValues(field: string | null) {
-  return useQuery({
+  return useReadQuery({
     queryKey: ['mengatur-dewasa', 'criteria-fields', field, 'values'],
     queryFn: ({ signal }) => {
       if (!field) throw new Error('Pilih field kriteria terlebih dahulu.');
@@ -90,7 +93,13 @@ export function useMengaturDewasaSearch() {
       const controller = new AbortController();
       controllerRef.current = controller;
       try {
-        const result = await searchMengaturDewasa(request, controller.signal);
+        const result = await withReadRetry(() => {
+          const current = useAuthStore.getState();
+          if (!current.isAuthenticated || current.user?.id !== session.user?.id || current.token !== session.token) {
+            throw new DOMException('Sesi berubah. Silakan ulangi pencarian.', 'AbortError');
+          }
+          return searchMengaturDewasa(request, controller.signal);
+        }, controller.signal);
         const current = useAuthStore.getState();
         if (
           controller.signal.aborted ||

@@ -1,3 +1,5 @@
+import type { DewasaActivityGuidance } from '@/features/ala-ayuning-dewasa/types/alaAyuning.types';
+
 /**
  * ============================================================================
  * TIPE DATA & KONTRAK MODEL: DASHBOARD KALENDER BALI
@@ -157,6 +159,7 @@ export interface DewasaAyuDashboard {
    * Menampilkan 3 rekomendasi padewasan / hari baik teratas hari ini.
    */
   items: DewasaAyuItem[];
+  activityGuidance?: DewasaActivityGuidance[];
 
   /** Menampilkan maksimal 3 rekomendasi aktivitas teratas (opsional untuk backward compatibility) */
   topActivities?: string[];

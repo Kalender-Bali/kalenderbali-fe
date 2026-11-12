@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { X, ArrowRight } from 'lucide-react';
 import { fetchDayWariga } from '../api/warigaPersonalApi';
 import { formatFullIndoDate } from '@/features/kalender/utils/calendarUtils';
 import { WarigaExplanationModal } from '@/features/otonan/components/WarigaExplanationModal';
 import type { IdentitasKelahiran } from '../types/warigaPersonal.types';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 
 /**
  * ============================================================================
@@ -28,6 +29,7 @@ interface WarigaTanggalLahirModalProps {
   isOpen: boolean;
   onClose: () => void;
   birthDate: string; // "YYYY-MM-DD"
+  calendarBirthDate: string; // Tanggal efektif dari backend, bukan tanggal sipil.
   identitasKelahiran?: IdentitasKelahiran | null;
 }
 
@@ -43,6 +45,7 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
   isOpen,
   onClose,
   birthDate,
+  calendarBirthDate,
   identitasKelahiran,
 }) => {
   // State sub-modal uraian makna nilai elemen yang diklik (Gambar 2 & 3)
@@ -73,20 +76,13 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
   }, [isOpen, handleKeyDown]);
 
   // Fetch 18 dimensi wariga kalender untuk tanggal kelahiran dari endpoint /api/v1/kalender
-  const { data: dayData, isLoading: isDayLoading, refetch } = useQuery({
-    queryKey: ['kalender', 'day-wariga-lengkap', birthDate],
-    queryFn: () => fetchDayWariga(birthDate),
-    enabled: isOpen && Boolean(birthDate),
+  const { data: dayData, isLoading: isDayLoading, error, isError, refetch } = useReadQuery({
+    queryKey: ['kalender', 'day-wariga-lengkap', calendarBirthDate],
+    queryFn: () => fetchDayWariga(calendarBirthDate),
+    enabled: isOpen && Boolean(calendarBirthDate),
     staleTime: 0, // Selalu ambil data teranyar saat modal dibuka
     refetchOnMount: 'always',
   });
-
-  // Re-fetch saat modal dibuka untuk memastikan data 12 elemen terisi segar
-  useEffect(() => {
-    if (isOpen && birthDate) {
-      refetch();
-    }
-  }, [isOpen, birthDate, refetch]);
 
   if (!isOpen) return null;
 
@@ -232,7 +228,7 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
     },
   ];
 
-  const isLoading = isDayLoading && !identitasKelahiran?.wariga_lengkap;
+  const isLoading = !calendarBirthDate || isDayLoading;
 
   const renderSectionTable = (title: string, rows: WarigaRowItem[]) => (
     <div className="space-y-1.5">
@@ -260,7 +256,7 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
           >
             <span className="text-slate-500 font-medium">{row.label}</span>
             <div className="flex items-center gap-2">
-              <span className="text-[#0f172a] font-semibold">{row.value}</span>
+              <span className="text-[#0f172a] font-semibold tabular-nums">{row.value}</span>
               {row.hasArrow && row.value !== '-' && (
                 <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-teal-600 transition-colors" />
               )}
@@ -289,9 +285,14 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
             <h3 className="text-lg sm:text-xl font-extrabold text-[#0f172a] tracking-tight">
               Wariga Tanggal Lahir
             </h3>
-            <p className="text-xs font-semibold text-slate-500">
-              {formatFullIndoDate(birthDate)}
+            <p className="text-xs font-semibold text-slate-500 tabular-nums">
+              Tanggal lahir: {formatFullIndoDate(birthDate)}
             </p>
+            {calendarBirthDate && calendarBirthDate !== birthDate && (
+              <p className="text-xs text-slate-500 tabular-nums">
+                Tanggal perhitungan: {formatFullIndoDate(calendarBirthDate)} (sebelum 06.00 WITA)
+              </p>
+            )}
           </div>
 
           <button
@@ -306,7 +307,9 @@ export const WarigaTanggalLahirModal: React.FC<WarigaTanggalLahirModalProps> = (
 
         {/* Scrollable Body */}
         <div className="overflow-y-auto p-5 sm:p-6 space-y-4">
-          {isLoading ? (
+          {isError ? (
+            <QueryErrorState title="Gagal memuat rincian Wariga" error={error} onRetry={() => refetch()} />
+          ) : isLoading ? (
             <div className="space-y-3 animate-pulse">
               <div className="h-24 bg-slate-100 rounded-xl" />
               <div className="h-32 bg-slate-100 rounded-xl" />

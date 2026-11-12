@@ -1,3 +1,4 @@
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
@@ -23,13 +24,22 @@ import type { PiodalanDashboardItem } from '../types/dashboard.types';
 interface DashboardPiodalanProps {
   data?: PiodalanDashboardItem | PiodalanDashboardItem[];
   items?: PiodalanDashboardItem[];
+  error?: unknown;
+  onRetry?: () => void;
+  isLoading?: boolean;
 }
 
 export const DashboardPiodalan: React.FC<DashboardPiodalanProps> = ({
   data,
   items,
+  error,
+  onRetry,
+  isLoading,
 }) => {
   const navigate = useNavigate();
+
+  if (error && onRetry) return <QueryErrorState title="Gagal memuat piodalan terdekat" error={error} onRetry={onRetry} />;
+  if (isLoading) return <div role="status" className="h-64 bg-slate-100 rounded-2xl animate-pulse"><span className="sr-only">Memuat piodalan terdekat...</span></div>;
 
   // Konversi input menjadi array dan ambil maksimal 3 agenda piodalan teratas
   const piodalanList = Array.isArray(data)

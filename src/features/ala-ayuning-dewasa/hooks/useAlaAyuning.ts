@@ -1,12 +1,12 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { getTodayWITA, parseISODate } from '@/features/kalender/utils/calendarUtils';
 import {
   fetchPadewasanHarian,
   searchPadewasanByName,
   fetchMasterPadewasan,
-  fetchDewasaAyuToday,
+  fetchDewasaAyuSummary,
   fetchDayPawukon,
 } from '../api/alaAyuningApi';
 import type {
@@ -75,6 +75,10 @@ export function useAlaAyuning() {
   const queryMonth = Number(searchParams.get('month')) || todayParsed.month;
   const queryYear = Number(searchParams.get('year')) || todayParsed.year;
 
+  // URL berisi kriteria yang sudah dikirim lewat tombol Cari atau tautan hasil.
+  // Tanggal hari ini sebagai default internal belum berarti pencarian dijalankan.
+  const hasSearched = activeMode === 'date' ? isDateValid : Boolean(queryName);
+
   // State lokal untuk pop-up modal detail uraian sastra padewasan yang dipilih
   const [selectedPadewasan, setSelectedPadewasan] = useState<PadewasanItem | null>(null);
 
@@ -85,7 +89,7 @@ export function useAlaAyuning() {
    * Mengambil 220 master padewasan dari memori RAM Go untuk mengisi opsi autocomplete/dropdown.
    * Dikonfigurasi dengan staleTime Infinity karena data master referensi permanen.
    */
-  const masterPadewasanQuery = useQuery<PadewasanItem[], Error>({
+  const masterPadewasanQuery = useReadQuery<PadewasanItem[], Error>({
     queryKey: ['ala-ayuning', 'master'],
     queryFn: fetchMasterPadewasan,
     staleTime: Infinity,
@@ -94,14 +98,15 @@ export function useAlaAyuning() {
   });
 
   // -------------------------------------------------------------------------
-  // BLOK 3: QUERY 2 - REKOMENDASI DEWASA AYU HARI INI (HERO / SUMMARY WIDGET)
+  // BLOK 3: QUERY 2 - RINGKASAN KEGIATAN PADA TANGGAL PILIHAN
   // -------------------------------------------------------------------------
   /**
-   * Mengambil ringkasan padewasan hari ini (status hari, narasi petunjuk, 3 padewasan ayu terbaik).
+   * Mengambil anjuran dan pantangan per kegiatan untuk tanggal yang sedang diperiksa.
    */
-  const todayDewasaQuery = useQuery<DewasaAyuTodayResponse | null, Error>({
-    queryKey: ['ala-ayuning', 'today', todayWITA],
-    queryFn: fetchDewasaAyuToday,
+  const dateSummaryQuery = useReadQuery<DewasaAyuTodayResponse, Error>({
+    queryKey: ['ala-ayuning', 'summary', activeDate],
+    queryFn: () => fetchDewasaAyuSummary(activeDate),
+    enabled: activeMode === 'date' && hasSearched,
     staleTime: 1000 * 60 * 60, // Segar selama 1 jam
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnWindowFocus: false,
@@ -114,7 +119,7 @@ export function useAlaAyuning() {
    * Mengambil seluruh kriteria padewasan yang aktif pada tanggal terpilih beserta
    * uraian makna budaya dan tingkat keparahan Alahing Dewasa.
    */
-  const padewasanHarianQuery = useQuery<PadewasanItem[], Error>({
+  const padewasanHarianQuery = useReadQuery<PadewasanItem[], Error>({
     queryKey: ['ala-ayuning', 'harian', activeDate],
     queryFn: async () => {
       return await fetchPadewasanHarian(activeDate);
@@ -123,7 +128,7 @@ export function useAlaAyuning() {
     staleTime: 1000 * 60 * 60, // 1 jam cache
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnWindowFocus: false,
-    retry: 1,
+
   });
 
   // -------------------------------------------------------------------------
@@ -132,7 +137,7 @@ export function useAlaAyuning() {
   /**
    * Mengambil atribut 4 pilar penanggalan Bali untuk mengisi kartu "Pawukon Hari Ini".
    */
-  const pawukonHarianQuery = useQuery<PawukonHarianInfo | null, Error>({
+  const pawukonHarianQuery = useReadQuery<PawukonHarianInfo | null, Error>({
     queryKey: ['ala-ayuning', 'pawukon', activeDate],
     queryFn: async () => {
       return await fetchDayPawukon(activeDate);
@@ -150,7 +155,7 @@ export function useAlaAyuning() {
    * Mencari seluruh tanggal jatuh dalam satu bulan tertentu di mana padewasan
    * yang dicari aktif (paritas sistem Laravel lama Gambar 1 & 2).
    */
-  const byNameQuery = useQuery<CariByNamaResponse | null, Error>({
+  const byNameQuery = useReadQuery<CariByNamaResponse | null, Error>({
     queryKey: ['ala-ayuning', 'by-name', queryName, queryMonth, queryYear],
     queryFn: async () => {
       if (!queryName) return null;
@@ -164,7 +169,7 @@ export function useAlaAyuning() {
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnWindowFocus: false,
-    retry: 1,
+
   });
 
   // -------------------------------------------------------------------------
@@ -179,13 +184,9 @@ export function useAlaAyuning() {
       const nextParams = new URLSearchParams(searchParams);
       nextParams.set('mode', mode);
 
-      if (mode === 'date' && !nextParams.has('date')) {
-        nextParams.set('date', activeDate);
-      }
-
       setSearchParams(nextParams);
     },
-    [searchParams, setSearchParams, activeDate]
+    [searchParams, setSearchParams]
   );
 
   /**
@@ -286,34 +287,39 @@ export function useAlaAyuning() {
   // -------------------------------------------------------------------------
   // BLOK 9: STATUS LOADING & ERROR GABUNGAN
   // -------------------------------------------------------------------------
+  const hasResults = hasSearched && (activeMode === 'date'
+    ? padewasanHarianQuery.isSuccess && pawukonHarianQuery.isSuccess && dateSummaryQuery.isSuccess
+    : byNameQuery.isSuccess && Boolean(byNameQuery.data));
+
   const isLoading =
     activeMode === 'date'
-      ? padewasanHarianQuery.isLoading || pawukonHarianQuery.isLoading
+      ? padewasanHarianQuery.isLoading || pawukonHarianQuery.isLoading || dateSummaryQuery.isLoading
       : byNameQuery.isLoading;
 
   const isFetching =
     activeMode === 'date'
-      ? padewasanHarianQuery.isFetching || pawukonHarianQuery.isFetching
+      ? padewasanHarianQuery.isFetching || pawukonHarianQuery.isFetching || dateSummaryQuery.isFetching
       : byNameQuery.isFetching;
 
   const isError =
     activeMode === 'date'
-      ? padewasanHarianQuery.isError || pawukonHarianQuery.isError
+      ? padewasanHarianQuery.isError || pawukonHarianQuery.isError || dateSummaryQuery.isError
       : byNameQuery.isError;
 
   const errorMessage =
     (activeMode === 'date'
-      ? padewasanHarianQuery.error?.message || pawukonHarianQuery.error?.message
+      ? padewasanHarianQuery.error?.message || pawukonHarianQuery.error?.message || dateSummaryQuery.error?.message
       : byNameQuery.error?.message) || null;
 
   const refetch = useCallback(() => {
     if (activeMode === 'date') {
       padewasanHarianQuery.refetch();
       pawukonHarianQuery.refetch();
+      dateSummaryQuery.refetch();
     } else {
       byNameQuery.refetch();
     }
-  }, [activeMode, padewasanHarianQuery, pawukonHarianQuery, byNameQuery]);
+  }, [activeMode, padewasanHarianQuery, pawukonHarianQuery, dateSummaryQuery, byNameQuery]);
 
   // -------------------------------------------------------------------------
   // BLOK 10: KONTRAK KELUARAN HOOK UNTUK KOMPONEN UI
@@ -335,7 +341,7 @@ export function useAlaAyuning() {
     // Data query harian (Mode Tanggal)
     padewasanList,
     pawukonInfo: pawukonHarianQuery.data || null,
-    todaySummary: todayDewasaQuery.data || null,
+    daySummary: dateSummaryQuery.data || null,
 
     // Statistik metrik harian
     totalAktif,
@@ -345,9 +351,13 @@ export function useAlaAyuning() {
     // Data query per nama (Mode Nama)
     masterPadewasan: masterPadewasanQuery.data || [],
     isMasterLoading: masterPadewasanQuery.isLoading,
+    masterError: masterPadewasanQuery.isError ? masterPadewasanQuery.error : null,
+    refetchMaster: masterPadewasanQuery.refetch,
     byNameResult: byNameQuery.data || null,
 
     // Status pemuatan & kesalahan
+    hasSearched,
+    hasResults,
     isLoading,
     isFetching,
     isError,

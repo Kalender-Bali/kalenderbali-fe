@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { fetchKalenderTahun } from '@/features/kalender/api/kalenderApi';
 import { getTodayWITA } from '@/features/kalender/utils/calendarUtils';
 import {
@@ -52,13 +53,13 @@ export function useMasterHariRaya() {
     isError,
     error,
     refetch,
-  } = useQuery({
+  } = useReadQuery({
     queryKey: ['hari-raya', 'master'],
     queryFn: fetchMasterHariRaya,
     staleTime: Infinity, // Data referensi permanen tidak akan pernah basi
     gcTime: 1000 * 60 * 60 * 24, // 24 jam tersimpan di RAM browser
     refetchOnWindowFocus: false,
-    retry: 1,
+
   });
 
   // Susun Map in-memory untuk pencarian O(1)
@@ -113,13 +114,13 @@ export function useHariRayaData(year: number, activeMonth: number = 9) {
     isError,
     error,
     refetch,
-  } = useQuery({
+  } = useReadQuery({
     queryKey: ['kalender', year],
     queryFn: () => fetchKalenderTahun(year),
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnWindowFocus: false,
-    retry: 1,
+
   });
 
   // 3. Silent Background Prefetching Tahun Berikutnya (fe_strategy.md Bab 4)
@@ -213,13 +214,13 @@ export function useSearchHariRaya(
   month?: number,
   enabled: boolean = false
 ) {
-  return useQuery<HariRayaSearchResponse, Error>({
+  return useReadQuery<HariRayaSearchResponse, Error>({
     queryKey: ['hari-raya', 'search', nama, year, month],
     queryFn: () => searchHariRayaSpesifik(nama, year, month),
     enabled: enabled && Boolean(nama.trim()),
     staleTime: 1000 * 60 * 30, // Fresh selama 30 menit
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnWindowFocus: false,
-    retry: 1,
+
   });
 }

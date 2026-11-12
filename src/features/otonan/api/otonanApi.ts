@@ -1,5 +1,7 @@
 import type { KeteranganValue } from '@/features/keterangan/types/keterangan.types';
 import { apiClient } from '@/lib/axios';
+import { apiArray } from '@/lib/apiResponse';
+import { toApiError } from '@/lib/apiError';
 import type { KalenderApiResponse, KalenderHarian } from '@/features/kalender/types/kalender.types';
 import type {
   OtonanAPIEnvelope,
@@ -87,10 +89,7 @@ export async function fetchMasterWewaran(
 ): Promise<MasterWewaranItem[]> {
   const response = await apiClient.get(`/keterangan/types/${typeCode}`);
 
-  const values = response.data?.data?.values;
-  if (!Array.isArray(values)) {
-    return [];
-  }
+  const values = apiArray<KeteranganValue>(response.data?.data?.values);
 
   // Petakan data ke struktur ringkas MasterWewaranItem
   return values.map((val: KeteranganValue) => ({
@@ -114,30 +113,25 @@ export async function fetchMasterWewaran(
  * tanpa perlu menduplikasi rumus peredaran bulan di frontend.
  *
  * @param dateStr Tanggal Masehi dalam format YYYY-MM-DD
- * @returns Promise berisi nama sasih (contoh: "Kalima") atau string kosong jika gagal
+ * @returns Promise berisi nama sasih (contoh: "Kalima") atau string kosong jika respons sukses tidak memuat Sasih
  */
 export async function fetchOtonanDaySasih(dateStr: string): Promise<string> {
-  try {
-    const response = await apiClient.get('/kalender', {
-      params: {
-        start_date: dateStr,
-        end_date: dateStr,
-      },
-    });
+  const response = await apiClient.get('/kalender', {
+    params: {
+      start_date: dateStr,
+      end_date: dateStr,
+    },
+  });
 
-    const dayData = response.data?.data?.[0];
-    const namaSasih = dayData?.sasih?.nama_sasih;
+  const dayData = apiArray<KalenderHarian>(response.data?.data).find(day => day.tanggal === dateStr);
+  const namaSasih = dayData?.sasih?.nama_sasih;
 
-    if (namaSasih && typeof namaSasih === 'string') {
-      // Kapitalisasi huruf pertama (contoh: "kalima" -> "Kalima")
-      return namaSasih.charAt(0).toUpperCase() + namaSasih.slice(1);
-    }
-
-    return '';
-  } catch {
-    // Jika ada gangguan jaringan ringan, kembalikan string kosong secara aman
-    return '';
+  if (namaSasih && typeof namaSasih === 'string') {
+    // Kapitalisasi huruf pertama (contoh: "kalima" -> "Kalima")
+    return namaSasih.charAt(0).toUpperCase() + namaSasih.slice(1);
   }
+
+  return '';
 }
 
 // ============================================================================
@@ -156,7 +150,7 @@ export async function fetchDayWariga(dateStr: string): Promise<KalenderHarian | 
   const response = await apiClient.get<KalenderApiResponse>('/kalender', {
     params: { start_date: dateStr, end_date: dateStr },
   });
-  return response.data?.data?.find((day) => day.tanggal === dateStr) ?? null;
+  return apiArray<KalenderHarian>(response.data?.data).find((day) => day.tanggal === dateStr) ?? null;
 }
 
 // ============================================================================
@@ -183,59 +177,57 @@ export async function fetchKeteranganValueByName(
   if (!name) return null;
   const cleanName = name.trim().toLowerCase();
 
-  try {
-    // 1. Coba ambil dari master kategori: /keterangan/types/{typeCode}
-    if (typeCode) {
-      try {
-        const res = await apiClient.get(`/keterangan/types/${typeCode}`);
-        const values = res.data?.data?.values;
-        if (Array.isArray(values)) {
-          const match = values.find(
-            (v: KeteranganValue) =>
-              v.name?.toLowerCase().trim() === cleanName ||
-              (Array.isArray(v.aliases) && v.aliases.includes(cleanName))
-          );
-          if (match) {
-            return {
-              id: String(match.id),
-              name: match.name,
-              description: match.description || '',
-              typeName: res.data?.data?.type?.name,
-              typeCode: typeCode,
-            };
-          }
+  // 1. Coba ambil dari master kategori: /keterangan/types/{typeCode}
+  if (typeCode) {
+    try {
+      const res = await apiClient.get(`/keterangan/types/${typeCode}`);
+      const values = apiArray<KeteranganValue>(res.data?.data?.values);
+      if (Array.isArray(values)) {
+        const match = values.find(
+          (v: KeteranganValue) =>
+            v.name?.toLowerCase().trim() === cleanName ||
+            (Array.isArray(v.aliases) && v.aliases.includes(cleanName))
+        );
+        if (match) {
+          return {
+            id: String(match.id),
+            name: match.name,
+            description: match.description || '',
+            typeName: res.data?.data?.type?.name,
+            typeCode: typeCode,
+          };
         }
-      } catch {
-        // Lanjutkan ke pencarian fleksibel
       }
+    } catch (error) {
+      const failure = toApiError(error);
+      if ((failure.status ?? failure.response?.status) !== 404) throw error;
+      // Kategori tidak ditemukan; pencarian alias tetap dapat digunakan.
     }
-
-    // 2. Pencarian fleksibel: /keterangan/search?q={name}
-    const searchRes = await apiClient.get('/keterangan/search', {
-      params: { q: name },
-    });
-    const matches = searchRes.data?.data;
-    if (Array.isArray(matches) && matches.length > 0) {
-      const exactTypeMatch = matches.find(
-        (m: KeteranganValue) =>
-          m.type_code === typeCode ||
-          m.name?.toLowerCase().trim() === cleanName ||
-          (Array.isArray(m.aliases) && m.aliases.includes(cleanName))
-      );
-      const chosen = exactTypeMatch || matches[0];
-      return {
-        id: String(chosen.id),
-        name: chosen.name,
-        description: chosen.description || '',
-        typeName: chosen.type_name,
-        typeCode: chosen.type_code,
-      };
-    }
-
-    return null;
-  } catch {
-    return null;
   }
+
+  // 2. Pencarian fleksibel: /keterangan/search?q={name}
+  const searchRes = await apiClient.get('/keterangan/search', {
+    params: { q: name },
+  });
+  const matches = apiArray<KeteranganValue>(searchRes.data?.data);
+  if (Array.isArray(matches) && matches.length > 0) {
+    const exactTypeMatch = matches.find(
+      (m: KeteranganValue) =>
+        m.type_code === typeCode ||
+        m.name?.toLowerCase().trim() === cleanName ||
+        (Array.isArray(m.aliases) && m.aliases.includes(cleanName))
+    );
+    const chosen = exactTypeMatch || matches[0];
+    return {
+      id: String(chosen.id),
+      name: chosen.name,
+      description: chosen.description || '',
+      typeName: chosen.type_name,
+      typeCode: chosen.type_code,
+    };
+  }
+
+  return null;
 }
 
 

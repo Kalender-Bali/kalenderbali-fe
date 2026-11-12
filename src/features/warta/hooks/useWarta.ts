@@ -14,8 +14,10 @@
  * ==============================================================================
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { useAlertStore } from '@/stores/useAlertStore';
+import { useAuthQueryScope } from '@/stores/useAuthStore';
 import type {
   ArticleBackendItem,
   ArticleListResponse,
@@ -51,7 +53,7 @@ export function useWartaList(params: WartaFilterParams) {
   const perPage = params.per_page && params.per_page > 0 ? params.per_page : 12;
   const search = params.search?.trim() || '';
 
-  return useQuery<ArticleListResponse>({
+  return useReadQuery<ArticleListResponse>({
     queryKey: ['articles', 'list', { page, perPage, search }],
     queryFn: () => fetchArticles({ page, per_page: perPage, search }),
     staleTime: 1000 * 60 * 5, // Data dianggap segar selama 5 menit
@@ -76,15 +78,18 @@ export function useWartaList(params: WartaFilterParams) {
  * @param isEnabled - Boolean penanda apakah query diizinkan berjalan
  */
 export function useMyWartaList(params: WartaFilterParams, isEnabled = true) {
+  const authScope = useAuthQueryScope();
   const page = params.page && params.page > 0 ? params.page : 1;
   const perPage = params.per_page && params.per_page > 0 ? params.per_page : 12;
 
-  return useQuery<ArticleListResponse>({
-    queryKey: ['articles', 'my', { page, perPage }],
+  return useReadQuery<ArticleListResponse>({
+    queryKey: ['articles', 'my', { page, perPage }, authScope],
+    meta: { authScoped: true },
     queryFn: () => fetchMyArticles({ page, per_page: perPage }),
     enabled: isEnabled,
     staleTime: 1000 * 60 * 2, // Data warta milik sendiri segar selama 2 menit
-    placeholderData: (previousData) => previousData,
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey.at(-1) === authScope ? previousData : undefined,
     refetchOnWindowFocus: false,
   });
 }
@@ -102,7 +107,7 @@ export function useMyWartaList(params: WartaFilterParams, isEnabled = true) {
  * @param id - ID artikel (angka atau string numerik), null jika modal tertutup
  */
 export function useWartaDetail(id: number | string | null) {
-  return useQuery<ArticleBackendItem | null>({
+  return useReadQuery<ArticleBackendItem | null>({
     queryKey: ['articles', 'detail', String(id)],
     queryFn: () => (id ? fetchArticleDetail(id) : null),
     enabled: Boolean(id),

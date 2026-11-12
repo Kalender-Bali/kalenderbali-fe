@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { searchRamalanSifat } from '../api/ramalanSifatApi';
 import type {
   RamalanSifatData,
@@ -68,7 +68,7 @@ export function useRamalanSifat() {
     isError,
     error,
     refetch,
-  } = useQuery<RamalanSifatData, Error>({
+  } = useReadQuery<RamalanSifatData, Error>({
     queryKey: ['ramalan-sifat', queryBirthDate, querySebelumJam6],
     queryFn: async () => {
       return await searchRamalanSifat(queryPayload);
@@ -87,7 +87,7 @@ export function useRamalanSifat() {
     refetchOnWindowFocus: false,
 
     // 4. Coba ulang 1 kali jika terjadi kegagalan jaringan sementara
-    retry: 1,
+
   });
 
   // -------------------------------------------------------------------------

@@ -1,3 +1,4 @@
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import type { KalenderHarian, HariRayaItem, PiodalanTerdekatItem } from '../types/kalender.types';
@@ -24,6 +25,9 @@ interface CalendarBottomSectionProps {
   onNavigateToFullHoliday?: () => void;
   monthlyPiodalans?: PiodalanTerdekatItem[];
   monthlyPiodalanTotal?: number;
+  piodalanError?: unknown;
+  isPiodalanLoading?: boolean;
+  onRetryPiodalan?: () => void;
   activeYear?: number;
   activeMonth?: number;
 }
@@ -40,6 +44,9 @@ export const CalendarBottomSection: React.FC<CalendarBottomSectionProps> = ({
   onSelectDate,
   monthlyPiodalans,
   monthlyPiodalanTotal,
+  piodalanError,
+  isPiodalanLoading,
+  onRetryPiodalan,
 }) => {
   // Evaluasi daftar piodalan: 100% data riil dari mesin piodalan backend Go
   const piodalanDisplayList = monthlyPiodalans || [];
@@ -193,13 +200,17 @@ export const CalendarBottomSection: React.FC<CalendarBottomSectionProps> = ({
             Piodalan Terdekat
           </h3>
           <span className="text-[10px] font-extrabold text-[#0d9488] bg-[#e6f7f5] border border-teal-200/60 px-3 py-1 rounded-full uppercase tabular-nums">
-            {piodalanTotalLocations} Lokasi
+            {piodalanError || isPiodalanLoading ? "—" : piodalanTotalLocations} Lokasi
           </span>
         </div>
 
         {/* List 3 Piodalan Terdekat */}
         <div className="space-y-3">
-          {piodalanDisplayList.length === 0 ? (
+          {piodalanError && onRetryPiodalan ? (
+            <QueryErrorState title="Gagal memuat piodalan bulan ini" error={piodalanError} onRetry={onRetryPiodalan} />
+          ) : isPiodalanLoading ? (
+            <div role="status" className="h-32 bg-slate-100 rounded-xl animate-pulse"><span className="sr-only">Memuat piodalan...</span></div>
+          ) : piodalanDisplayList.length === 0 ? (
             <div className="text-center py-6 text-xs text-slate-400">
               Tidak ada agenda piodalan terdekat yang belum lewat.
             </div>

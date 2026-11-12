@@ -36,7 +36,7 @@ apiClient.interceptors.request.use(
     }
     // Ambil token aktif dari state Zustand
     const token = useAuthStore.getState().token;
-    if (token) {
+    if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

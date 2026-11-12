@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sparkles, ArrowDown, ShieldCheck, Info } from 'lucide-react';
-import type { PadewasanItem } from '../types/alaAyuning.types';
+import type { PadewasanItem, DewasaActivityGuidance } from '../types/alaAyuning.types';
+import { DewasaActivityPanel } from './DewasaActivityPanel';
 
 /**
  * ============================================================================
@@ -34,6 +35,7 @@ interface AlaAyuningSummaryCardProps {
 
   /** Seluruh daftar padewasan aktif pada tanggal tersebut */
   padewasanList: PadewasanItem[];
+  activityGuidance?: DewasaActivityGuidance[];
 
   /** Handler klik tombol "Lihat dasar perhitungan ↓" */
   onScrollToDasar?: () => void;
@@ -41,9 +43,10 @@ interface AlaAyuningSummaryCardProps {
 
 export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
   formattedDate,
-  statusLabel = 'BAIK',
+  statusLabel = 'PER KEGIATAN',
   headline,
   padewasanList,
+  activityGuidance,
   onScrollToDasar,
 }) => {
   // Pisahkan padewasan ke dalam 2 kelompok resmi Alahing Dewasa
@@ -55,7 +58,7 @@ export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
   );
 
   // Penentuan gaya badge status kualitas hari
-  const isBaik = statusLabel.toUpperCase().includes('BAIK');
+  const isBaik = statusLabel.toUpperCase() === 'BAIK';
   const badgeColorClass = isBaik
     ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
     : 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60';
@@ -68,7 +71,7 @@ export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
         <div>
           <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight">
-            Ringkasan Hari Ini
+            Ringkasan Padewasan
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
             Evaluasi pengaruh padewasan pada tanggal aktif
@@ -98,10 +101,14 @@ export const AlaAyuningSummaryCard: React.FC<AlaAyuningSummaryCardProps> = ({
             </h4>
             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
               {headline ||
-                'Hari ini memiliki pengaruh padewasan yang tercatat dalam lontar. Perhatikan uraian unsur di bawah untuk memastikan keselarasan yadnya dan pekerjaan Anda.'}
+                'Makna padewasan bergantung pada kegiatan. Perhatikan anjuran dan pantangan pada rincian setiap unsur.'}
             </p>
           </div>
         </div>
+
+        {activityGuidance && activityGuidance.length > 0 && (
+          <DewasaActivityPanel activities={activityGuidance} id="summary-dewasa-activity" />
+        )}
 
         {/* =================================================================== */}
         {/* BLOK 3: KLASIFIKASI UNSUR PADEWASAN RESMI (ALAHING DEWASA)          */}

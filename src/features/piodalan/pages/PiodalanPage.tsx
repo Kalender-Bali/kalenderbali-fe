@@ -1,3 +1,4 @@
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -148,6 +149,7 @@ export const PiodalanPage: React.FC = () => {
     totalCount,
     isLoading,
     isError,
+    partialError,
     error,
     refetch,
   } = usePiodalanSearch(activeFilter, hasSearched);
@@ -380,6 +382,7 @@ export const PiodalanPage: React.FC = () => {
       {/* ==================================================================== */}
       {/* 4. PENANGANAN KESALAHAN JARINGAN (ERROR STATE DARI BACKEND GO)       */}
       {/* ==================================================================== */}
+      {hasSearched && partialError && <QueryErrorState title="Sebagian sumber jadwal belum berhasil diperbarui. Hasil yang tersedia tetap ditampilkan." error={partialError} onRetry={() => { void refetch(); }} />}
       {hasSearched && isError && (
         <div className="bg-white rounded-2xl border border-rose-200/90 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-in fade-in">
           <div className="flex items-start gap-3.5">
@@ -412,7 +415,7 @@ export const PiodalanPage: React.FC = () => {
       {/* 4. BAGIAN HASIL PENCARIAN & 3 WIDGET SIDEBAR                         */}
       {/* HANYA DITAMPILKAN JIKA PENGGUNA SUDAH MELAKUKAN SEARCH               */}
       {/* ==================================================================== */}
-      {hasSearched && (
+      {hasSearched && !isError && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-in fade-in duration-200">
           {/* Kolom Kiri (~2/3 Lebar: lg:col-span-8) - Kartu Piodalan Utama (Level 1) */}
           <div className="lg:col-span-8 space-y-6">

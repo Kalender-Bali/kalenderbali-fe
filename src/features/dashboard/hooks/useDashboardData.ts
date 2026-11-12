@@ -16,7 +16,7 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { fetchDewasaAyuToday } from '@/features/ala-ayuning-dewasa/api/alaAyuningApi';
 import { useKalenderTahun } from '@/features/kalender/hooks/useKalender';
 import { useAllPuras } from '@/features/piodalan/hooks/usePiodalan';
@@ -88,8 +88,8 @@ export function useDashboardData() {
   });
 
   // Konsumsi master data pura resmi dari Backend Go (staleTime 24 jam di RAM)
-  const { data: purasList = [] } = useAllPuras();
-  const dewasaToday = useQuery({
+  const { data: purasList = [], error: purasError, refetch: refetchPuras, isLoading: isPurasLoading } = useAllPuras();
+  const dewasaToday = useReadQuery({
     queryKey: ['ala-ayuning-dewasa', 'today', todayWITA],
     queryFn: fetchDewasaAyuToday,
     staleTime: 1000 * 60 * 5,
@@ -216,7 +216,8 @@ export function useDashboardData() {
     items: (dewasaToday.data?.items ?? []).map((item) => ({
       id: item.id, nama: item.nama, keterangan: item.keterangan || '', tag: 'PADEWASAN',
     })),
-    actionUrl: '/ala-ayuning-dewasa',
+    activityGuidance: dewasaToday.data?.activity_guidance ?? [],
+    actionUrl: `/ala-ayuning-dewasa?mode=date&date=${todayWITA}`,
   };
 
   // Ekstraksi 3 piodalan pura terdekat setelah hari ini dari data real kalender & pura resmi
@@ -253,8 +254,14 @@ export function useDashboardData() {
 
     // Data Dewasa Ayu & Piodalan (3 Item Teratas)
     dewasaAyu,
+    isDewasaLoading: dewasaToday.isLoading,
+    dewasaError: dewasaToday.isError ? dewasaToday.error : null,
+    refetchDewasa: dewasaToday.refetch,
     piodalan,
     piodalanList: piodalan,
+    piodalanError: purasError,
+    refetchPiodalan: refetchPuras,
+    isPiodalanLoading: isPurasLoading,
 
     // Status Jaringan & State TanStack Query
     isLoading,

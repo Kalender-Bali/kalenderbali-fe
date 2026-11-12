@@ -1,5 +1,4 @@
-import { toApiError } from '@/lib/apiError';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import {
   searchOtonan,
   fetchMasterWewaran,
@@ -51,7 +50,7 @@ export function useOtonanSearch(
         : Boolean(params.saptawara_id && params.pancawara_id && params.wuku_id))
   );
 
-  return useQuery<OtonanResponseData, Error>({
+  return useReadQuery<OtonanResponseData, Error>({
     queryKey: ['otonan', 'search', params],
     queryFn: async () => {
       if (!params) {
@@ -82,7 +81,8 @@ export function useOtonanSearch(
           // Jika nama Sasih pada hari otonan belum terisi, tarik nama Sasih resmi dari mesin kalender
           if (!item.detail_elemen.sasih && item.tanggal) {
             const sasih = await fetchOtonanDaySasih(item.tanggal);
-            item.detail_elemen.sasih = sasih || 'Kalima';
+            if (!sasih) throw new Error('Data Sasih untuk tanggal otonan belum tersedia. Silakan coba lagi.');
+            item.detail_elemen.sasih = sasih;
           }
         }
       }
@@ -92,13 +92,7 @@ export function useOtonanSearch(
     enabled: enabled && isParamsValid,
     staleTime: 1000 * 60 * 30, // Fresh selama 30 menit
     gcTime: 1000 * 60 * 60 * 24, // 24 jam di cache RAM browser
-    retry: (failureCount, error: unknown) => {
-      // Langsung lemparkan error tanpa jeda retry jika input/kombinasi tidak valid (HTTP 4xx)
-      if ((toApiError(error).status ?? toApiError(error).response?.status ?? 0) >= 400 && (toApiError(error).status ?? toApiError(error).response?.status ?? 0) < 500) {
-        return false;
-      }
-      return failureCount < 1;
-    },
+
   });
 }
 
@@ -118,7 +112,7 @@ export function useOtonanSearch(
  */
 export function useMasterWewaranOptions() {
   // Query 1: Master Saptawara (7 Hari)
-  const saptawaraQuery = useQuery<MasterWewaranItem[], Error>({
+  const saptawaraQuery = useReadQuery<MasterWewaranItem[], Error>({
     queryKey: ['keterangan', 'types', 'saptawara', 'values'],
     queryFn: () => fetchMasterWewaran('saptawara'),
     staleTime: Infinity,
@@ -127,7 +121,7 @@ export function useMasterWewaranOptions() {
   });
 
   // Query 2: Master Pancawara (5 Hari)
-  const pancawaraQuery = useQuery<MasterWewaranItem[], Error>({
+  const pancawaraQuery = useReadQuery<MasterWewaranItem[], Error>({
     queryKey: ['keterangan', 'types', 'pancawara', 'values'],
     queryFn: () => fetchMasterWewaran('pancawara'),
     staleTime: Infinity,
@@ -136,7 +130,7 @@ export function useMasterWewaranOptions() {
   });
 
   // Query 3: Master Wuku (30 Wuku)
-  const wukuQuery = useQuery<MasterWewaranItem[], Error>({
+  const wukuQuery = useReadQuery<MasterWewaranItem[], Error>({
     queryKey: ['keterangan', 'types', 'wuku', 'values'],
     queryFn: () => fetchMasterWewaran('wuku'),
     staleTime: Infinity,
@@ -156,5 +150,7 @@ export function useMasterWewaranOptions() {
     wukuList: wukuQuery.data || [],
     isLoading,
     isError,
+    error: saptawaraQuery.error || pancawaraQuery.error || wukuQuery.error,
+    refetch: () => Promise.all([saptawaraQuery.refetch(), pancawaraQuery.refetch(), wukuQuery.refetch()]),
   };
 }

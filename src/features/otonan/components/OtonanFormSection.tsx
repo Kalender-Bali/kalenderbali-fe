@@ -1,3 +1,4 @@
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React, { useState, useMemo } from 'react';
 import { Search, ChevronDown, RotateCcw } from 'lucide-react';
 import { AestheticDatePicker } from '@/components/ui/AestheticDatePicker';
@@ -94,7 +95,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
   // -------------------------------------------------------------------------
   // 2. DATA MASTER WEWARAN & TABEL PAWUKON 210 HARI
   // -------------------------------------------------------------------------
-  const { saptawaraList, pancawaraList, wukuList, isLoading: isMasterLoading } =
+  const { saptawaraList, pancawaraList, wukuList, isLoading: isMasterLoading, isError: isMasterError, error: masterError, refetch: refetchMasters } =
     useMasterWewaranOptions();
 
   // Membangun tabel lookup 210 hari Pawukon secara reaktif
@@ -305,6 +306,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
 
         {/* Form Inputs Container */}
         <form onSubmit={handleSubmit} className="pt-6 space-y-4">
+          {activeTab !== 'tanggal_lahir' && isMasterError && <QueryErrorState title="Gagal memuat pilihan wewaran" error={masterError} onRetry={() => { void refetchMasters(); }} />}
           {/* =============================================================== */}
           {/* MODE 1: TANGGAL LAHIR (Masehi)                                  */}
           {/* =============================================================== */}
@@ -516,7 +518,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 <div className="lg:col-span-2">
                   <button
                     type="submit"
-                    disabled={isLoading || isMasterLoading || !isWewaranComplete || !isValidPawukon}
+                    disabled={isLoading || isMasterLoading || isMasterError || !isWewaranComplete || !isValidPawukon}
                     className="w-full h-11 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-sm shadow-xs transition-all active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed [touch-action:manipulation]"
                   >
                     <span>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
+import { useAuthQueryScope } from '@/stores/useAuthStore';
 import {
   fetchChapters,
   fetchChapterDetail,
@@ -20,7 +21,7 @@ import {
 
 /** Hook untuk mengambil daftar 18 bab (statis seumur hidup aplikasi) */
 export function useChapters() {
-  return useQuery({
+  return useReadQuery({
     queryKey: ['bhagawadgita', 'chapters'],
     queryFn: fetchChapters,
     staleTime: Infinity,
@@ -29,8 +30,10 @@ export function useChapters() {
 
 /** Hook untuk mengambil detail bab dan daftar slokanya */
 export function useChapterDetail(chapterNumber: number) {
-  return useQuery({
-    queryKey: ['bhagawadgita', 'chapter', chapterNumber],
+  const authScope = useAuthQueryScope();
+  return useReadQuery({
+    queryKey: ['bhagawadgita', 'chapter', chapterNumber, authScope],
+    meta: { authScoped: true },
     queryFn: () => fetchChapterDetail(chapterNumber),
     enabled: chapterNumber >= 1 && chapterNumber <= 18,
     staleTime: 1000 * 60 * 30, // 30 menit
@@ -39,7 +42,7 @@ export function useChapterDetail(chapterNumber: number) {
 
 /** Hook untuk mengambil daftar 21 topik refleksi hidup */
 export function useTopics() {
-  return useQuery({
+  return useReadQuery({
     queryKey: ['bhagawadgita', 'topics'],
     queryFn: fetchTopics,
     staleTime: Infinity,
@@ -48,8 +51,10 @@ export function useTopics() {
 
 /** Hook untuk mengambil detail topik tertentu dan sloka pilihannya */
 export function useTopicDetail(topicId: string) {
-  return useQuery({
-    queryKey: ['bhagawadgita', 'topic', topicId],
+  const authScope = useAuthQueryScope();
+  return useReadQuery({
+    queryKey: ['bhagawadgita', 'topic', topicId, authScope],
+    meta: { authScoped: true },
     queryFn: () => fetchTopicDetail(topicId),
     enabled: Boolean(topicId),
     staleTime: 1000 * 60 * 30, // 30 menit
@@ -58,6 +63,7 @@ export function useTopicDetail(topicId: string) {
 
 /** Hook pencarian semantik dengan debouncing */
 export function useSemanticSearch(query: string, topicId?: string) {
+  const authScope = useAuthQueryScope();
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   useEffect(() => {
@@ -67,8 +73,9 @@ export function useSemanticSearch(query: string, topicId?: string) {
     return () => clearTimeout(handler);
   }, [query]);
 
-  return useQuery({
-    queryKey: ['bhagawadgita', 'search-semantic', debouncedQuery, topicId],
+  return useReadQuery({
+    queryKey: ['bhagawadgita', 'search-semantic', debouncedQuery, topicId, authScope],
+    meta: { authScoped: true },
     queryFn: () => searchSemantic({ query: debouncedQuery, topic_id: topicId }),
     enabled: debouncedQuery.trim().length > 0,
     staleTime: 1000 * 60 * 5, // 5 menit
@@ -77,9 +84,12 @@ export function useSemanticSearch(query: string, topicId?: string) {
 
 /** Hook pencarian teks biasa */
 export function useTextSearch(query: string) {
-  return useQuery({
-    queryKey: ['bhagawadgita', 'search-text', query],
+  const authScope = useAuthQueryScope();
+  return useReadQuery({
+    queryKey: ['bhagawadgita', 'search-text', query, authScope],
+    meta: { authScoped: true },
     queryFn: () => searchText(query),
+    enabled: Boolean(query.trim()),
     staleTime: 1000 * 60 * 5,
   });
 }

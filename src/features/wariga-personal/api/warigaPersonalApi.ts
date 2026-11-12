@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/axios';
+import { apiArray } from '@/lib/apiResponse';
 import type {
   WarigaPersonalRequest,
   WarigaPersonalResponse,
@@ -79,24 +80,19 @@ export async function searchWarigaPersonal(
 export async function fetchDewasaKelahiran(
   tanggalLahir: string
 ): Promise<PadewasanItem[]> {
-  try {
-    const response = await apiClient.get('/search/ala-ayuning-dewasa', {
-      params: {
-        tanggal_mulai: tanggalLahir,
-        tanggal_selesai: tanggalLahir,
-        beserta_keterangan: true,
-      },
-    });
+  const response = await apiClient.get('/search/ala-ayuning-dewasa', {
+    params: {
+      tanggal_mulai: tanggalLahir,
+      tanggal_selesai: tanggalLahir,
+      beserta_keterangan: true,
+    },
+  });
 
-    const harianList = response.data?.data;
-    if (Array.isArray(harianList) && harianList.length > 0) {
-      return harianList[0].padewasan || [];
-    }
-
-    return [];
-  } catch (error) {
-    console.error('Gagal mengambil data dewasa kelahiran:', error);
-    return [];
+  const harianList = apiArray<{ padewasan: PadewasanItem[] }>(response.data?.data);
+  if (Array.isArray(harianList) && harianList.length > 0) {
+    return apiArray<PadewasanItem>(harianList[0].padewasan);
   }
+
+  return [];
 }
 

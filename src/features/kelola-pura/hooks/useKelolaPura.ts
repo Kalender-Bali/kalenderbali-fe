@@ -1,6 +1,8 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
+import { useAuthQueryScope } from '@/stores/useAuthStore';
 import type {
   PuraBackendItem,
   PuraFinanceCategory,
@@ -59,7 +61,7 @@ import { useAlertStore } from '@/stores/useAlertStore';
  * sehingga data langsung tersedia dari memori RAM browser dalam 0 milidetik (Zero-Loading UX).
  */
 export function usePurasData() {
-  return useQuery<PuraBackendItem[]>({
+  return useReadQuery<PuraBackendItem[]>({
     queryKey: ['piodalan', 'puras', 'all'],
     queryFn: () => fetchPuraList(),
     staleTime: 1000 * 60 * 60 * 24, // 24 jam di memori
@@ -73,8 +75,10 @@ export function usePurasData() {
  * GET /api/v1/puras/:id
  */
 export function usePuraDetailData(puraId: number | string | null) {
-  return useQuery<PuraBackendItem | null>({
-    queryKey: ['pura', 'detail', String(puraId)],
+  const authScope = useAuthQueryScope();
+  return useReadQuery<PuraBackendItem | null>({
+    queryKey: ['pura', 'detail', String(puraId), authScope],
+    meta: { authScoped: true },
     queryFn: () => (puraId ? fetchPuraDetail(puraId) : null),
     enabled: Boolean(puraId),
     staleTime: 1000 * 60 * 30, // 30 menit
@@ -91,7 +95,7 @@ export function usePuraDetailData(puraId: number | string | null) {
  * GET /api/v1/puras/:id/piodalans
  */
 export function usePuraPiodalansData(puraId: number | string | null) {
-  return useQuery<PuraPiodalanRecord[]>({
+  return useReadQuery<PuraPiodalanRecord[]>({
     queryKey: ['pura', 'piodalans', String(puraId)],
     queryFn: () => (puraId ? fetchPuraPiodalans(puraId) : []),
     enabled: Boolean(puraId),
@@ -105,7 +109,7 @@ export function usePuraPiodalansData(puraId: number | string | null) {
  * GET /api/v1/piodalans/:id/acaras
  */
 export function usePiodalanAcarasData(piodalanId: number | string | null) {
-  return useQuery<PuraAcaraItem[]>({
+  return useReadQuery<PuraAcaraItem[]>({
     queryKey: ['piodalan', 'acaras', String(piodalanId)],
     queryFn: () => (piodalanId ? fetchPiodalanAcaras(piodalanId) : []),
     enabled: Boolean(piodalanId),
@@ -214,7 +218,7 @@ export function useAcaraMutations(piodalanId: number | string | null) {
  * GET /api/v1/finance/categories
  */
 export function useFinanceCategoriesData() {
-  return useQuery<PuraFinanceCategory[]>({
+  return useReadQuery<PuraFinanceCategory[]>({
     queryKey: ['finance', 'categories'],
     queryFn: () => fetchFinanceCategories(),
     staleTime: Infinity, // Kategori master tidak berubah selama sesi
@@ -233,11 +237,13 @@ export function usePuraFinanceData(
   categoryId?: string | number,
   entryType?: string
 ) {
+  const authScope = useAuthQueryScope();
   const queryClient = useQueryClient();
 
   // 1. Query seluruh baris mutasi kas
-  const entriesQuery = useQuery<PuraFinanceEntry[]>({
-    queryKey: ['pura', 'finance', 'entries', String(puraId), String(year), String(categoryId), String(entryType)],
+  const entriesQuery = useReadQuery<PuraFinanceEntry[]>({
+    queryKey: ['pura', 'finance', 'entries', String(puraId), String(year), String(categoryId), String(entryType), authScope],
+    meta: { authScoped: true },
     queryFn: () => (puraId ? fetchPuraFinance(puraId, year, categoryId, entryType) : []),
     enabled: Boolean(puraId),
     staleTime: 1000 * 60 * 5, // Fresh 5 menit
@@ -245,8 +251,9 @@ export function usePuraFinanceData(
   });
 
   // 2. Query kalkulasi ringkasan (Total Debit, Kredit, Saldo, % Kategori)
-  const summaryQuery = useQuery<PuraFinanceSummary | null>({
-    queryKey: ['pura', 'finance', 'summary', String(puraId), String(year), String(categoryId)],
+  const summaryQuery = useReadQuery<PuraFinanceSummary | null>({
+    queryKey: ['pura', 'finance', 'summary', String(puraId), String(year), String(categoryId), authScope],
+    meta: { authScoped: true },
     queryFn: () => (puraId ? fetchPuraFinanceSummary(puraId, year, categoryId) : null),
     enabled: Boolean(puraId),
     staleTime: 1000 * 60 * 5,
@@ -263,8 +270,8 @@ export function usePuraFinanceData(
     entries: entriesQuery.data || [],
     summary: summaryQuery.data,
     isLoading: entriesQuery.isLoading || summaryQuery.isLoading,
-    isError: entriesQuery.isError || summaryQuery.isError,
-    error: entriesQuery.error || summaryQuery.error,
+    isError: !entriesQuery.isLoading && !summaryQuery.isLoading && (entriesQuery.isError || summaryQuery.isError),
+    error: entriesQuery.isLoading || summaryQuery.isLoading ? null : entriesQuery.error || summaryQuery.error,
     refetchFinance,
     refetch: refetchFinance,
   };

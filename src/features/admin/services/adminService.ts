@@ -1,3 +1,4 @@
+import { withReadRetry } from '@/lib/readRetry';
 import { apiClient } from '@/lib/axios';
 import type {
   AdminMemberItem,
@@ -21,9 +22,7 @@ export const adminService = {
    */
   async getAllMembers(role?: string): Promise<AdminMemberItem[]> {
     const params = role ? { role } : undefined;
-    const response = await apiClient.get<{ data: AdminMemberItem[] }>('/admin/members', {
-      params,
-    });
+    const response = await withReadRetry(() => apiClient.get<{ data: AdminMemberItem[] }>('/admin/members', { params }));
     return response.data?.data || [];
   },
 
@@ -55,9 +54,7 @@ export const adminService = {
    * Mengambil riwayat seluruh transaksi pembelian dan langganan dari backend
    */
   async getAllPurchases(limit = 50, offset = 0): Promise<AdminPurchaseItem[]> {
-    const response = await apiClient.get<{ data: AdminPurchaseItem[] }>('/admin/purchases', {
-      params: { limit, offset },
-    });
+    const response = await withReadRetry(() => apiClient.get<{ data: AdminPurchaseItem[] }>('/admin/purchases', { params: { limit, offset } }));
     return response.data?.data || [];
   },
 };

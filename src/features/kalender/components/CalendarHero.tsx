@@ -25,7 +25,7 @@ interface CalendarHeroProps {
   sakaYearText: string;
   monthlyHolidays: KalenderHarian[];
   todayDateString?: string;
-  monthlyPiodalanCount?: number;
+  monthlyPiodalanCount?: number | null;
   isLoading?: boolean;
 }
 
@@ -35,7 +35,7 @@ export const CalendarHero: React.FC<CalendarHeroProps> = ({
   sakaYearText,
   monthlyHolidays,
   todayDateString,
-  monthlyPiodalanCount = 0,
+  monthlyPiodalanCount,
   isLoading = false,
 }) => {
   // State untuk mengontrol visibilitas modal pop-up detail zodiak
@@ -159,7 +159,7 @@ export const CalendarHero: React.FC<CalendarHeroProps> = ({
                 <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <span className="text-lg sm:text-xl font-extrabold text-[#0f172a] group-hover:text-[#0d9488] transition-colors tracking-tight block truncate tabular-nums">
-                {isLoading ? '...' : `${totalHolidays} Rahina · ${monthlyPiodalanCount} Piodalan`}
+                {isLoading ? '...' : `${totalHolidays} Rahina · ${monthlyPiodalanCount ?? "—"} Piodalan`}
               </span>
             </div>
 

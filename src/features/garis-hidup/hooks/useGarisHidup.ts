@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { searchGarisHidup } from '../api/garisHidupApi';
 import type {
   GarisHidupProfileResult,
@@ -157,7 +157,7 @@ export function useGarisHidup() {
     isError,
     error,
     refetch,
-  } = useQuery<GarisHidupProfileResult[], Error>({
+  } = useReadQuery<GarisHidupProfileResult[], Error>({
     queryKey: queryCacheKey,
     queryFn: async () => {
       return await searchGarisHidup(queryPayload);
@@ -169,7 +169,7 @@ export function useGarisHidup() {
     staleTime: 1000 * 60 * 30, // 30 menit segar di memori
     gcTime: 1000 * 60 * 60 * 24, // 24 jam bertahan di memori RAM
     refetchOnWindowFocus: false, // Tidak auto-refetch saat berganti tab
-    retry: 1, // Toleransi koneksi lambat
+
   });
 
   // =========================================================================

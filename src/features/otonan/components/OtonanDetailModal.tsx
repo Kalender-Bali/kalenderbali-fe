@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { X, Sparkles, ArrowRight } from 'lucide-react';
 import type { OtonanResponseData } from '../types/otonan.types';
 import { fetchDayWariga } from '../api/otonanApi';
@@ -93,7 +93,7 @@ export const OtonanDetailModal: React.FC<OtonanDetailModalProps> = ({
   // -------------------------------------------------------------------------
   // 2. QUERY DATA KALENDER HARIAN DARI BACKEND GO
   // -------------------------------------------------------------------------
-  const { data: dayData, isLoading, isError, refetch } = useQuery({
+  const { data: dayData, isLoading, isError, refetch } = useReadQuery({
     queryKey: ['kalender', 'day', selectedDate],
     queryFn: async () => {
       if (!selectedDate) return null;

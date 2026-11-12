@@ -1,3 +1,4 @@
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React from 'react';
 import { Search, ChevronDown, RotateCcw } from 'lucide-react';
 import type {
@@ -57,9 +58,11 @@ export const PiodalanSearchForm: React.FC<PiodalanSearchFormProps> = ({
   isLoading = false,
 }) => {
   // Ambil opsi master dropdown dari cache memori backend Go
-  const { data: saptawaraList = [] } = useMasterDropdown('saptawara');
-  const { data: pancawaraList = [] } = useMasterDropdown('pancawara');
-  const { data: wukuList = [] } = useMasterDropdown('wuku');
+  const masters = [useMasterDropdown('saptawara'), useMasterDropdown('pancawara'), useMasterDropdown('wuku')];
+  const [saptawaraList, pancawaraList, wukuList] = masters.map(query => query.data ?? []);
+  const masterError = masters.find(query => query.isError)?.error;
+  const isMasterLoading = masters.some(query => query.isLoading);
+  const retryMasters = () => { masters.forEach(query => { void query.refetch(); }); };
 
   // Handle pergantian tab pencarian
   const handleTabChange = (newTab: PiodalanSearchTab) => {
@@ -104,6 +107,7 @@ export const PiodalanSearchForm: React.FC<PiodalanSearchFormProps> = ({
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
+      {filter.tab === 'wewaran' && masterError && <QueryErrorState title="Gagal memuat pilihan wewaran" error={masterError} onRetry={retryMasters} />}
       {/* ==================================================================== */}
       {/* 1. HEADER KARTU: JUDUL & SEGMENTED TAB SWITCHER                      */}
       {/* ==================================================================== */}
@@ -283,7 +287,7 @@ export const PiodalanSearchForm: React.FC<PiodalanSearchFormProps> = ({
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || isMasterLoading || Boolean(masterError)}
                 className="w-full h-11 px-6 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-sm shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 [touch-action:manipulation] disabled:opacity-50"
               >
                 <Search className="w-4 h-4 shrink-0" />

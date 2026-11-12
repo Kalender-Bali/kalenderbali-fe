@@ -1,3 +1,4 @@
+import { apiArray, apiObject } from '@/lib/apiResponse';
 /**
  * ==============================================================================
  * JEMBATAN API & NORMALISASI DATA: FITUR WARTA BUDAYA BALI
@@ -151,7 +152,7 @@ export async function fetchArticles(params?: WartaFilterParams): Promise<Article
   });
 
   return {
-    data: Array.isArray(response.data?.data) ? response.data.data : [],
+    data: apiArray<ArticleBackendItem>(response.data?.data),
     total: typeof response.data?.total === 'number' ? response.data.total : 0,
   };
 }
@@ -166,30 +167,19 @@ export async function fetchArticles(params?: WartaFilterParams): Promise<Article
  * @returns Objek berisi array artikel milik user dan total hitungan
  */
 export async function fetchMyArticles(params?: WartaFilterParams): Promise<ArticleListResponse> {
-  try {
-    const queryParams: Record<string, string | number> = {
-      page: params?.page && params.page > 0 ? params.page : 1,
-      per_page: params?.per_page && params.per_page > 0 ? params.per_page : 12,
-    };
+  const queryParams: Record<string, string | number> = {
+    page: params?.page && params.page > 0 ? params.page : 1,
+    per_page: params?.per_page && params.per_page > 0 ? params.per_page : 12,
+  };
 
-    const response = await apiClient.get<ArticleListResponse>('/articles/my', {
-      params: queryParams,
-    });
+  const response = await apiClient.get<ArticleListResponse>('/articles/my', {
+    params: queryParams,
+  });
 
-    return {
-      data: Array.isArray(response.data?.data) ? response.data.data : [],
-      total: typeof response.data?.total === 'number' ? response.data.total : 0,
-    };
-  } catch (error: unknown) {
-    const err = error as { response?: { status?: number } };
-    // Jika backend merespon 403 Forbidden atau 404 (misal belum ada artikel atau peran member),
-    // kembalikan daftar kosong secara anggun (0 warta) agar antarmuka menampilkan Empty State,
-    // bukan layar error jaringan.
-    if (err.response?.status === 403 || err.response?.status === 404) {
-      return { data: [], total: 0 };
-    }
-    throw error;
-  }
+  return {
+    data: apiArray<ArticleBackendItem>(response.data?.data),
+    total: typeof response.data?.total === 'number' ? response.data.total : 0,
+  };
 }
 
 /**
@@ -201,7 +191,7 @@ export async function fetchMyArticles(params?: WartaFilterParams): Promise<Artic
  */
 export async function fetchArticleDetail(id: number | string): Promise<ArticleBackendItem> {
   const response = await apiClient.get<ArticleDetailResponse>(`/articles/${id}`);
-  return response.data.data;
+  return apiObject<ArticleBackendItem>(response.data?.data);
 }
 
 /**
@@ -234,7 +224,7 @@ export async function createArticle(payload: CreateArticlePayload): Promise<Arti
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data.data;
+    return apiObject<ArticleBackendItem>(response.data?.data);
   }
 
   // Jika tanpa berkas fisik (hanya URL atau teks), kirim via JSON
@@ -254,7 +244,7 @@ export async function createArticle(payload: CreateArticlePayload): Promise<Arti
   }
 
   const response = await apiClient.post<ArticleDetailResponse>('/articles', jsonBody);
-  return response.data.data;
+  return apiObject<ArticleBackendItem>(response.data?.data);
 }
 
 /**
@@ -288,7 +278,7 @@ export async function updateArticle(
         'Content-Type': 'multipart/form-data',
       },
     });
-    return response.data.data;
+    return apiObject<ArticleBackendItem>(response.data?.data);
   }
 
   // Jika tanpa berkas gambar baru, kirim JSON standar
@@ -304,7 +294,7 @@ export async function updateArticle(
   }
 
   const response = await apiClient.put<ArticleDetailResponse>(`/articles/${id}`, jsonBody);
-  return response.data.data;
+  return apiObject<ArticleBackendItem>(response.data?.data);
 }
 
 /**

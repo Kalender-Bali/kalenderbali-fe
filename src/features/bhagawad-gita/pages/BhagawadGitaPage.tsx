@@ -1,11 +1,11 @@
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   BookOpen,
   Sparkles,
   Search,
-  RefreshCw,
-  AlertCircle,
 } from 'lucide-react';
 import type { BhagawadGitaTab } from '../types/bhagawadGita.types';
 import { BhagawadGitaHero } from '../components/BhagawadGitaHero';
@@ -148,12 +148,16 @@ export default function BhagawadGitaPage() {
   const {
     data: topics = [],
     isLoading: isLoadingTopics,
+    error: errorTopics,
+    refetch: refetchTopics,
   } = useTopics();
 
   // Pencarian Pintar Semantik (IR Cosine Similarity) di Backend Go
   const {
     data: semanticResults,
     isLoading: isSearchingSemantic,
+    error: semanticError,
+    refetch: refetchSemantic,
   } = useSemanticSearch(
     isSemanticMode && searchQuery.trim().length > 0 ? searchQuery : '',
     selectedTopicId
@@ -162,6 +166,9 @@ export default function BhagawadGitaPage() {
   // Pencarian Teks Biasa pada Bab, Topik, & Sloka di Backend Go
   const {
     data: textResults,
+    isLoading: isSearchingText,
+    error: textError,
+    refetch: refetchText,
   } = useTextSearch(
     !isSemanticMode && searchQuery.trim().length > 0 ? searchQuery : ''
   );
@@ -189,30 +196,8 @@ export default function BhagawadGitaPage() {
   // ---------------------------------------------------------------------------
   // 5. PENANGANAN KESALAHAN JARINGAN (ERROR STATE)
   // ---------------------------------------------------------------------------
-  if (errorChapters) {
-    return (
-      <div className="bg-white rounded-2xl border border-rose-200/90 p-8 sm:p-12 text-center max-w-lg mx-auto my-8 space-y-4 shadow-xs animate-in fade-in">
-        <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center mx-auto">
-          <AlertCircle className="w-6 h-6" />
-        </div>
-        <div className="space-y-1">
-          <h2 className="text-lg font-bold text-[#0f172a]">
-            Gagal Memuat Data Bhagawad Gita
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Terjadi gangguan saat menghubungkan ke server pustaka suci.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => refetchChapters()}
-          className="h-11 px-6 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 [touch-action:manipulation]"
-        >
-          <RefreshCw className="w-4 h-4" />
-          <span>Coba Lagi</span>
-        </button>
-      </div>
-    );
+  if (errorChapters || errorTopics) {
+    return <QueryErrorState title="Gagal memuat pustaka Bhagawad Gita" error={errorChapters || errorTopics} onRetry={() => { void refetchChapters(); void refetchTopics(); }} />;
   }
 
   // Data Bab dan Topik yang ditampilkan (difilter jika ada pencarian teks aktif)
@@ -247,7 +232,11 @@ export default function BhagawadGitaPage() {
       {/* ===================================================================== */}
       {/* 3. HASIL PENCARIAN PINTAR SEMANTIK (JIKA MODE SEMANTIK & QUERY ADA)   */}
       {/* ===================================================================== */}
-      {isSemanticMode && searchQuery.trim().length > 0 ? (
+      {(isSearchingSemantic || isSearchingText) && searchQuery.trim() ? (
+        <DataSkeleton label="Memuat hasil pencarian Gita..." className="h-64" />
+      ) : (isSemanticMode ? semanticError : textError) && searchQuery.trim() ? (
+        <QueryErrorState title="Gagal mencari sloka" error={isSemanticMode ? semanticError : textError} onRetry={() => { void (isSemanticMode ? refetchSemantic() : refetchText()); }} />
+      ) : isSemanticMode && searchQuery.trim().length > 0 ? (
         <div className="space-y-4 animate-in fade-in">
           {/* Header Bar Hasil Pencarian */}
           <div className="flex items-center justify-between pb-1">
@@ -259,15 +248,8 @@ export default function BhagawadGitaPage() {
             </h2>
           </div>
 
-          {/* Loading Indicator saat Evaluasi Cosine Similarity */}
-          {isSearchingSemantic ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-12 text-center text-slate-500 dark:text-slate-400 flex items-center justify-center gap-3">
-              <RefreshCw className="w-5 h-5 animate-spin text-[#0d9488] dark:text-teal-400" />
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                Menganalisis kemiripan makna & rasa sloka...
-              </span>
-            </div>
-          ) : semanticResults && semanticResults.length > 0 ? (
+          {/* Hasil pencarian semantik yang sudah selesai */}
+          {semanticResults && semanticResults.length > 0 ? (
             <div className="space-y-4">
               {semanticResults.map((item) => (
                 <VerseCard

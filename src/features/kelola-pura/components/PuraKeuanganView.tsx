@@ -1,3 +1,4 @@
+import { hasActivePremium } from '@/lib/subscription';
 import React, { useState, useMemo } from 'react';
 import {
   Wallet,
@@ -32,6 +33,7 @@ import { FinanceDeleteConfirmModal } from './FinanceDeleteConfirmModal';
 import { PremiumUpgradeModal } from './PremiumUpgradeModal';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAlertStore } from '@/stores/useAlertStore';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 
 /**
  * ==============================================================================
@@ -86,7 +88,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
   // Role Member Premium memiliki hak mengajukan draf usulan catatan kas baru
   const isPremium = useMemo(() => {
     if (!user) return false;
-    return Boolean(user.isPremium || user.tier === 'Premium');
+    return hasActivePremium(user);
   }, [user]);
 
   // ============================================================================
@@ -108,7 +110,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
   // 3. PENGAMBILAN DATA KAS ASINKRON (BACKEND GO VIA TANSTACK QUERY)
   // ============================================================================
   // Ambil daftar mutasi kas dan kalkulasi ringkasan kas (Saldo, Total Debit, Total Kredit)
-  const { entries, summary, isLoading, refetch } = usePuraFinanceData(
+  const { entries, summary, isLoading, isError, error, refetch } = usePuraFinanceData(
     puraId,
     selectedYear === 'Semua' ? undefined : selectedYear,
     selectedCategory === 'Semua' ? undefined : selectedCategory,
@@ -116,7 +118,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
   );
 
   // Ambil master kategori kas untuk dropdown filter dan form modal
-  const { data: categories = [] } = useFinanceCategoriesData();
+  const { data: categories = [], error: categoriesError, isError: isCategoriesError, refetch: refetchCategories } = useFinanceCategoriesData();
 
   // Hook aksi mutasi untuk Admin
   const { deleteEntry, isDeleting } = useFinanceMutations(puraId);
@@ -159,7 +161,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
       await deleteEntry(entryToDelete.id);
       setEntryToDelete(null);
     } catch {
-      // Error sudah ditangani di dalam useFinanceMutations
+      showAlert("Transaksi kas gagal dihapus. Silakan coba lagi.");
     }
   };
 
@@ -172,6 +174,14 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
     }
   };
 
+  if (isError) return <QueryErrorState title="Gagal memuat laporan kas pura" error={error} onRetry={() => refetch()} />;
+  if (isLoading) return (
+    <div aria-busy="true" aria-label="Memuat laporan kas pura" className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">{[0, 1, 2, 3].map(key => <div key={key} className="h-28 rounded-2xl bg-slate-100" />)}</div>
+      <div className="h-64 rounded-2xl bg-slate-100" />
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       {/* ==================================================================== */}
@@ -181,6 +191,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
         aria-label="Header Transparansi Keuangan Pura"
         className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs"
       >
+        {isCategoriesError && <QueryErrorState title="Gagal memuat kategori kas" error={categoriesError} onRetry={() => refetchCategories()} />}
         {/* Identitas Pura & Tombol Aksi Sesuai Peran Pengguna */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-2">

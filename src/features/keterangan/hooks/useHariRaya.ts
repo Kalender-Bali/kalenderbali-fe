@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { fetchHariRayaKeteranganList } from '../api/hariRayaApi';
 import type { HariRayaKeterangan } from '../types/hariRaya.types';
 
@@ -13,7 +13,7 @@ import type { HariRayaKeterangan } from '../types/hariRaya.types';
  */
 
 export function useHariRayaKeteranganList() {
-  return useQuery<HariRayaKeterangan[], Error>({
+  return useReadQuery<HariRayaKeterangan[], Error>({
     queryKey: ['keterangan', 'types', 'hari_raya'],
     queryFn: fetchHariRayaKeteranganList,
     staleTime: Infinity,

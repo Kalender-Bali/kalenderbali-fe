@@ -1,3 +1,4 @@
+import { apiArray, apiObject } from '@/lib/apiResponse';
 import { toApiError } from '@/lib/apiError';
 import { apiClient } from '@/lib/axios';
 import type {
@@ -29,12 +30,13 @@ export const premiumApi = {
       const response = await apiClient.get<{ data: SubscriptionProduct[] }>(
         '/subscription-products'
       );
-      return response.data?.data || [];
+      return apiArray<SubscriptionProduct>(response.data?.data);
     } catch (caught) {
-    const error = toApiError(caught);
+      const error = toApiError(caught);
       const message =
         error.response?.data?.message ||
         error.response?.data?.error?.message ||
+        error.message ||
         'Gagal memuat daftar paket langganan dari server.';
       throw new Error(message, { cause: caught });
     }
@@ -49,16 +51,15 @@ export const premiumApi = {
       const response = await apiClient.get<{ data: UserEntitlement }>(
         '/purchases/my-active-product'
       );
-      return response.data?.data || null;
+      const subscription = apiObject<UserEntitlement>(response.data?.data);
+      if (typeof subscription.is_premium !== 'boolean') throw new Error('Respons status langganan tidak valid. Silakan coba lagi.');
+      return subscription;
     } catch (caught) {
-    const error = toApiError(caught);
-      // Jika error 401 (belum login), kembalikan null secara santun
-      if (error.response?.status === 401) {
-        return null;
-      }
+      const error = toApiError(caught);
       const message =
         error.response?.data?.message ||
         error.response?.data?.error?.message ||
+        error.message ||
         'Gagal memeriksa status langganan aktif.';
       throw new Error(message, { cause: caught });
     }
@@ -73,15 +74,13 @@ export const premiumApi = {
       const response = await apiClient.get<{ data: PurchaseHistoryItem[] }>(
         '/purchases/my-purchases'
       );
-      return response.data?.data || [];
+      return apiArray<PurchaseHistoryItem>(response.data?.data);
     } catch (caught) {
-    const error = toApiError(caught);
-      if (error.response?.status === 401) {
-        return [];
-      }
+      const error = toApiError(caught);
       const message =
         error.response?.data?.message ||
         error.response?.data?.error?.message ||
+        error.message ||
         'Gagal memuat riwayat transaksi pembayaran.';
       throw new Error(message, { cause: caught });
     }
@@ -109,10 +108,11 @@ export const premiumApi = {
 
       return response.data.data;
     } catch (caught) {
-    const error = toApiError(caught);
+      const error = toApiError(caught);
       const message =
         error.response?.data?.message ||
         error.response?.data?.error?.message ||
+        error.message ||
         'Gagal memulai proses transaksi pembayaran. Silakan coba lagi.';
       throw new Error(message, { cause: caught });
     }

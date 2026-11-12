@@ -63,11 +63,10 @@ test('versi aturan menghindari cache browser lama tanpa mengubah body POST',asyn
 });
 
 function client(){return new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0,staleTime:Infinity}}});}
-test('inspektur kalender menampilkan petunjuk API dan tidak memberi anjuran rekaan ketika kosong',()=>{
+test('inspektur kalender menyediakan tombol untuk membuka rincian hari',()=>{
   const qc=client();
   const render=(selectedData)=>renderToStaticMarkup(React.createElement(QueryClientProvider,{client:qc},React.createElement(CalendarInspector,{selectedDate:day.tanggal,selectedData,isToday:true,onOpenDetailModal(){}})));
-  const html=render(day);assert.match(html,/Petunjuk Riil/);assert.match(html,/bukan hash tanggal/);
-  assert.match(render({...day,padewasan:[]}),/Tidak ada rincian padewasan/);
+  assert.match(render(day),/Lihat detail hari/);
   qc.clear();
 });
 

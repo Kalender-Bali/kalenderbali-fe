@@ -1,3 +1,5 @@
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Landmark, ChevronRight, Sparkles } from 'lucide-react';
@@ -67,7 +69,7 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
   const hariRayaList = selectedData?.hari_raya || [];
 
   // Data Piodalan Real dari Mesin Pencarian Go (Hybrid Resilient Engine)
-  const { data: dayPiodalanData, isLoading: isLoadingDayPio } = useDayPiodalan(
+  const { data: dayPiodalanData, isLoading: isLoadingDayPio, isError: isDayPioError, error: dayPioError, refetch: refetchDayPio } = useDayPiodalan(
     selectedDate,
     selectedData
   );
@@ -231,7 +233,7 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
               <span className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-white">
                 Piodalan hari ini
               </span>
-              {isLoadingDayPio ? (
+              {isDayPioError ? null : isLoadingDayPio ? (
                 <span className="text-xs font-bold text-[#0d9488] dark:text-teal-400 tabular-nums">
                   Memuat...
                 </span>
@@ -252,12 +254,10 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
             </div>
 
             <div className="space-y-2.5">
-              {isLoadingDayPio ? (
-                <div className="p-3.5 rounded-xl border border-slate-100/90 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-800/40 text-center">
-                  <span className="text-xs text-slate-400 font-medium">
-                    Memeriksa agenda piodalan pura...
-                  </span>
-                </div>
+              {isDayPioError ? (
+                <QueryErrorState title="Gagal memuat piodalan tanggal ini" error={dayPioError} onRetry={() => { void refetchDayPio(); }} />
+              ) : isLoadingDayPio ? (
+                <DataSkeleton label="Memuat agenda piodalan..." className="h-40" />
               ) : piodalanList.length === 0 ? (
                 <div className="p-3.5 rounded-xl border border-slate-100/90 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-800/40 text-center">
                   <span className="text-xs text-slate-400 font-medium">

@@ -1,5 +1,6 @@
 import { toApiError } from '@/lib/apiError';
 import { apiClient } from '@/lib/axios';
+import { apiArray, apiObject } from '@/lib/apiResponse';
 import type {
   PadewasanItem,
   PadewasanHarian,
@@ -11,6 +12,7 @@ import type {
   PawukonHarianInfo,
 } from '../types/alaAyuning.types';
 import { getIndoDayName, parseISODate } from '@/features/kalender/utils/calendarUtils';
+import type { KalenderHarian } from '@/features/kalender/types/kalender.types';
 
 /**
  * ============================================================================
@@ -63,9 +65,9 @@ export async function fetchPadewasanHarian(tanggal: string): Promise<PadewasanIt
       }
     );
 
-    const hasilList = response.data?.data;
+    const hasilList = apiArray<PadewasanHarian>(response.data?.data);
     if (Array.isArray(hasilList) && hasilList.length > 0) {
-      return hasilList[0].padewasan || [];
+      return apiArray<PadewasanItem>(hasilList[0].padewasan);
     }
 
     return [];
@@ -107,7 +109,7 @@ export async function fetchPadewasanRentang(
       }
     );
 
-    return response.data?.data || [];
+    return apiArray<PadewasanHarian>(response.data?.data);
   } catch (caught) {
     const error = toApiError(caught);
     const errorMsg =
@@ -181,17 +183,11 @@ export async function searchPadewasanByName(
  * @returns Promise berisi 220 PadewasanItem (id, nama, keterangan, severity_code)
  */
 export async function fetchMasterPadewasan(): Promise<PadewasanItem[]> {
-  try {
-    const response = await apiClient.get<AlaAyuningAPIEnvelope<PadewasanItem[]>>(
-      '/ala-ayuning-dewasa/master'
-    );
+  const response = await apiClient.get<AlaAyuningAPIEnvelope<PadewasanItem[]>>(
+    '/ala-ayuning-dewasa/master'
+  );
 
-    return response.data?.data || [];
-  } catch (caught) {
-    const error = toApiError(caught);
-    console.error('Gagal mengambil master data padewasan:', error);
-    return [];
-  }
+  return apiArray<PadewasanItem>(response.data?.data);
 }
 
 // ----------------------------------------------------------------------------
@@ -207,17 +203,21 @@ export async function fetchMasterPadewasan(): Promise<PadewasanItem[]> {
  * @returns Promise berisi DewasaAyuTodayResponse
  */
 export async function fetchDewasaAyuToday(): Promise<DewasaAyuTodayResponse | null> {
-  try {
-    const response = await apiClient.get<AlaAyuningAPIEnvelope<DewasaAyuTodayResponse>>(
-      '/ala-ayuning-dewasa/today'
-    );
+  const response = await apiClient.get<AlaAyuningAPIEnvelope<DewasaAyuTodayResponse>>(
+    '/ala-ayuning-dewasa/today', { params: { summary_version: 'activity-guidance-v2' } }
+  );
 
-    return response.data?.data || null;
-  } catch (caught) {
-    const error = toApiError(caught);
-    console.error('Gagal mengambil rekomendasi dewasa ayu hari ini:', error);
-    return null;
+  return apiObject<DewasaAyuTodayResponse>(response.data?.data);
+}
+
+export async function fetchDewasaAyuSummary(date: string): Promise<DewasaAyuTodayResponse> {
+  const response = await apiClient.get<AlaAyuningAPIEnvelope<DewasaAyuTodayResponse>>(
+    '/ala-ayuning-dewasa/summary', { params: { date, summary_version: 'activity-guidance-v2' } }
+  );
+  if (!response.data?.data || response.data.data.tanggal !== date) {
+    throw new Error('Ringkasan padewasan untuk tanggal yang dipilih belum tersedia.');
   }
+  return response.data.data;
 }
 
 // ----------------------------------------------------------------------------
@@ -234,45 +234,43 @@ export async function fetchDewasaAyuToday(): Promise<DewasaAyuTodayResponse | nu
  * @returns Promise berisi PawukonHarianInfo terstruktur
  */
 export async function fetchDayPawukon(tanggal: string): Promise<PawukonHarianInfo | null> {
-  try {
-    const response = await apiClient.get('/kalender', {
-      params: {
-        start_date: tanggal,
-        end_date: tanggal,
-      },
-    });
+  const response = await apiClient.get('/kalender', {
+    params: {
+      start_date: tanggal,
+      end_date: tanggal,
+    },
+  });
 
-    const dayData = response.data?.data?.[0];
-    if (!dayData) return null;
+  const dayData = apiArray<KalenderHarian>(response.data?.data).find(day => day.tanggal === tanggal);
+  if (!dayData) return null;
 
-    const { day, month, year } = parseISODate(tanggal);
-    const indoDay = getIndoDayName(tanggal);
+  const { day, month, year } = parseISODate(tanggal);
+  const indoDay = getIndoDayName(tanggal);
 
-    const saptawaraNama = dayData.wewaran?.saptawara?.nama || '-';
-    const pancawaraNama = dayData.wewaran?.pancawara?.nama || '-';
-    const wukuNama = dayData.wewaran?.wuku?.nama || '-';
-    const sasihNama = dayData.sasih?.nama_sasih || '-';
+  const saptawaraNama = dayData.wewaran?.saptawara?.nama || '-';
+  const pancawaraNama = dayData.wewaran?.pancawara?.nama || '-';
+  const wukuNama = dayData.wewaran?.wuku?.nama || '-';
+  const sasihNama = dayData.sasih?.nama_sasih || '-';
 
-    // Neptu (Urip) adalah field integer langsung di dalam `wewaran` yang dihitung
-    // oleh backend Go dari penjumlahan urip Saptawara + Pancawara (bukan field dari sub-objek).
-    // Ref: backend-go/domain/wewaran.go → ElemenWarigaLengkap.Neptu (json:"neptu")
-    // Struct Wewaran meng-embed ElemenWarigaLengkap, sehingga serialisasi JSON menghasilkan:
-    //   { "wewaran": { "neptu": 10, "saptawara": { "id": "7", "nama": "Saniscara" }, ... } }
-    const totalUrip = Number(dayData.wewaran?.neptu || 0);
-
-    return {
-      tanggal,
-      hariMasehi: `${indoDay}, ${day} ${month} ${year}`,
-      hariBali: `${indoDay} · ${saptawaraNama}`,
-      sasih: sasihNama,
-      wuku: wukuNama,
-      pancawara: pancawaraNama,
-      saptawara: saptawaraNama,
-      urip: totalUrip,
-    };
-  } catch (error) {
-    console.error('Gagal mengambil data pawukon harian:', error);
-    return null;
+  // Neptu (Urip) adalah field integer langsung di dalam `wewaran` yang dihitung
+  // oleh backend Go dari penjumlahan urip Saptawara + Pancawara (bukan field dari sub-objek).
+  // Ref: backend-go/domain/wewaran.go → ElemenWarigaLengkap.Neptu (json:"neptu")
+  // Struct Wewaran meng-embed ElemenWarigaLengkap, sehingga serialisasi JSON menghasilkan:
+  //   { "wewaran": { "neptu": 10, "saptawara": { "id": "7", "nama": "Saniscara" }, ... } }
+  const totalUrip = dayData.wewaran?.neptu;
+  if (typeof totalUrip !== 'number' || !Number.isFinite(totalUrip)) {
+    throw new Error('Data urip dari server belum lengkap. Silakan coba lagi.');
   }
+
+  return {
+    tanggal,
+    hariMasehi: `${indoDay}, ${day} ${month} ${year}`,
+    hariBali: `${indoDay} · ${saptawaraNama}`,
+    sasih: sasihNama,
+    wuku: wukuNama,
+    pancawara: pancawaraNama,
+    saptawara: saptawaraNama,
+    urip: totalUrip,
+  };
 }
 

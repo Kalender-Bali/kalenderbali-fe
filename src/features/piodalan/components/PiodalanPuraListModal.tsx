@@ -21,6 +21,7 @@ import type {
   PiodalanAcaraItem,
 } from '../types/piodalan.types';
 import { usePuraCeremonies } from '../hooks/usePiodalan';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import { getPuraTypeBadgeStyle } from '../utils/piodalanUtils';
 
 /**
@@ -143,7 +144,7 @@ export const PiodalanPuraListModal: React.FC<PiodalanPuraListModalProps> = ({
   }, [dayGroup, searchPuraQuery]);
 
   // Ambil data pelaksanaan piodalan riil dan tahapan acara untuk pura yang dipilih di Level 3
-  const { data: ceremoniesData, isLoading: isLoadingCeremonies } = usePuraCeremonies(
+  const { data: ceremoniesData, isLoading: isLoadingCeremonies, isError: isCeremoniesError, error: ceremoniesError, refetch: refetchCeremonies } = usePuraCeremonies(
     selectedPura ? selectedPura.id : null,
     dayGroup?.dateStr
   );
@@ -483,7 +484,9 @@ export const PiodalanPuraListModal: React.FC<PiodalanPuraListModalProps> = ({
                 </div>
 
                 {/* State Loading Acara */}
-                {isLoadingCeremonies ? (
+                {isCeremoniesError ? (
+                  <QueryErrorState title="Gagal memuat susunan acara pura" error={ceremoniesError} onRetry={() => refetchCeremonies()} />
+                ) : isLoadingCeremonies ? (
                   <div className="space-y-3 py-4 animate-pulse">
                     <div className="h-16 bg-slate-100 rounded-xl" />
                     <div className="h-16 bg-slate-100 rounded-xl" />

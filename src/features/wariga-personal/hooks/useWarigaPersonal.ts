@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
+import { useAuthQueryScope } from '@/stores/useAuthStore';
 import {
   searchWarigaPersonal,
   fetchDewasaKelahiran,
@@ -26,6 +27,7 @@ import { getTodayWITA } from '@/features/kalender/utils/calendarUtils';
  * ============================================================================
  */
 export function useWarigaPersonal() {
+  const authScope = useAuthQueryScope();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // -------------------------------------------------------------------------
@@ -80,31 +82,45 @@ export function useWarigaPersonal() {
     isError,
     error,
     refetch,
-  } = useQuery<WarigaPersonalResponse, Error>({
+  } = useReadQuery<WarigaPersonalResponse, Error>({
     queryKey: [
       'wariga-personal',
       queryTglLahir,
       querySebelumJam6,
       queryBulan,
       queryTahun,
+      authScope,
     ],
+    meta: { authScoped: true },
     queryFn: () => searchWarigaPersonal(queryPayload),
     enabled: isBirthDateValid,
-    staleTime: 1000 * 60 * 30, // Data fresh selama 30 menit
-    gcTime: 1000 * 60 * 60 * 24, // Bertahan 24 jam di RAM memori browser
+    staleTime: 0, // Hak premium diperiksa ulang saat halaman dibuka.
+    gcTime: 1000 * 60 * 60 * 24,
+    refetchOnWindowFocus: true,
   });
 
   // -------------------------------------------------------------------------
   // BLOK 4: QUERY PADEWASAN TANGGAL LAHIR (UNTUK MODAL DEWASA KELAHIRAN)
   // -------------------------------------------------------------------------
-  // Mengambil daftar ala ayuning dewasa aktif pada tanggal kelahiran
+  // Gunakan tanggal efektif dari hasil backend yang cocok dengan input aktif.
+  // Jangan memakai tanggal sipil sebagai fallback ketika hasil belum tersedia.
+  const identity = data?.identitas_kelahiran;
+  const calendarBirthDate = identity?.tanggal_lahir_sipil === queryTglLahir
+    && identity.sebelum_jam_6 === querySebelumJam6
+    ? identity.tanggal_lahir_kalender
+    : '';
+
+  // Mengambil padewasan pada tanggal efektif yang sama dengan weton utama.
   const {
     data: dewasaKelahiran = [],
     isLoading: isDewasaLoading,
-  } = useQuery<PadewasanItem[], Error>({
-    queryKey: ['dewasa-kelahiran', queryTglLahir],
-    queryFn: () => fetchDewasaKelahiran(queryTglLahir),
-    enabled: isDewasaModalOpen && Boolean(queryTglLahir),
+    error: dewasaError,
+    isError: isDewasaError,
+    refetch: refetchDewasa,
+  } = useReadQuery<PadewasanItem[], Error>({
+    queryKey: ['dewasa-kelahiran', calendarBirthDate],
+    queryFn: () => fetchDewasaKelahiran(calendarBirthDate),
+    enabled: isDewasaModalOpen && Boolean(calendarBirthDate),
     staleTime: 1000 * 60 * 60 * 24, // Data permanen di-cache 24 jam
   });
 
@@ -221,6 +237,7 @@ export function useWarigaPersonal() {
   return {
     // Parameter URL aktif
     queryTglLahir,
+    calendarBirthDate,
     querySebelumJam6,
     queryBulan,
     queryTahun,
@@ -261,7 +278,9 @@ export function useWarigaPersonal() {
     openDewasaModal,
     closeDewasaModal,
     dewasaKelahiran,
-    isDewasaLoading,
+    isDewasaLoading: isDewasaLoading || (isDewasaModalOpen && !calendarBirthDate),
+    dewasaError: isDewasaError ? dewasaError : null,
+    refetchDewasa,
   };
 }
 

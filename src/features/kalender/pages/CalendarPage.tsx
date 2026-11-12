@@ -1,13 +1,16 @@
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import { useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { EASE_SMOOTH } from '@/lib/animations';
 import { useKalenderTahun, useMonthlyPiodalan } from '../hooks/useKalender';
 import {
   exportHariRayaToICS,
   generateMonthGrid,
   getTodayWITA,
+  isValidISODate,
   parseISODate,
   toISODateString,
 } from '../utils/calendarUtils';
@@ -38,6 +41,44 @@ import { DayDetailModal } from '../components/DayDetailModal';
 
 export default function CalendarPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const rawDate = searchParams.get('date');
+
+  // Stop before mounting calendar hooks, grids, or details for an invalid URL.
+  if (rawDate !== null && !isValidISODate(rawDate)) {
+    return (
+      <div className="space-y-6 w-full max-w-[1560px] mx-auto pb-12">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">Kalender Bali</h1>
+        <div role="alert" className="bg-white rounded-2xl border border-rose-200/90 p-5 sm:p-7 shadow-xs space-y-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="space-y-1.5">
+              <h2 className="text-base sm:text-lg font-extrabold text-slate-900">Tanggal kalender tidak valid</h2>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Tanggal pada tautan ini tidak ada atau formatnya tidak sesuai. Gunakan tanggal Masehi yang valid.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const nextParams = new URLSearchParams(searchParams);
+              nextParams.set('date', getTodayWITA());
+              setSearchParams(nextParams, { replace: true });
+            }}
+            className="h-11 px-5 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-sm shadow-xs transition-all cursor-pointer [touch-action:manipulation]"
+          >
+            Buka kalender hari ini
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <CalendarContent />;
+}
+
+function CalendarContent() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   // State lokal modal dialog rincian hari (dibuka saat tombol "Lihat detail hari" diklik)
@@ -48,14 +89,8 @@ export default function CalendarPage() {
   // -------------------------------------------------------------------------
   const todayWITA = useMemo(() => getTodayWITA(), []);
 
-  // Ambil tanggal dari URL, jika tidak ada atau formatnya keliru gunakan hari ini
-  const rawDateParam = searchParams.get('date');
-  const selectedDate = useMemo(() => {
-    if (rawDateParam && /^\d{4}-\d{2}-\d{2}$/.test(rawDateParam)) {
-      return rawDateParam;
-    }
-    return todayWITA;
-  }, [rawDateParam, todayWITA]);
+  // Parameter sudah divalidasi CalendarPage; URL tanpa tanggal memakai hari ini.
+  const selectedDate = searchParams.get('date') || todayWITA;
 
   // Uraikan tahun, bulan, dan hari dari tanggal terpilih
   const { year: activeYear, month: activeMonth } = useMemo(
@@ -92,7 +127,7 @@ export default function CalendarPage() {
   );
 
   // Ambil ringkasan piodalan bulan aktif secara instan & tangguh (Hybrid Resilient Engine)
-  const { data: monthlyPiodalan } = useMonthlyPiodalan(
+  const { data: monthlyPiodalan, isLoading: isPiodalanLoading, isError: isPiodalanError, error: piodalanError, refetch: refetchPiodalan } = useMonthlyPiodalan(
     activeYear,
     activeMonth,
     currentMonthDays,
@@ -126,6 +161,7 @@ export default function CalendarPage() {
    * Mengubah tanggal terpilih dan menyinkronkannya langsung ke parameter URL.
    */
   const handleSelectDate = (newDateStr: string) => {
+    if (!isValidISODate(newDateStr)) return;
     setSearchParams({ date: newDateStr });
   };
 
@@ -178,6 +214,23 @@ export default function CalendarPage() {
     navigate('/hari-raya');
   };
 
+  if (isLoading) return (
+    <div className="space-y-6">
+      <CalendarHeader onDownloadICS={handleDownloadICS} isLoading />
+      <DataSkeleton label="Memuat ringkasan kalender..." className="h-44" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8 rounded-2xl border border-slate-200/90 bg-white dark:bg-slate-900 p-6" role="status" aria-label="Memuat kalender..." aria-busy="true">
+          <div aria-hidden="true" className="animate-pulse space-y-5">
+            <div className="h-8 w-48 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+            <div className="grid grid-cols-7 gap-2">{gridCells.map((_, index) => <div key={index} className="h-20 sm:h-24 bg-slate-100 dark:bg-slate-800 rounded-xl" />)}</div>
+          </div>
+        </div>
+        <div className="lg:col-span-4"><DataSkeleton label="Memuat detail tanggal..." className="h-full min-h-96" /></div>
+      </div>
+    </div>
+  );
+  if (isError) return <QueryErrorState title="Gagal memuat data kalender" error={error ? new Error(error) : undefined} onRetry={() => { void refetch(); }} />;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -196,32 +249,7 @@ export default function CalendarPage() {
       {/* ========================================================= */}
       {/* NOTIFIKASI ERROR (JIKA KONEKSI KE SERVER GAGAL)          */}
       {/* ========================================================= */}
-      {isError && (
-        <div className="bg-white rounded-2xl border border-rose-200/90 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-in fade-in">
-          <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-              <AlertCircle className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm sm:text-base font-bold text-[#0f172a]">
-                Gagal Memuat Data Kalender Tahun {activeYear}
-              </h4>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                {error || 'Terjadi kesalahan saat menghubungi server kalender Bali.'}
-              </p>
-            </div>
-          </div>
 
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="h-11 px-5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs sm:text-sm transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 shrink-0 [touch-action:manipulation]"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Coba Lagi</span>
-          </button>
-        </div>
-      )}
 
       {/* ========================================================= */}
       {/* 2. TOP HERO BAR (RINGKASAN BULAN & ZODIAK)                */}
@@ -232,7 +260,7 @@ export default function CalendarPage() {
         sakaYearText={sakaYearText}
         monthlyHolidays={currentMonthHolidays}
         todayDateString={todayWITA}
-        monthlyPiodalanCount={monthlyPiodalan?.totalPuras}
+        monthlyPiodalanCount={isPiodalanError || isPiodalanLoading ? null : monthlyPiodalan?.totalPuras}
         isLoading={isLoading}
       />
 
@@ -274,6 +302,9 @@ export default function CalendarPage() {
         onNavigateToFullHoliday={handleNavigateToFullHoliday}
         monthlyPiodalans={monthlyPiodalan?.upcomingItems}
         monthlyPiodalanTotal={monthlyPiodalan?.totalPuras}
+        piodalanError={isPiodalanError ? piodalanError : null}
+        isPiodalanLoading={isPiodalanLoading}
+        onRetryPiodalan={() => { void refetchPiodalan(); }}
         activeYear={activeYear}
         activeMonth={activeMonth}
       />

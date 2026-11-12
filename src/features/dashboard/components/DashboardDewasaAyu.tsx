@@ -1,17 +1,20 @@
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import type { DewasaAyuDashboard } from '../types/dashboard.types';
+import { DewasaActivityPanel } from '@/features/ala-ayuning-dewasa/components/DewasaActivityPanel';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 
 /**
  * ============================================================================
  * KOMPONEN: DashboardDewasaAyu (Baris 3 Kiri — Dewasa Ayu Hari Ini)
  * ============================================================================
- * Menampilkan 3 rekomendasi padewasan / hari baik harian dengan kontras visual tinggi:
+ * Menampilkan petunjuk padewasan berdasarkan kegiatan yang dipilih:
  *  - Latar Card: Gradient Teal Tirta Bali pekat (from-[#0e9f90] via-[#0c8e80] to-[#0a756a])
- *  - Baris Atas: Pill "+ DEWASA AYU HARI INI" dan status "BAIK"
+ *  - Baris Atas: Nama fitur dan status ringkasan dari backend
  *  - Headline: Ringkasan narasi petunjuk hari ini
- *  - Area Tengah: Menampilkan 3 item padewasan teratas hari ini secara terstruktur
+ *  - Area Tengah: Pilihan kegiatan, anjuran, serta seluruh pantangan yang cocok
  *  - Baris Bawah: Tautan "Lihat selengkapnya →" menuju ke /ala-ayuning-dewasa
  *
  * Mengikuti Aturan Desain AGENTS.md:
@@ -22,10 +25,17 @@ import type { DewasaAyuDashboard } from '../types/dashboard.types';
 
 interface DashboardDewasaAyuProps {
   data: DewasaAyuDashboard;
+  isLoading?: boolean;
+  error?: unknown;
+  onRetry?: () => void;
 }
 
-export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) => {
+export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data, error, onRetry, isLoading }) => {
   const navigate = useNavigate();
+
+  if (isLoading) return <DataSkeleton label="Memuat petunjuk Dewasa Ayu..." className="h-72" />;
+
+  if (error && onRetry) return <QueryErrorState title="Gagal memuat petunjuk Dewasa Ayu" error={error} onRetry={onRetry} />;
 
   // Memastikan hanya mengambil maksimal 3 item padewasan teratas sesuai instruksi
   const topThreeItems = (data.items || []).slice(0, 3);
@@ -36,7 +46,7 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) 
       <div className="absolute -right-8 -bottom-8 w-36 h-36 bg-white/5 dark:bg-teal-500/10 rounded-full pointer-events-none blur-xl" />
 
       {/* =================================================================== */}
-      {/* 1. BARIS ATAS: PILL MODUL & BADGE STATUS BAIK                       */}
+      {/* 1. BARIS ATAS: NAMA FITUR & STATUS RINGKASAN                        */}
       {/* =================================================================== */}
       <div>
         <div className="flex items-center justify-between gap-2 mb-3">
@@ -46,21 +56,23 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) 
             <span>DEWASA AYU HARI INI</span>
           </div>
 
-          {/* Badge Status Hari (BAIK) */}
+          {/* Status bersumber dari ringkasan backend */}
           <div className="px-2.5 py-0.5 rounded-full bg-white/20 dark:bg-emerald-950/60 dark:border dark:border-emerald-500/30 backdrop-blur-xs text-white dark:text-emerald-300 text-[10px] font-extrabold uppercase tracking-widest">
             {data.statusLabel}
           </div>
         </div>
 
-        {/* Narasi Ringkas Hari Baik */}
+        {/* Petunjuk pemilihan kegiatan */}
         <p className="text-xs sm:text-sm text-teal-50/90 dark:text-slate-300 font-medium leading-snug mb-3">
           {data.headline}
         </p>
 
         {/* ================================================================= */}
-        {/* 2. AREA TENGAH: DAFTAR 3 REKOMENDASI PADEWASAN HARI BAIK          */}
+        {/* 2. AREA TENGAH: ANJURAN & PANTANGAN PER KEGIATAN                 */}
         {/* ================================================================= */}
-        <div className="space-y-2.5">
+        {data.activityGuidance?.length ? (
+          <DewasaActivityPanel activities={data.activityGuidance} id="dashboard-dewasa-activity" />
+        ) : <div className="space-y-2.5">
           {topThreeItems.map((item) => (
             <div
               key={item.id}
@@ -75,12 +87,12 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data }) 
                   {item.tag}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-teal-100/80 dark:text-slate-300 font-medium truncate mt-1">
+              <p className="text-[11px] sm:text-xs text-teal-100/80 dark:text-slate-300 font-medium whitespace-pre-line break-words mt-1">
                 {item.keterangan}
               </p>
             </div>
           ))}
-        </div>
+        </div>}
       </div>
 
       {/* =================================================================== */}

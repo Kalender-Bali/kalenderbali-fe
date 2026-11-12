@@ -37,6 +37,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [profileLoadFailed, setProfileLoadFailed] = useState(false);
 
   // State Modal-Modal Interaktif
   const [showVerifyModal, setShowVerifyModal] = useState(false);
@@ -65,6 +66,7 @@ export default function LoginPage() {
 
     setIsLoading(true);
     setErrorMessage(null);
+    setProfileLoadFailed(false);
 
     try {
       // Panggil one-flow helper: login + ambil profil user sekaligus
@@ -83,6 +85,7 @@ export default function LoginPage() {
       navigate(from, { replace: true });
     } catch (err: unknown) {
       const authErr = err as { code?: string; message?: string };
+      setProfileLoadFailed(authErr.code === 'PROFILE_UNAVAILABLE');
       // Deteksi jika akun terdaftar tetapi belum verifikasi email (HTTP 403 EMAIL_NOT_VERIFIED)
       if (authErr.code === 'EMAIL_NOT_VERIFIED' || authErr.message?.toLowerCase().includes('not verified')) {
         setErrorMessage('Akun Anda belum diverifikasi. Kode verifikasi baru telah dikirimkan ke email Anda.');
@@ -101,6 +104,7 @@ export default function LoginPage() {
   const handleGoogleSuccess = async (idToken: string) => {
     setIsLoading(true);
     setErrorMessage(null);
+    setProfileLoadFailed(false);
 
     try {
       const res = await authService.googleLogin(idToken);
@@ -178,7 +182,7 @@ export default function LoginPage() {
       >
         {/* Banner Pesan Error */}
         {errorMessage && (
-          <div className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
+          <div role="alert" className="mb-4 p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
             <span className="leading-snug">{errorMessage}</span>
           </div>
@@ -199,6 +203,7 @@ export default function LoginPage() {
               type="email"
               required
               autoComplete="email"
+              disabled={isLoading}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Masukkan email"
@@ -220,6 +225,7 @@ export default function LoginPage() {
                 type={showPassword ? 'text' : 'password'}
                 required
                 autoComplete="current-password"
+                disabled={isLoading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
@@ -259,7 +265,7 @@ export default function LoginPage() {
                   <span>Masuk...</span>
                 </>
               ) : (
-                <span>Login</span>
+                <span>{profileLoadFailed ? 'Coba Lagi' : 'Login'}</span>
               )}
             </button>
           </div>

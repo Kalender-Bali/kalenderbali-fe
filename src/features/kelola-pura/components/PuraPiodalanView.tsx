@@ -1,3 +1,5 @@
+import { hasActivePremium } from '@/lib/subscription';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React, { useState, useMemo } from 'react';
 import {
   Calendar,
@@ -89,14 +91,14 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
 
   const isPremium = useMemo(() => {
     if (!user) return false;
-    return Boolean(user.isPremium || user.tier === 'Premium');
+    return hasActivePremium(user);
   }, [user]);
 
   // ============================================================================
   // 1. PENGAMBILAN DATA ASINKRON (SERVER STATE DENGAN TANSTACK QUERY)
   // ============================================================================
   // Ambil daftar riwayat & jadwal piodalan resmi pura ini dari database Go
-  const { data: piodalans = [], isLoading: isLoadingPiodalan } = usePuraPiodalansData(puraId);
+  const { data: piodalans = [], isLoading: isLoadingPiodalan, isError: isPiodalanError, error: piodalanError, refetch: refetchPiodalans } = usePuraPiodalansData(puraId);
 
   // State ID piodalan yang dipilih (default ke piodalan pertama/terkini jika ada)
   const [selectedPiodalanId, setSelectedPiodalanId] = useState<number | null>(null);
@@ -112,7 +114,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
   }, [piodalans, selectedPiodalanId]);
 
   // Ambil rincian tahapan susunan acara untuk piodalan yang sedang aktif
-  const { data: acaras = [], isLoading: isLoadingAcara } = usePiodalanAcarasData(
+  const { data: acaras = [], isLoading: isLoadingAcara, isError: isAcaraError, error: acaraError, refetch: refetchAcaras } = usePiodalanAcarasData(
     activePiodalan ? activePiodalan.id : null
   );
 
@@ -185,7 +187,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
       setIsCheckingAcaras(true);
       let count = 0;
       // Manfaatkan cache memori jika piodalan yang hendak dihapus sedang aktif dipilih di UI
-      if (activePiodalan && activePiodalan.id === piodalan.id && Array.isArray(acaras)) {
+      if (activePiodalan && activePiodalan.id === piodalan.id && !isAcaraError && !isLoadingAcara && Array.isArray(acaras)) {
         count = acaras.length;
       } else {
         // Ambil data susunan acara dari backend API jika belum ada di cache memori
@@ -196,8 +198,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
       setPiodalanToDelete(piodalan);
     } catch (err) {
       console.error('Gagal mengecek keterkaitan susunan acara piodalan:', err);
-      setPiodalanAcarasCount(0);
-      setPiodalanToDelete(piodalan);
+      showAlert('Susunan acara belum berhasil diperiksa. Coba lagi sebelum menghapus piodalan.');
     } finally {
       setIsCheckingAcaras(false);
     }
@@ -406,6 +407,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
             </div>
 
             {/* Loading State Riwayat Piodalan */}
+            {isPiodalanError && <QueryErrorState title="Gagal memuat jadwal piodalan" error={piodalanError} onRetry={() => refetchPiodalans()} />}
             {isLoadingPiodalan && (
               <div className="space-y-2 py-2" aria-busy="true">
                 <div className="h-16 bg-slate-100 rounded-xl animate-pulse" />
@@ -414,7 +416,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
             )}
 
             {/* Daftar Piodalan */}
-            {!isLoadingPiodalan && piodalans.length > 0 && (
+            {!isPiodalanError && !isLoadingPiodalan && piodalans.length > 0 && (
               <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
                 {piodalans.map((piodalan) => {
                   const isSelected = activePiodalan?.id === piodalan.id;
@@ -476,7 +478,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
             )}
 
             {/* Empty State Jika Belum Ada Data Piodalan */}
-            {!isLoadingPiodalan && piodalans.length === 0 && (
+            {!isPiodalanError && !isLoadingPiodalan && piodalans.length === 0 && (
               <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/70 text-center space-y-1.5">
                 <Info className="w-5 h-5 text-slate-400 mx-auto" aria-hidden="true" />
                 <p className="text-xs font-bold text-slate-700">Belum ada riwayat piodalan</p>
@@ -548,6 +550,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
             </div>
 
             {/* Loading State Susunan Acara */}
+            {isAcaraError && <QueryErrorState title="Gagal memuat susunan acara" error={acaraError} onRetry={() => refetchAcaras()} />}
             {isLoadingAcara && (
               <div className="space-y-4 py-4" aria-busy="true">
                 <div className="h-20 bg-slate-100 rounded-xl animate-pulse" />
@@ -557,7 +560,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
             )}
 
             {/* Tampilan Garis Waktu (Timeline) Acara */}
-            {!isLoadingAcara && acaras.length > 0 && (
+            {!isAcaraError && !isPiodalanError && !isLoadingPiodalan && !isLoadingAcara && acaras.length > 0 && (
               <div className="space-y-4 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200/80">
                 {acaras.map((acara, index) => (
                   <div
@@ -637,7 +640,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
             )}
 
             {/* Empty State: Belum Ada Susunan Acara Terperinci */}
-            {!isLoadingAcara && acaras.length === 0 && (
+            {!isAcaraError && !isPiodalanError && !isLoadingPiodalan && !isLoadingAcara && acaras.length === 0 && (
               <div className="bg-slate-50 rounded-2xl border border-slate-200/80 p-8 text-center space-y-3">
                 <div className="w-12 h-12 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center mx-auto text-[#0e9f90]">
                   <CalendarDays className="w-6 h-6" aria-hidden="true" />

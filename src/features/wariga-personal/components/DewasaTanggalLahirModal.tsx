@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, AlertCircle } from 'lucide-react';
 import type { PadewasanItem } from '../types/warigaPersonal.types';
 import { formatFullIndoDate } from '@/features/kalender/utils/calendarUtils';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 
 /**
  * ============================================================================
@@ -24,8 +25,11 @@ interface DewasaTanggalLahirModalProps {
   isOpen: boolean;
   onClose: () => void;
   birthDate: string; // "YYYY-MM-DD"
+  calendarBirthDate: string;
   items: PadewasanItem[];
   isLoading: boolean;
+  error?: unknown;
+  onRetry?: () => void;
 }
 
 /**
@@ -49,8 +53,11 @@ export const DewasaTanggalLahirModal: React.FC<DewasaTanggalLahirModalProps> = (
   isOpen,
   onClose,
   birthDate,
+  calendarBirthDate,
   items,
   isLoading,
+  error,
+  onRetry,
 }) => {
   // Aksesibilitas: listener tombol Escape
   const handleKeyDown = useCallback(
@@ -91,9 +98,14 @@ export const DewasaTanggalLahirModal: React.FC<DewasaTanggalLahirModalProps> = (
             <h3 className="text-lg sm:text-xl font-extrabold text-[#0f172a] tracking-tight">
               Dewasa Tanggal Lahir
             </h3>
-            <p className="text-xs font-semibold text-slate-500">
-              {formatFullIndoDate(birthDate)}
+            <p className="text-xs font-semibold text-slate-500 tabular-nums">
+              Tanggal lahir: {formatFullIndoDate(birthDate)}
             </p>
+            {calendarBirthDate && calendarBirthDate !== birthDate && (
+              <p className="text-xs text-slate-500 tabular-nums">
+                Tanggal perhitungan: {formatFullIndoDate(calendarBirthDate)} (sebelum 06.00 WITA)
+              </p>
+            )}
           </div>
 
           <button
@@ -108,7 +120,9 @@ export const DewasaTanggalLahirModal: React.FC<DewasaTanggalLahirModalProps> = (
 
         {/* Scrollable Body */}
         <div className="overflow-y-auto p-5 sm:p-6 space-y-3">
-          {isLoading ? (
+          {error && onRetry ? (
+            <QueryErrorState title="Gagal memuat Dewasa Kelahiran" error={error} onRetry={onRetry} />
+          ) : isLoading ? (
             <div className="space-y-3 animate-pulse">
               <div className="h-20 bg-slate-100 rounded-xl" />
               <div className="h-20 bg-slate-100 rounded-xl" />

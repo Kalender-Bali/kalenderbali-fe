@@ -1,4 +1,6 @@
+import { hasActivePremium } from '@/lib/subscription';
 import { apiClient } from '@/lib/axios';
+import { apiObject } from '@/lib/apiResponse';
 import { useAuthStore, type AuthUser } from '@/stores/useAuthStore';
 import type {
   LoginRequest,
@@ -24,6 +26,31 @@ import type {
   UserTier,
 } from '../types/auth.types';
 
+export class ProfileLoadError extends Error {
+  readonly code = 'PROFILE_UNAVAILABLE';
+
+  constructor(cause?: unknown) {
+    super('Profil akun belum berhasil dimuat. Silakan coba login kembali.', { cause });
+    this.name = 'ProfileLoadError';
+  }
+}
+
+// Identitas wajib berasal dari profil resmi; respons kosong/parsial tidak menjadi sesi.
+function assertUserProfile(value: unknown): asserts value is BackendUserProfile {
+  const profile = value as Partial<BackendUserProfile> | null | undefined;
+  const validId = typeof profile?.id === 'number'
+    ? Number.isSafeInteger(profile.id) && profile.id > 0
+    : typeof profile?.id === 'string' && /^[1-9]\d*$/.test(profile.id);
+
+  if (!validId
+    || typeof profile?.name !== 'string' || !profile.name.trim()
+    || typeof profile?.email !== 'string' || !profile.email.trim()
+    || typeof profile?.role !== 'string' || !profile.role.trim()
+    || typeof profile?.is_verified !== 'boolean') {
+    throw new ProfileLoadError();
+  }
+}
+
 /**
  * ==============================================================================
  * HELPER: MENGHITUNG TIER PENGGUNA UNTUK TAMPILAN ANTARMUKA (FRONTEND)
@@ -47,17 +74,7 @@ export function getUserTier(
     return 'Admin';
   }
 
-  if (isPremium) {
-    if (premiumExpiresAt) {
-      const expDate = new Date(premiumExpiresAt);
-      if (!isNaN(expDate.getTime()) && expDate <= new Date()) {
-        return 'Free'; // Masa berlaku langganan sudah kedaluwarsa
-      }
-    }
-    return 'Premium';
-  }
-
-  return 'Free';
+  return hasActivePremium({ isPremium, premiumExpiresAt }) ? 'Premium' : 'Free';
 }
 
 /**
@@ -71,9 +88,13 @@ export function normalizeUserProfile(
   profile: BackendUserProfile,
   subscription?: UserSubscriptionData | null
 ): AuthUser {
+  assertUserProfile(profile);
   // Evaluasi keaktifan premium dari pengecekan tabel store_purchases
-  const isPremium = Boolean(subscription?.is_premium ?? profile.is_premium);
   const premiumExpiresAt = subscription?.active_until ?? profile.premium_expires_at ?? null;
+  const isPremium = hasActivePremium({
+    isPremium: Boolean(subscription?.is_premium ?? profile.is_premium),
+    premiumExpiresAt,
+  });
 
   // Hitung tier tampilan antarmuka (Admin | Premium | Free)
   const tier = getUserTier(profile.role, isPremium, premiumExpiresAt);
@@ -83,7 +104,7 @@ export function normalizeUserProfile(
     name: profile.name,
     email: profile.email,
     phone: profile.phone || '',
-    role: profile.role || 'Member',
+    role: profile.role,
     tier,
     isVerified: profile.is_verified,
     avatar: profile.avatar || null,
@@ -115,31 +136,41 @@ export const authService = {
    * Endpoint: GET /api/v1/users/profile
    */
   async getProfile(customToken?: string): Promise<BackendUserProfile> {
-    const headers = customToken ? { Authorization: `Bearer ${customToken}` } : undefined;
-    const response = await apiClient.get<UserProfileResponse>('/users/profile', { headers });
-    return response.data.data;
+    try {
+      const headers = customToken ? { Authorization: `Bearer ${customToken}` } : undefined;
+      const response = await apiClient.get<UserProfileResponse>('/users/profile', { headers });
+      const profile = response.data?.data;
+      assertUserProfile(profile);
+      return profile;
+    } catch (error) {
+      throw error instanceof ProfileLoadError ? error : new ProfileLoadError(error);
+    }
   },
 
   /**
    * Mengambil status langganan aktif pengguna langsung dari tabel store_purchases
    * Endpoint: GET /api/v1/purchases/my-active-product
    */
-  async getMyActiveSubscription(customToken?: string): Promise<UserSubscriptionData | null> {
-    try {
-      const headers = customToken ? { Authorization: `Bearer ${customToken}` } : undefined;
-      const response = await apiClient.get<UserSubscriptionResponse>('/purchases/my-active-product', { headers });
-      return response.data?.data || null;
-    } catch {
-      return null;
-    }
+  async getMyActiveSubscription(customToken?: string): Promise<UserSubscriptionData> {
+    const headers = customToken ? { Authorization: `Bearer ${customToken}` } : undefined;
+    const response = await apiClient.get<UserSubscriptionResponse>('/purchases/my-active-product', { headers });
+    const subscription = apiObject<UserSubscriptionData>(response.data?.data);
+    if (typeof subscription.is_premium !== 'boolean') throw new Error('Respons status langganan tidak valid. Silakan coba lagi.');
+    return subscription;
   },
 
   /**
    * Helper Tingkat Tinggi: Mengonstruksi AuthUser lengkap dengan pengecekan store_purchases
    */
   async buildAuthUser(profile: BackendUserProfile, customToken?: string): Promise<AuthUser> {
-    const sub = await this.getMyActiveSubscription(customToken);
-    return normalizeUserProfile(profile, sub);
+    const officialUser = normalizeUserProfile(profile);
+    try {
+      const sub = await this.getMyActiveSubscription(customToken);
+      return { ...normalizeUserProfile(profile, sub), subscriptionUnavailable: false };
+    } catch {
+      // Login memakai profil resmi; gangguan langganan ditandai, bukan dianggap Free.
+      return { ...officialUser, subscriptionUnavailable: true };
+    }
   },
 
   /**
@@ -155,34 +186,10 @@ export const authService = {
     const loginResult = await this.login(payload);
     const token = loginResult.access_token;
 
-    // 2. Tarik data profil pengguna dan status langganan store_purchases secara paralel
-    let user: AuthUser;
-    try {
-      const [profileResult, subResult] = await Promise.allSettled([
-        this.getProfile(token),
-        this.getMyActiveSubscription(token),
-      ]);
-
-      if (profileResult.status === 'fulfilled') {
-        const sub = subResult.status === 'fulfilled' ? subResult.value : null;
-        user = normalizeUserProfile(profileResult.value, sub);
-      } else {
-        throw profileResult.reason;
-      }
-    } catch (profileErr) {
-      console.warn('Gagal memuat profil /users/profile, menggunakan fallback profil sesi:', profileErr);
-      const nickname = payload.email.split('@')[0];
-      user = {
-        id: '1',
-        name: nickname,
-        email: payload.email,
-        role: 'Member',
-        tier: 'Free',
-        username: nickname,
-        isVerified: true,
-        isPremium: false,
-      };
-    }
+    // 2. Profil wajib berhasil. Gangguan pemeriksaan langganan ditandai terpisah.
+    // Token belum disimpan ke store sehingga profil gagal tidak membuat sesi semu.
+    const profile = await this.getProfile(token);
+    const user = await this.buildAuthUser(profile, token);
 
     return {
       user,
@@ -200,13 +207,17 @@ export const authService = {
     if (!currentState.isAuthenticated || !currentState.user) {
       return null;
     }
+    const isCurrentSession = () => {
+      const latest = useAuthStore.getState();
+      return latest.isAuthenticated && latest.user?.id === currentState.user?.id && latest.token === currentState.token;
+    };
 
     try {
       const sub = await this.getMyActiveSubscription(currentState.token || undefined);
-      if (!sub) return currentState.user;
+      if (!isCurrentSession()) return useAuthStore.getState().user;
 
-      const isPremium = Boolean(sub.is_premium);
       const premiumExpiresAt = sub.active_until ?? null;
+      const isPremium = hasActivePremium({ isPremium: Boolean(sub.is_premium), premiumExpiresAt });
       const tier = getUserTier(currentState.user.role, isPremium, premiumExpiresAt);
 
       const updatedUser: AuthUser = {
@@ -214,12 +225,14 @@ export const authService = {
         isPremium,
         premiumExpiresAt,
         tier,
+        subscriptionUnavailable: false,
       };
 
       currentState.updateUser(updatedUser);
       return updatedUser;
-    } catch {
-      return currentState.user;
+    } catch (error) {
+      if (isCurrentSession()) currentState.updateUser({ subscriptionUnavailable: true });
+      throw error;
     }
   },
 

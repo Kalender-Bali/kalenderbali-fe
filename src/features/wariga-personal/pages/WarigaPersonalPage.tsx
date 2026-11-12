@@ -41,6 +41,7 @@ export default function WarigaPersonalPage() {
   const {
     // Parameter URL
     queryTglLahir,
+    calendarBirthDate,
     querySebelumJam6,
     queryBulan,
     queryTahun,
@@ -82,6 +83,8 @@ export default function WarigaPersonalPage() {
     closeDewasaModal,
     dewasaKelahiran,
     isDewasaLoading,
+    dewasaError,
+    refetchDewasa,
   } = useWarigaPersonal();
 
   // State untuk modal promosi upgrade Member/Premium
@@ -275,6 +278,7 @@ export default function WarigaPersonalPage() {
         isOpen={isWarigaModalOpen}
         onClose={closeWarigaModal}
         birthDate={queryTglLahir}
+        calendarBirthDate={calendarBirthDate}
         identitasKelahiran={data?.identitas_kelahiran}
       />
 
@@ -285,8 +289,11 @@ export default function WarigaPersonalPage() {
         isOpen={isDewasaModalOpen}
         onClose={closeDewasaModal}
         birthDate={queryTglLahir}
+        calendarBirthDate={calendarBirthDate}
         items={dewasaKelahiran}
         isLoading={isDewasaLoading}
+        error={dewasaError}
+        onRetry={() => refetchDewasa()}
       />
 
       {/* =================================================================== */}

@@ -1,3 +1,5 @@
+import type { DewasaDateStatus, DewasaMatchedReason } from '@/features/mengatur-dewasa/types/mengaturDewasa.types';
+
 /**
  * ============================================================================
  * KONTRAK TIPE DATA: ALA AYUNING DEWASA (PADEWASAN KALENDER BALI)
@@ -120,18 +122,25 @@ export interface CariByNamaResponse {
   total_hari: number;
 }
 
-/**
- * DewasaAyuTodayResponse merangkum rekomendasi hari baik hari ini untuk widget dashboard / ringkasan hero.
- */
+export interface DewasaActivityGuidance {
+  activity_id: string;
+  activity_name: string;
+  status: DewasaDateStatus;
+  matched_recommended: DewasaMatchedReason[];
+  matched_avoid: DewasaMatchedReason[];
+}
+
+/** Petunjuk harian berdasarkan aturan kegiatan, beserta anjuran dan pantangannya. */
 export interface DewasaAyuTodayResponse {
   /** Tanggal hari ini "YYYY-MM-DD" (WITA) */
   tanggal: string;
 
-  /** Label status kualitas hari ("BAIK", "NETRAL", "KURANG BAIK") */
+  /** Status ringkasan; penilaian spesifik tersedia di activity_guidance. */
   status_label: string;
 
   /** Narasi petunjuk padewasan hari ini */
   headline: string;
+  activity_guidance?: DewasaActivityGuidance[];
 
   /** 3 padewasan terbaik berwatak positif (ayu) hari ini */
   items: PadewasanItem[];

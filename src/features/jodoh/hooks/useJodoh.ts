@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { searchJodoh } from '../api/jodohApi';
 import type {
   JodohData,
@@ -88,7 +88,7 @@ export function useJodoh() {
     isError,
     error,
     refetch,
-  } = useQuery<JodohData, Error>({
+  } = useReadQuery<JodohData, Error>({
     queryKey: ['jodoh', queryNamaDiri, queryTglDiri, queryNamaPasangan, queryTglPasangan],
     queryFn: async () => {
       return await searchJodoh(queryPayload);
@@ -107,7 +107,7 @@ export function useJodoh() {
     refetchOnWindowFocus: false,
 
     // 4. Coba ulang 1 kali jika terjadi kegagalan jaringan sementara
-    retry: 1,
+
   });
 
   // -------------------------------------------------------------------------

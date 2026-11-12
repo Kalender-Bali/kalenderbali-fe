@@ -1,10 +1,11 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { X, Sparkles } from 'lucide-react';
 import { fetchKeteranganValueByName } from '../api/otonanApi';
 import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 
 /**
  * ============================================================================
@@ -73,7 +74,7 @@ export const WarigaExplanationModal: React.FC<WarigaExplanationModalProps> = ({
   // -------------------------------------------------------------------------
   // 2. QUERY PENJELASAN MAKNA ELEMEN DARI BACKEND GO
   // -------------------------------------------------------------------------
-  const { data: detail, isLoading } = useQuery({
+  const { data: detail, isLoading, error, isError, refetch } = useReadQuery({
     queryKey: ['keterangan', 'value', categoryCode, itemName],
     queryFn: () => fetchKeteranganValueByName(categoryCode, itemName),
     enabled: isOpen && Boolean(itemName),
@@ -156,7 +157,9 @@ export const WarigaExplanationModal: React.FC<WarigaExplanationModalProps> = ({
               Penjelasan:
             </span>
 
-            {isLoading ? (
+            {isError ? (
+              <QueryErrorState title="Gagal memuat penjelasan Wariga" error={error} onRetry={() => refetch()} />
+            ) : isLoading ? (
               <div className="space-y-2.5 animate-pulse py-2">
                 <div className="h-4 bg-slate-200 rounded w-full" />
                 <div className="h-4 bg-slate-200 rounded w-5/6" />

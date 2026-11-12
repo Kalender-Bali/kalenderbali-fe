@@ -18,7 +18,7 @@
  */
 
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import {
   fetchKeteranganTypes,
   fetchKeteranganTypeDetail,
@@ -46,13 +46,13 @@ import {
  * @returns Objek berisi daftar kategori gabungan (`categories`), status loading, dan error
  */
 export function useKeteranganTypes() {
-  const query = useQuery<KeteranganType[], Error>({
+  const query = useReadQuery<KeteranganType[], Error>({
     queryKey: ['keterangan', 'types'],
     queryFn: fetchKeteranganTypes,
     staleTime: Infinity, // Data referensi permanen tidak akan kedaluwarsa selama sesi aktif
     gcTime: 1000 * 60 * 60 * 24, // Bertahan di RAM browser hingga 24 jam
     refetchOnWindowFocus: false, // Hindari refetch berlebih saat berpindah tab browser
-    retry: 1, // Toleransi 1 kali percobaan ulang jika terjadi fluktuasi jaringan
+
   });
 
   // Gabungkan respons Backend Go dengan registri lengkap kategori
@@ -129,7 +129,7 @@ export function useKeteranganTypeDetail(typeCode: string | null) {
     return item ? !item.isCoreActive : false;
   }, [typeCode]);
 
-  const query = useQuery<KeteranganTypeDetail, Error>({
+  const query = useReadQuery<KeteranganTypeDetail, Error>({
     queryKey: ['keterangan', 'types', typeCode],
     queryFn: () => {
       if (!typeCode) {
@@ -142,7 +142,7 @@ export function useKeteranganTypeDetail(typeCode: string | null) {
     staleTime: Infinity,
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnWindowFocus: false,
-    retry: 1,
+
   });
 
   // Jika kategori berstatus pending di backend, sajikan objek detail kosong yang aman

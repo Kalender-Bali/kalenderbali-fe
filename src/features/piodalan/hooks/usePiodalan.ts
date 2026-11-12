@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import type {
   PuraBackendItem,
   MasterDropdownOption,
@@ -58,7 +58,7 @@ import { matchPurasForDay, normalizeCalendarString } from '@/features/kalender/u
  * berikutnya berjalan dalam 0 milidetik tanpa membebani server backend.
  */
 export function useAllPuras() {
-  return useQuery<PuraBackendItem[]>({
+  return useReadQuery<PuraBackendItem[]>({
     queryKey: ['piodalan', 'puras', 'all'],
     queryFn: () => fetchPuraList(),
     staleTime: 1000 * 60 * 60 * 24, // 24 jam di cache memori
@@ -76,7 +76,7 @@ export function useAllPuras() {
  * 'saptawara' (7), 'pancawara' (5), 'wuku' (30), atau 'sasih' (12).
  */
 export function useMasterDropdown(typeCode: 'saptawara' | 'pancawara' | 'wuku' | 'sasih') {
-  return useQuery<MasterDropdownOption[]>({
+  return useReadQuery<MasterDropdownOption[]>({
     queryKey: ['piodalan', 'master', typeCode],
     queryFn: () => fetchMasterDropdown(typeCode),
     staleTime: Infinity, // Data referensi budaya permanen
@@ -105,13 +105,13 @@ export function usePiodalanSearch(
   enabled: boolean = true
 ) {
   // Ambil data cache master seluruh 461 pura dari database resmi PostgreSQL
-  const { data: puras = [], isLoading: isPurasLoading } = useAllPuras();
+  const { data: puras = [], isLoading: isPurasLoading, error: purasError, refetch: refetchPuras } = useAllPuras();
 
   // Tahun target pencarian (default tahun berjalan)
   const targetYear = filter?.tahun ? Number(filter.tahun) : new Date().getFullYear();
 
   // Ambil data kalender 365 hari tahun target untuk mesin komputasi pencocokan hybrid deterministik
-  const { data: kalenderData = [], isLoading: isKalenderLoading } = useQuery({
+  const { data: kalenderData = [], isLoading: isKalenderLoading, error: kalenderError, refetch: refetchKalender } = useReadQuery({
     queryKey: ['kalender', targetYear],
     queryFn: () => fetchKalenderTahun(targetYear),
     staleTime: Infinity,
@@ -187,10 +187,9 @@ export function usePiodalanSearch(
   const {
     data: searchResult,
     isLoading: isSearchLoading,
-    isError: isSearchError,
     error: searchError,
     refetch,
-  } = useQuery<BackendPiodalanSearchResult | null>({
+  } = useReadQuery<BackendPiodalanSearchResult | null>({
     queryKey: ['piodalan', 'search', searchParams],
     queryFn: () => (searchParams ? searchPiodalan(searchParams) : null),
     enabled: Boolean(searchParams),
@@ -606,15 +605,17 @@ export function usePiodalanSearch(
     return { dayGroups: groups, scheduleList: flatItems };
   }, [searchResult, purasMap, enabled, filter, kalenderData, puras]);
 
+  const isLoading = isPurasLoading || isKalenderLoading || (Boolean(searchParams) && isSearchLoading);
   return {
     dayGroups,
     scheduleList,
     totalDays: dayGroups.length,
     totalCount: scheduleList.length,
-    isLoading: isPurasLoading || isKalenderLoading || (Boolean(searchParams) && isSearchLoading && dayGroups.length === 0),
-    isError: isSearchError && dayGroups.length === 0,
-    error: searchError,
-    refetch,
+    isLoading,
+    isError: !isLoading && Boolean(searchError || purasError || kalenderError) && dayGroups.length === 0,
+    partialError: !isLoading && dayGroups.length > 0 ? searchError || purasError || kalenderError : null,
+    error: isLoading ? null : searchError || purasError || kalenderError,
+    refetch: () => Promise.all([refetch(), refetchPuras(), ...(enabled && filter ? [refetchKalender()] : [])]),
   };
 }
 
@@ -654,7 +655,7 @@ export function useUpcomingPiodalan(scheduleList: PiodalanScheduleItem[]) {
  * Digunakan untuk mengisi Section 1 modal (Gambar 1 & 2).
  */
 export function useDayWariga(dateStr?: string | null) {
-  return useQuery({
+  return useReadQuery({
     queryKey: ['piodalan', 'wariga', 'day', dateStr],
     queryFn: () => (dateStr ? fetchDayWariga(dateStr) : null),
     enabled: Boolean(dateStr),
@@ -678,7 +679,7 @@ export function useDayWariga(dateStr?: string | null) {
  * atau array kosong [] jika data belum diinput.
  */
 export function usePuraCeremonies(puraId?: number | null, dateStr?: string) {
-  return useQuery<{
+  return useReadQuery<{
     records: PuraPiodalanRecord[];
     acaras: PiodalanAcaraItem[];
     hasContributedData: boolean;
@@ -732,7 +733,7 @@ export function usePuraCeremonies(puraId?: number | null, dateStr?: string) {
  * GET /api/v1/puras/:id
  */
 export function usePuraDetail(puraId?: number | null) {
-  return useQuery<PuraBackendItem | null>({
+  return useReadQuery<PuraBackendItem | null>({
     queryKey: ['piodalan', 'pura', 'detail', puraId],
     queryFn: () => (puraId ? fetchPuraDetail(puraId) : null),
     enabled: Boolean(puraId),
@@ -749,7 +750,7 @@ export function usePuraDetail(puraId?: number | null) {
  * useWarigaExplanation mengambil makna filosofis elemen wariga saat baris panah (→) diklik:
  */
 export function useWarigaExplanation(typeCode?: string, itemName?: string) {
-  return useQuery({
+  return useReadQuery({
     queryKey: ['piodalan', 'wariga', 'explanation', typeCode, itemName],
     queryFn: () =>
       typeCode && itemName ? fetchWarigaElementExplanation(typeCode, itemName) : null,

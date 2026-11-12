@@ -36,6 +36,9 @@ export const AlaAyuningPawukonCard: React.FC<AlaAyuningPawukonCardProps> = ({
   activeDate,
   pawukonInfo,
 }) => {
+  if (!pawukonInfo) {
+    return <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-600">Data Pawukon belum tersedia untuk tanggal ini.</div>;
+  }
   // Format tampilan tanggal besar
   const { day, month, year } = parseISODate(activeDate);
   const monthName = getIndoMonthName(month);

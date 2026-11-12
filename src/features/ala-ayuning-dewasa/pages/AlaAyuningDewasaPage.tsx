@@ -9,6 +9,7 @@ import { AlaAyuningDasarSection } from '../components/AlaAyuningDasarSection';
 import { AlaAyuningDateResultsCard } from '../components/AlaAyuningDateResultsCard';
 import { AlaAyuningDetailModal } from '../components/AlaAyuningDetailModal';
 import { AlaAyuningSkeleton } from '../components/AlaAyuningSkeleton';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import { getIndoMonthName, parseISODate } from '@/features/kalender/utils/calendarUtils';
 
 /**
@@ -63,14 +64,18 @@ export default function AlaAyuningDewasaPage() {
     // Data query harian (Mode Tanggal)
     padewasanList,
     pawukonInfo,
-    todaySummary,
+    daySummary,
 
     // Data query per nama (Mode Nama)
     masterPadewasan,
     isMasterLoading,
+    masterError,
+    refetchMaster,
     byNameResult,
 
     // Status loading & error
+    hasSearched,
+    hasResults,
     isLoading,
     isFetching,
     isError,
@@ -95,7 +100,7 @@ export default function AlaAyuningDewasaPage() {
   // BLOK 1: SINKRONISASI JUDUL TAB BROWSER (DYNAMIC DOCUMENT TITLE)
   // -------------------------------------------------------------------------
   useEffect(() => {
-    if (activeMode === 'date') {
+    if (activeMode === 'date' && hasSearched) {
       const { day, month, year } = parseISODate(activeDate);
       const monthName = getIndoMonthName(month);
       const wukuText = pawukonInfo?.wuku ? ` · Wuku ${pawukonInfo.wuku}` : '';
@@ -106,7 +111,7 @@ export default function AlaAyuningDewasaPage() {
     } else {
       document.title = 'Ala Ayuning Dewasa · Panduan Hari Baik & Buruk | Kalender Bali';
     }
-  }, [activeMode, activeDate, queryName, queryMonth, queryYear, pawukonInfo]);
+  }, [activeMode, activeDate, hasSearched, queryName, queryMonth, queryYear, pawukonInfo]);
 
   // Handler smooth-scroll ke bagian daftar padewasan aktif
   const handleScrollToDasar = () => {
@@ -125,6 +130,8 @@ export default function AlaAyuningDewasaPage() {
       {/* BLOK 2: HEADER BREADCRUMB & JUDUL UTAMA                             */}
       {/* ===================================================================== */}
       <AlaAyuningHero />
+
+      {masterError && <QueryErrorState title="Gagal memuat katalog padewasan" error={masterError} onRetry={() => refetchMaster()} />}
 
       {/* ===================================================================== */}
       {/* BLOK 3: FORM PENCARIAN 2-MODE (BERDASARKAN TANGGAL & CARI NAMA)       */}
@@ -146,12 +153,12 @@ export default function AlaAyuningDewasaPage() {
       {/* ===================================================================== */}
       {/* BLOK 4: KONDISI PENANGANAN: SKELETON LOADING STATE (CLS = 0)          */}
       {/* ===================================================================== */}
-      {isLoading && <AlaAyuningSkeleton />}
+      {hasSearched && isLoading && <AlaAyuningSkeleton />}
 
       {/* ===================================================================== */}
       {/* BLOK 5: KONDISI PENANGANAN: ERROR STATE TERSTRUKTUR                   */}
       {/* ===================================================================== */}
-      {isError && !isLoading && (
+      {hasSearched && isError && !isLoading && (
         <div className="bg-white rounded-2xl border border-rose-200/90 p-6 sm:p-8 shadow-xs text-center max-w-xl mx-auto space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
             <AlertCircle className="w-6 h-6" />
@@ -178,7 +185,7 @@ export default function AlaAyuningDewasaPage() {
       {/* ===================================================================== */}
       {/* BLOK 6: AREA PENYAJIAN HASIL (READY STATE DARI BACKEND GO)            */}
       {/* ===================================================================== */}
-      {!isLoading && !isError && (
+      {hasResults && !isLoading && !isError && (
         <>
           {/* ----------------------------------------------------------------- */}
           {/* SUB-BLOK A: HASIL MODE 1 - BERDASARKAN TANGGAL                    */}
@@ -191,8 +198,9 @@ export default function AlaAyuningDewasaPage() {
                 <div className="lg:col-span-7">
                   <AlaAyuningSummaryCard
                     formattedDate={formattedActiveDate}
-                    statusLabel={todaySummary?.status_label || 'BAIK'}
-                    headline={todaySummary?.headline}
+                    statusLabel={daySummary?.status_label || 'PER KEGIATAN'}
+                    headline={daySummary?.headline}
+                    activityGuidance={daySummary?.activity_guidance}
                     padewasanList={padewasanList}
                     onScrollToDasar={handleScrollToDasar}
                   />
@@ -220,39 +228,12 @@ export default function AlaAyuningDewasaPage() {
           {/* ----------------------------------------------------------------- */}
           {/* SUB-BLOK B: HASIL MODE 2 - CARI NAMA PADEWASAN (PARITAS LARAVEL)  */}
           {/* ----------------------------------------------------------------- */}
-          {activeMode === 'name' && (
+          {activeMode === 'name' && byNameResult && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              {byNameResult ? (
-                /* Hasil pencarian nama — tampil setelah pengguna menekan tombol Cari */
-                <AlaAyuningDateResultsCard
-                  result={byNameResult}
-                  onSelectDate={(date) => {
-                    // Ketika tanggal jatuh diklik, alihkan pengguna ke pemeriksaan tanggal penuh
-                    setSearchMode('date');
-                    handleSelectDate(date);
-                  }}
-                />
-              ) : (
-                /* Default sebelum pencarian: tampilkan hasil tanggal hari ini (sama dengan mode date)
-                   agar konten tidak kosong saat pengguna baru beralih ke tab Cari Nama Padewasan */
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                  <div className="lg:col-span-7">
-                    <AlaAyuningSummaryCard
-                      formattedDate={formattedActiveDate}
-                      statusLabel={todaySummary?.status_label || 'BAIK'}
-                      headline={todaySummary?.headline}
-                      padewasanList={padewasanList}
-                      onScrollToDasar={handleScrollToDasar}
-                    />
-                  </div>
-                  <div className="lg:col-span-5">
-                    <AlaAyuningPawukonCard
-                      activeDate={activeDate}
-                      pawukonInfo={pawukonInfo}
-                    />
-                  </div>
-                </div>
-              )}
+              <AlaAyuningDateResultsCard
+                result={byNameResult}
+                onSelectDate={handleSelectDate}
+              />
             </div>
           )}
         </>

@@ -1,4 +1,6 @@
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import React, { useEffect, useCallback } from 'react';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import { createPortal } from 'react-dom';
 import { X, History, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import type { PurchaseHistoryItem } from '../types/premium.types';
@@ -13,6 +15,8 @@ interface PremiumHistoryModalProps {
   onClose: () => void;
   purchases: PurchaseHistoryItem[];
   isLoading: boolean;
+  error?: unknown;
+  onRetry?: () => void;
 }
 
 /**
@@ -31,6 +35,8 @@ export const PremiumHistoryModal: React.FC<PremiumHistoryModalProps> = ({
   onClose,
   purchases,
   isLoading,
+  error,
+  onRetry,
 }) => {
   // Listener tombol keyboard Escape untuk menutup modal
   const handleKeyDown = useCallback(
@@ -116,11 +122,10 @@ export const PremiumHistoryModal: React.FC<PremiumHistoryModalProps> = ({
 
         {/* Isi Modal: Daftar Transaksi */}
         <div className="overflow-y-auto p-5 sm:p-6 space-y-3 flex-1">
-          {isLoading ? (
-            <div className="py-12 text-center space-y-2">
-              <div className="w-6 h-6 border-2 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-xs text-slate-500 font-medium">Memuat riwayat transaksi...</p>
-            </div>
+          {error && onRetry ? (
+            <QueryErrorState title="Gagal memuat riwayat transaksi" error={error} onRetry={onRetry} />
+          ) : isLoading ? (
+            <DataSkeleton label="Memuat riwayat transaksi..." className="h-48" />
           ) : purchases.length === 0 ? (
             <div className="py-12 text-center space-y-2">
               <History size={32} className="text-slate-300 dark:text-slate-600 mx-auto" />

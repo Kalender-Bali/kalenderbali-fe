@@ -1,3 +1,4 @@
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import { useMemo, useState, useEffect } from 'react';
 import type { PuraBackendItem } from '../types/kelolaPura.types';
 import {
@@ -12,6 +13,7 @@ import { KelolaPuraList } from '../components/KelolaPuraList';
 import { PuraDetailModal } from '../components/PuraDetailModal';
 import { PuraPiodalanView } from '../components/PuraPiodalanView';
 import { PuraKeuanganView } from '../components/PuraKeuanganView';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 
 /**
  * ==============================================================================
@@ -56,10 +58,12 @@ export default function KelolaPuraPage() {
   // ============================================================================
   // 3. PENGAMBILAN DATA MASTER PURA (CACHE QUERY 461 PURA)
   // ============================================================================
-  const { data: puras = [], isLoading: isLoadingPuras } = usePurasData();
+  const purasQuery = usePurasData();
+  const { data: puras = [], isLoading: isLoadingPuras } = purasQuery;
 
   // Ambil data detail pura spesifik jika ada selectedPuraId di URL (fallback query)
-  const { data: fallbackPuraDetail } = usePuraDetailData(selectedPuraId);
+  const detailQuery = usePuraDetailData(selectedPuraId);
+  const fallbackPuraDetail = detailQuery.data;
 
   // Cari objek data pura terpilih dari memori RAM (instan) atau dari query detail
   const activePura: PuraBackendItem | null = useMemo(() => {
@@ -163,6 +167,16 @@ export default function KelolaPuraPage() {
   // ============================================================================
   // 7. RENDER SUB-HALAMAN: JADWAL PIODALAN & ACARA (?view=piodalan&pura_id=...)
   // ============================================================================
+  if (selectedPuraId && viewMode !== 'list' && detailQuery.isError) {
+    return <QueryErrorState title="Gagal memuat profil pura" error={detailQuery.error} onRetry={() => detailQuery.refetch()} />;
+  }
+  if (selectedPuraId && viewMode !== 'list' && detailQuery.isLoading) {
+    return <DataSkeleton label="Memuat profil pura..." className="h-72" />;
+  }
+  if (viewMode === 'list' && purasQuery.isError) {
+    return <QueryErrorState title="Gagal memuat daftar pura" error={purasQuery.error} onRetry={() => purasQuery.refetch()} />;
+  }
+
   if (viewMode === 'piodalan' && selectedPuraId) {
     return (
       <div className="space-y-6">
@@ -213,7 +227,7 @@ export default function KelolaPuraPage() {
     <div className="space-y-6">
       {/* 1. Header Banner Utama dengan Estetika Tirta Bali & Metrik */}
       <KelolaPuraHero
-        totalPura={puras.length || 461}
+        totalPura={puras.length}
         totalKabupaten={9}
       />
 
@@ -223,7 +237,7 @@ export default function KelolaPuraPage() {
         selectedType={selectedType}
         selectedCity={selectedCity}
         totalFiltered={filteredPuras.length}
-        totalAll={puras.length || 461}
+        totalAll={puras.length}
         onSearchChange={(q) => setFilters({ q })}
         onTypeChange={(type) => setFilters({ type })}
         onCityChange={(city) => setFilters({ city })}

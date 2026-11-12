@@ -31,7 +31,6 @@ interface CalendarGridProps {
   onNextMonth: () => void;
   onResetToday: () => void;
   canResetToday?: boolean;
-  isLoading?: boolean;
 }
 
 const HARI_SINGKAT = ['MIN', 'SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB'];

@@ -6,6 +6,7 @@ import { PremiumPlanCards } from '../components/PremiumPlanCards';
 import { PremiumBenefitsGrid } from '../components/PremiumBenefitsGrid';
 import { PremiumHistoryModal } from '../components/PremiumHistoryModal';
 import { PremiumSkeleton } from '../components/PremiumSkeleton';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 
 /**
  * ==============================================================================
@@ -27,8 +28,13 @@ export default function PremiumPage() {
     productsError,
     refetchProducts,
     activeSubscription,
+    isLoadingActiveSubscription,
+    activeSubscriptionError,
+    refetchActiveSubscription,
     purchasesHistory,
     isLoadingHistory,
+    historyError,
+    refetchHistory,
     processingProductId,
     handleCheckout,
     isHistoryModalOpen,
@@ -40,6 +46,17 @@ export default function PremiumPage() {
   useEffect(() => {
     document.title = 'Member Premium & Langganan · Akses Fitur Penuh | Kalender Bali';
   }, []);
+
+  const historyModal = (
+    <PremiumHistoryModal
+      isOpen={isHistoryModalOpen}
+      onClose={() => setIsHistoryModalOpen(false)}
+      purchases={purchasesHistory}
+      isLoading={isLoadingHistory}
+      error={historyError}
+      onRetry={() => refetchHistory()}
+    />
+  );
 
   // Kondisi 1: Sedang memuat data katalog paket (Skeleton presisi, CLS = 0)
   if (isLoadingProducts) {
@@ -53,8 +70,11 @@ export default function PremiumPage() {
         <PremiumHero
           user={user}
           activeSubscription={activeSubscription}
+          isSubscriptionUnavailable={Boolean(activeSubscriptionError) || isLoadingActiveSubscription}
           onOpenHistory={() => setIsHistoryModalOpen(true)}
         />
+        {activeSubscriptionError && <QueryErrorState title="Status langganan belum dapat diperiksa" error={activeSubscriptionError} onRetry={() => refetchActiveSubscription()} />}
+        {historyModal}
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/60 p-8 text-center max-w-md mx-auto space-y-4 my-8 shadow-xs">
           <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
@@ -92,10 +112,12 @@ export default function PremiumPage() {
       <PremiumHero
         user={user}
         activeSubscription={activeSubscription}
+        isSubscriptionUnavailable={Boolean(activeSubscriptionError) || isLoadingActiveSubscription}
         onOpenHistory={() => setIsHistoryModalOpen(true)}
       />
 
       {/* 2. Kartu Pilihan Paket (Bulanan & Tahunan) */}
+      {activeSubscriptionError && <QueryErrorState title="Status langganan belum dapat diperiksa" error={activeSubscriptionError} onRetry={() => refetchActiveSubscription()} />}
       <PremiumPlanCards
         products={products}
         processingProductId={processingProductId}
@@ -106,12 +128,7 @@ export default function PremiumPage() {
       <PremiumBenefitsGrid />
 
       {/* 4. Modal Pop-up Riwayat Transaksi */}
-      <PremiumHistoryModal
-        isOpen={isHistoryModalOpen}
-        onClose={() => setIsHistoryModalOpen(false)}
-        purchases={purchasesHistory}
-        isLoading={isLoadingHistory}
-      />
+      {historyModal}
     </div>
   );
 }

@@ -55,7 +55,13 @@ export default function DashboardPage() {
     handleNextMonth,
     upcomingHariRaya,
     dewasaAyu,
+    isDewasaLoading,
+    dewasaError,
+    refetchDewasa,
     piodalan,
+    piodalanError,
+    refetchPiodalan,
+    isPiodalanLoading,
     isLoading,
     isError,
     error,
@@ -192,12 +198,12 @@ export default function DashboardPage() {
       >
         {/* Kolom Kiri: Dewasa Ayu Hari Ini (3 Tag Teratas) */}
         <div>
-          <DashboardDewasaAyu data={dewasaAyu} />
+          <DashboardDewasaAyu data={dewasaAyu} isLoading={isDewasaLoading} error={dewasaError} onRetry={() => refetchDewasa()} />
         </div>
 
         {/* Kolom Kanan: Piodalan Terdekat (3 Pura Teratas) */}
         <div>
-          <DashboardPiodalan data={piodalan} />
+          <DashboardPiodalan data={piodalan} error={piodalanError} onRetry={() => { void refetchPiodalan(); }} isLoading={isPiodalanLoading || isLoading} />
         </div>
       </section>
     </motion.div>

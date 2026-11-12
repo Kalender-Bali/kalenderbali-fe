@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/axios';
+import { apiArray, apiObject } from '@/lib/apiResponse';
 import type {
   PuraBackendItem,
   PuraFilterParams,
@@ -23,7 +24,7 @@ import type {
  * Menerapkan prinsip:
  * 1. 100% Real API: Mengonsumsi langsung endpoint resmi backend Go tanpa data palsu.
  * 2. Token JWT Otomatis: apiClient otomatis melampirkan header Authorization.
- * 3. Graceful Error Handling: Mengembalikan array kosong atau null jika terjadi error.
+ * 3. Kegagalan diteruskan ke query; hasil kosong hanya berasal dari respons sukses.
  * ==============================================================================
  */
 
@@ -37,20 +38,15 @@ import type {
  * Mendukung filter parameter nama (q), tipe pura (type), dan kabupaten (city).
  */
 export async function fetchPuraList(params?: PuraFilterParams): Promise<PuraBackendItem[]> {
-  try {
-    const queryParams: Record<string, string> = {};
-    if (params?.q?.trim()) queryParams.q = params.q.trim();
-    if (params?.type && params.type !== 'Semua') queryParams.type = params.type;
-    if (params?.city && params.city !== 'Semua') queryParams.city = params.city;
-    if (params?.province) queryParams.province = params.province;
+  const queryParams: Record<string, string> = {};
+  if (params?.q?.trim()) queryParams.q = params.q.trim();
+  if (params?.type && params.type !== 'Semua') queryParams.type = params.type;
+  if (params?.city && params.city !== 'Semua') queryParams.city = params.city;
+  if (params?.province) queryParams.province = params.province;
 
-    const response = await apiClient.get('/puras', { params: queryParams });
-    const items = response.data?.data;
-    return Array.isArray(items) ? items : [];
-  } catch (error) {
-    console.error('Gagal mengambil daftar pura dari backend:', error);
-    return [];
-  }
+  const response = await apiClient.get('/puras', { params: queryParams });
+  const items = response.data?.data;
+  return apiArray<PuraBackendItem>(items);
 }
 
 /**
@@ -58,13 +54,8 @@ export async function fetchPuraList(params?: PuraFilterParams): Promise<PuraBack
  * GET /api/v1/puras/:id
  */
 export async function fetchPuraDetail(id: number | string): Promise<PuraBackendItem | null> {
-  try {
-    const response = await apiClient.get(`/puras/${id}`);
-    return response.data?.data || null;
-  } catch (error) {
-    console.error(`Gagal mengambil detail pura ID ${id}:`, error);
-    return null;
-  }
+  const response = await apiClient.get(`/puras/${id}`);
+  return apiObject<PuraBackendItem>(response.data?.data);
 }
 
 // ==============================================================================
@@ -76,23 +67,17 @@ export async function fetchPuraDetail(id: number | string): Promise<PuraBackendI
  * GET /api/v1/puras/:id/piodalans
  */
 export async function fetchPuraPiodalans(puraId: number | string): Promise<PuraPiodalanRecord[]> {
-  try {
-    const response = await apiClient.get(`/puras/${puraId}/piodalans`);
-    const data = response.data?.data;
-    if (!Array.isArray(data)) return [];
-    return data.map((item: Record<string, unknown>) => ({
-      ...item,
-      ceremony_date: String(item.ceremony_date || item.date || ''),
-      date: String(item.date || item.ceremony_date || ''),
-      ceremony_level_name: String(item.ceremony_level_name || item.level || ''),
-      level: String(item.level || item.ceremony_level_name || ''),
-      ceremony_level_id: (item.ceremony_level_id ?? item.level_id ?? null) as number | null,
-      level_id: (item.level_id ?? item.ceremony_level_id ?? null) as number | null,
-    })) as PuraPiodalanRecord[];
-  } catch (error) {
-    console.error(`Gagal mengambil piodalan pura ID ${puraId}:`, error);
-    return [];
-  }
+  const response = await apiClient.get(`/puras/${puraId}/piodalans`);
+  const data = apiArray<Record<string, unknown>>(response.data?.data);
+  return data.map((item: Record<string, unknown>) => ({
+    ...item,
+    ceremony_date: String(item.ceremony_date || item.date || ''),
+    date: String(item.date || item.ceremony_date || ''),
+    ceremony_level_name: String(item.ceremony_level_name || item.level || ''),
+    level: String(item.level || item.ceremony_level_name || ''),
+    ceremony_level_id: (item.ceremony_level_id ?? item.level_id ?? null) as number | null,
+    level_id: (item.level_id ?? item.ceremony_level_id ?? null) as number | null,
+  })) as PuraPiodalanRecord[];
 }
 
 /**
@@ -104,23 +89,18 @@ export async function fetchPuraPiodalanByDate(
   puraId: number | string,
   dateStr: string
 ): Promise<PuraPiodalanRecord | null> {
-  try {
-    const response = await apiClient.get(`/puras/${puraId}/piodalans/${dateStr}`);
-    const item = response.data?.data;
-    if (!item) return null;
-    return {
-      ...item,
-      ceremony_date: String(item.ceremony_date || item.date || ''),
-      date: String(item.date || item.ceremony_date || ''),
-      ceremony_level_name: String(item.ceremony_level_name || item.level || ''),
-      level: String(item.level || item.ceremony_level_name || ''),
-      ceremony_level_id: (item.ceremony_level_id ?? item.level_id ?? null) as number | null,
-      level_id: (item.level_id ?? item.ceremony_level_id ?? null) as number | null,
-    } as PuraPiodalanRecord;
-  } catch (error) {
-    console.error(`Gagal mengambil piodalan pura ID ${puraId} pada tanggal ${dateStr}:`, error);
-    return null;
-  }
+  const response = await apiClient.get(`/puras/${puraId}/piodalans/${dateStr}`);
+  const item = response.data?.data;
+  if (!item) return null;
+  return {
+    ...item,
+    ceremony_date: String(item.ceremony_date || item.date || ''),
+    date: String(item.date || item.ceremony_date || ''),
+    ceremony_level_name: String(item.ceremony_level_name || item.level || ''),
+    level: String(item.level || item.ceremony_level_name || ''),
+    ceremony_level_id: (item.ceremony_level_id ?? item.level_id ?? null) as number | null,
+    level_id: (item.level_id ?? item.ceremony_level_id ?? null) as number | null,
+  } as PuraPiodalanRecord;
 }
 
 /**
@@ -128,21 +108,15 @@ export async function fetchPuraPiodalanByDate(
  * GET /api/v1/puras/:id/acaras
  */
 export async function fetchPuraAcaras(puraId: number | string): Promise<PuraAcaraItem[]> {
-  try {
-    const response = await apiClient.get(`/puras/${puraId}/acaras`);
-    const data = response.data?.data;
-    if (!Array.isArray(data)) return [];
-    return data.map((item: Record<string, unknown>) => ({
-      ...item,
-      ceremony_level_name: String(item.ceremony_level_name || item.level || ''),
-      level: String(item.level || item.ceremony_level_name || ''),
-      ceremony_level_id: (item.ceremony_level_id ?? item.level_id ?? null) as number | null,
-      level_id: (item.level_id ?? item.ceremony_level_id ?? null) as number | null,
-    })) as PuraAcaraItem[];
-  } catch (error) {
-    console.error(`Gagal mengambil seluruh acara pura ID ${puraId}:`, error);
-    return [];
-  }
+  const response = await apiClient.get(`/puras/${puraId}/acaras`);
+  const data = apiArray<Record<string, unknown>>(response.data?.data);
+  return data.map((item: Record<string, unknown>) => ({
+    ...item,
+    ceremony_level_name: String(item.ceremony_level_name || item.level || ''),
+    level: String(item.level || item.ceremony_level_name || ''),
+    ceremony_level_id: (item.ceremony_level_id ?? item.level_id ?? null) as number | null,
+    level_id: (item.level_id ?? item.ceremony_level_id ?? null) as number | null,
+  })) as PuraAcaraItem[];
 }
 
 /**
@@ -150,21 +124,15 @@ export async function fetchPuraAcaras(puraId: number | string): Promise<PuraAcar
  * GET /api/v1/piodalans/:id/acaras
  */
 export async function fetchPiodalanAcaras(piodalanId: number | string): Promise<PuraAcaraItem[]> {
-  try {
-    const response = await apiClient.get(`/piodalans/${piodalanId}/acaras`);
-    const data = response.data?.data;
-    if (!Array.isArray(data)) return [];
-    return data.map((item: Record<string, unknown>) => ({
-      ...item,
-      ceremony_level_name: String(item.ceremony_level_name || item.level || ''),
-      level: String(item.level || item.ceremony_level_name || ''),
-      ceremony_level_id: (item.ceremony_level_id ?? item.level_id ?? null) as number | null,
-      level_id: (item.level_id ?? item.ceremony_level_id ?? null) as number | null,
-    })) as PuraAcaraItem[];
-  } catch (error) {
-    console.error(`Gagal mengambil tahapan acara piodalan ID ${piodalanId}:`, error);
-    return [];
-  }
+  const response = await apiClient.get(`/piodalans/${piodalanId}/acaras`);
+  const data = apiArray<Record<string, unknown>>(response.data?.data);
+  return data.map((item: Record<string, unknown>) => ({
+    ...item,
+    ceremony_level_name: String(item.ceremony_level_name || item.level || ''),
+    level: String(item.level || item.ceremony_level_name || ''),
+    ceremony_level_id: (item.ceremony_level_id ?? item.level_id ?? null) as number | null,
+    level_id: (item.level_id ?? item.ceremony_level_id ?? null) as number | null,
+  })) as PuraAcaraItem[];
 }
 
 /**
@@ -226,14 +194,9 @@ export async function deletePiodalanAcara(acaraId: number | string): Promise<boo
  * GET /api/v1/finance/categories
  */
 export async function fetchFinanceCategories(): Promise<PuraFinanceCategory[]> {
-  try {
-    const response = await apiClient.get('/finance/categories');
-    const data = response.data?.data;
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error('Gagal mengambil kategori keuangan:', error);
-    return [];
-  }
+  const response = await apiClient.get('/finance/categories');
+  const data = response.data?.data;
+  return apiArray<PuraFinanceCategory>(data);
 }
 
 /**
@@ -247,19 +210,14 @@ export async function fetchPuraFinance(
   categoryId?: number | string,
   entryType?: string
 ): Promise<PuraFinanceEntry[]> {
-  try {
-    const params: Record<string, string | number> = {};
-    if (year && year !== 'Semua') params.year = year;
-    if (categoryId && categoryId !== 'Semua') params.category_id = categoryId;
-    if (entryType && entryType !== 'Semua') params.entry_type = entryType;
+  const params: Record<string, string | number> = {};
+  if (year && year !== 'Semua') params.year = year;
+  if (categoryId && categoryId !== 'Semua') params.category_id = categoryId;
+  if (entryType && entryType !== 'Semua') params.entry_type = entryType;
 
-    const response = await apiClient.get(`/puras/${puraId}/finance`, { params });
-    const data = response.data?.data;
-    return Array.isArray(data) ? data : [];
-  } catch (error) {
-    console.error(`Gagal mengambil riwayat kas pura ID ${puraId}:`, error);
-    return [];
-  }
+  const response = await apiClient.get(`/puras/${puraId}/finance`, { params });
+  const data = response.data?.data;
+  return apiArray<PuraFinanceEntry>(data);
 }
 
 /**
@@ -271,17 +229,16 @@ export async function fetchPuraFinanceSummary(
   year?: number | string,
   categoryId?: number | string
 ): Promise<PuraFinanceSummary | null> {
-  try {
-    const params: Record<string, string | number> = {};
-    if (year && year !== 'Semua') params.year = year;
-    if (categoryId && categoryId !== 'Semua') params.category_id = categoryId;
+  const params: Record<string, string | number> = {};
+  if (year && year !== 'Semua') params.year = year;
+  if (categoryId && categoryId !== 'Semua') params.category_id = categoryId;
 
-    const response = await apiClient.get(`/puras/${puraId}/finance/summary`, { params });
-    return response.data?.data || null;
-  } catch (error) {
-    console.error(`Gagal mengambil ringkasan kas pura ID ${puraId}:`, error);
-    return null;
+  const response = await apiClient.get(`/puras/${puraId}/finance/summary`, { params });
+  const summary = apiObject<PuraFinanceSummary>(response.data?.data);
+  if (![summary.total_debit, summary.total_kredit, summary.saldo].every(Number.isFinite)) {
+    throw new Error('Ringkasan kas dari server tidak lengkap. Silakan coba lagi.');
   }
+  return summary;
 }
 
 // ==============================================================================

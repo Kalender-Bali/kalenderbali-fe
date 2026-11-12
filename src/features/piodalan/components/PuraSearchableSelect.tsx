@@ -1,3 +1,4 @@
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, ChevronDown, X, Landmark, Check } from 'lucide-react';
 import { useAllPuras } from '../hooks/usePiodalan';
@@ -41,7 +42,7 @@ export const PuraSearchableSelect: React.FC<PuraSearchableSelectProps> = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Ambil daftar master 461 pura dari cache backend Go
-  const { data: purasList = [] } = useAllPuras();
+  const { data: purasList = [], isError, error, refetch, isLoading } = useAllPuras();
 
   // Hanya tampilkan pura yang memiliki penanggalan pasti (Pawukon lengkap atau Sasih)
   // Menghindari penyajian data tidak valid/palsu kepada pengguna
@@ -128,6 +129,9 @@ export const PuraSearchableSelect: React.FC<PuraSearchableSelectProps> = ({
   const hasExactMatch = filteredPuras.some(
     (p) => p.name.toLowerCase() === searchTerm.trim().toLowerCase()
   );
+
+  if (isError) return <QueryErrorState title="Gagal memuat pilihan pura" error={error} onRetry={() => { void refetch(); }} />;
+  if (isLoading) return <div role="status" className="h-11 animate-pulse bg-slate-100 rounded-xl"><span className="sr-only">Memuat pilihan pura...</span></div>;
 
   return (
     <div ref={containerRef} className="relative w-full">

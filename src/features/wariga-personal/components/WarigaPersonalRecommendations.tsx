@@ -8,8 +8,8 @@ import { formatFullIndoDate } from '@/features/kalender/utils/calendarUtils';
  * KOMPONEN: WarigaPersonalRecommendations
  * ============================================================================
  * Menampilkan panel rekomendasi otomatis tanggal terbaik (Guru & Ratu):
- *  1. Jika Member/Admin: Menyajikan daftar kartu tanggal emas dengan anjuran kegiatan.
- *  2. Jika Guest (isLimited = true): Menampilkan kartu ajakan upgrade elegan
+ *  1. Jika langganan aktif/Admin: Menyajikan daftar kartu tanggal emas dengan anjuran kegiatan.
+ *  2. Jika akses premium belum aktif (isLimited = true): Menampilkan kartu ajakan upgrade elegan
  *     (Value Gating - Opsi 1) yang terhubung ke PremiumUpgradeModal.
  *
  * Mengikuti Panduan AGENTS.md:
@@ -38,7 +38,7 @@ export const WarigaPersonalRecommendations: React.FC<
   // -------------------------------------------------------------------------
   // KASUS A: PENGGUNA GUEST (TEASER UPGRADE EKSKLUSIF)
   // -------------------------------------------------------------------------
-  if (isLimited || recommendations.length === 0) {
+  if (isLimited) {
     return (
       <div className="bg-gradient-to-r from-amber-50/70 via-teal-50/40 to-slate-50 rounded-2xl border border-amber-200/70 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5 max-w-2xl">
@@ -51,12 +51,12 @@ export const WarigaPersonalRecommendations: React.FC<
                 Rekomendasi Otomatis Hari Terbaik
               </h3>
               <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
-                Khusus Member
+                Khusus Premium
               </span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
               {upgradeMessage ||
-                'Tingkatkan akun ke Member untuk membuka 3 rekomendasi tanggal emas terbaik secara otomatis beserta rincian dauh ayu (jam baik) bulan ini.'}
+                'Aktifkan langganan Premium untuk membuka rekomendasi tanggal terbaik bulan ini.'}
             </p>
           </div>
         </div>
@@ -69,6 +69,17 @@ export const WarigaPersonalRecommendations: React.FC<
           <Sparkles className="w-4 h-4 text-white" />
           <span>Buka Rekomendasi</span>
         </button>
+      </div>
+    );
+  }
+
+  if (recommendations.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs">
+        <h3 className="text-base font-extrabold text-[#0f172a]">Rekomendasi Hari Terbaik</h3>
+        <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+          Tidak ada rekomendasi tanggal terbaik pada periode ini. Akses rekomendasi Anda tetap terbuka.
+        </p>
       </div>
     );
   }

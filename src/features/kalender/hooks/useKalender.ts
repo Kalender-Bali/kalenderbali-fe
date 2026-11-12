@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useReadQuery } from '@/lib/useReadQuery';
 import { fetchKalenderTahun } from '../api/kalenderApi';
 import type { KalenderHarian, PiodalanItem, PiodalanTerdekatItem } from '../types/kalender.types';
 import { searchPiodalan } from '@/features/piodalan/api/piodalanApi';
@@ -37,7 +38,7 @@ export function useKalenderTahun(year: number, activeMonth?: number, options?: {
     isError,
     error,
     refetch,
-  } = useQuery({
+  } = useReadQuery({
     queryKey: ['kalender', year],
     queryFn: () => fetchKalenderTahun(year),
     enabled: options?.enabled ?? true,
@@ -48,7 +49,7 @@ export function useKalenderTahun(year: number, activeMonth?: number, options?: {
     // Jangan fetch ulang saat pengguna bolak-balik tab browser
     refetchOnWindowFocus: false,
     // Coba ulang 1x jika ada kegagalan jaringan
-    retry: 1,
+
   });
 
   // -------------------------------------------------------------------------
@@ -157,7 +158,7 @@ export function useDayPiodalan(dateStr?: string, dayData?: KalenderHarian) {
     };
   }, [dayData, purasList]);
 
-  return useQuery<{
+  return useReadQuery<{
     items: PiodalanItem[];
     totalCount: number;
   }>({
@@ -165,32 +166,28 @@ export function useDayPiodalan(dateStr?: string, dayData?: KalenderHarian) {
     queryFn: async () => {
       if (!dateStr) return { items: [], totalCount: 0 };
 
-      try {
-        const res = await searchPiodalan({
-          mode: 'rentang',
-          start_date: dateStr,
-          end_date: dateStr,
-        });
+      const res = await searchPiodalan({
+        mode: 'rentang',
+        start_date: dateStr,
+        end_date: dateStr,
+      });
 
-        if (res && Array.isArray(res.schedules) && res.schedules.length > 0) {
-          const daySched = res.schedules[0];
-          const puras = Array.isArray(daySched.puras) ? daySched.puras : [];
-          if (puras.length > 0) {
-            const items: PiodalanItem[] = puras.map((p, idx) => ({
-              id: `pio-${p.id || idx}`,
-              puraName: p.nama,
-              location: p.kabupaten || p.alamat || 'Bali',
-              distance: p.tipe || 'Kahyangan Jagat',
-              accentColor: idx % 2 === 0 ? 'teal' : 'amber',
-            }));
-            return { items, totalCount: items.length };
-          }
+      if (res && Array.isArray(res.schedules) && res.schedules.length > 0) {
+        const daySched = res.schedules[0];
+        const puras = Array.isArray(daySched.puras) ? daySched.puras : [];
+        if (puras.length > 0) {
+          const items: PiodalanItem[] = puras.map((p, idx) => ({
+            id: `pio-${p.id || idx}`,
+            puraName: p.nama,
+            location: p.kabupaten || p.alamat || 'Bali',
+            distance: p.tipe || 'Kahyangan Jagat',
+            accentColor: idx % 2 === 0 ? 'teal' : 'amber',
+          }));
+          return { items, totalCount: items.length };
         }
-      } catch (err) {
-        console.warn('Backend piodalan rentang gagal, menggunakan kalkulasi memori:', err);
       }
 
-      // Jika backend gagal atau kosong, fallback ke hasil pencocokan memori data riil
+      // Respons sukses tanpa agenda dapat dilengkapi data kalender dan master pura resmi.
       if (inMemoryResult) {
         return inMemoryResult;
       }
@@ -236,7 +233,7 @@ export function useMonthlyPiodalan(
     return extractMonthPiodalanSummary(monthDays, purasList, todayISO, allYearDays);
   }, [monthDays, purasList, todayISO, allYearDays]);
 
-  const queryResult = useQuery<{
+  const queryResult = useReadQuery<{
     totalPuras: number;
     upcomingItems: PiodalanTerdekatItem[];
   }>({
@@ -256,28 +253,31 @@ export function useMonthlyPiodalan(
         return inMemorySummary;
       }
 
-      try {
-        const res = await searchPiodalan({
-          mode: 'bulan',
-          bulan: month,
-          tahun: year,
-        });
+      const res = await searchPiodalan({
+        mode: 'bulan',
+        bulan: month,
+        tahun: year,
+      });
 
-        if (res && Array.isArray(res.schedules) && res.schedules.length > 0) {
-          let totalPuras = 0;
-          for (let i = 0; i < res.schedules.length; i++) {
-            totalPuras += res.schedules[i].puras ? res.schedules[i].puras.length : 0;
-          }
-
-          if (inMemorySummary) {
-            return {
-              totalPuras: totalPuras || inMemorySummary.totalPuras,
-              upcomingItems: inMemorySummary.upcomingItems,
-            };
-          }
+      if (res && Array.isArray(res.schedules) && res.schedules.length > 0) {
+        let totalPuras = 0;
+        for (let i = 0; i < res.schedules.length; i++) {
+          totalPuras += res.schedules[i].puras ? res.schedules[i].puras.length : 0;
         }
-      } catch (err) {
-        console.warn('Backend piodalan bulan gagal, fallback ke inMemorySummary:', err);
+
+        return {
+          totalPuras,
+          upcomingItems: inMemorySummary?.upcomingItems ?? res.schedules
+            .filter(schedule => schedule.tanggal >= (todayISO ?? '') && schedule.puras.length > 0)
+            .slice(0, 3)
+            .map(schedule => ({
+              id: schedule.tanggal,
+              dayNumber: schedule.tanggal.slice(8, 10),
+              wukuTitle: schedule.wewaran || 'Piodalan Pura',
+              puraCountText: `${schedule.puras.length} pura`,
+              dateStr: schedule.tanggal,
+            })),
+        };
       }
 
       // 2. Selalu fallback ke hasil memori
@@ -297,7 +297,7 @@ export function useMonthlyPiodalan(
   const data =
     queryResult.data && (queryResult.data.totalPuras > 0 || queryResult.data.upcomingItems.length > 0)
       ? queryResult.data
-      : inMemorySummary || queryResult.data || { totalPuras: 0, upcomingItems: [] };
+      : inMemorySummary || queryResult.data;
 
   return {
     ...queryResult,

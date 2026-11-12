@@ -42,6 +42,8 @@ export interface AuthUser {
 
   /** Status keanggotaan langganan premium */
   isPremium?: boolean;
+  /** Profil resmi tersedia, tetapi status langganan belum berhasil diperbarui. */
+  subscriptionUnavailable?: boolean;
 
   /** Tanggal masa kedaluwarsa akun premium */
   premiumExpiresAt?: string | null;
@@ -165,3 +167,18 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+// Authorization-sensitive caches use identity/entitlement, never raw tokens.
+export function authQueryScope(state: Pick<AuthState, 'user' | 'isAuthenticated'>): string {
+  return JSON.stringify([
+    state.isAuthenticated,
+    state.user?.id ?? null,
+    state.user?.role ?? null,
+    state.user?.isPremium ?? false,
+    state.user?.premiumExpiresAt ?? null,
+  ]);
+}
+
+export function useAuthQueryScope(): string {
+  return useAuthStore(authQueryScope);
+}
