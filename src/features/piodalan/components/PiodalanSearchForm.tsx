@@ -106,7 +106,7 @@ export const PiodalanSearchForm: React.FC<PiodalanSearchFormProps> = ({
   })();
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
+    <div className="@container bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
       {filter.tab === 'wewaran' && masterError && <QueryErrorState title="Gagal memuat pilihan wewaran" error={masterError} onRetry={retryMasters} />}
       {/* ==================================================================== */}
       {/* 1. HEADER KARTU: JUDUL & SEGMENTED TAB SWITCHER                      */}
@@ -180,7 +180,7 @@ export const PiodalanSearchForm: React.FC<PiodalanSearchFormProps> = ({
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* TAB 1: KONTROL WEWARAN & WUKU */}
         {filter.tab === 'wewaran' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4 items-end">
+          <div className="grid grid-cols-1 @min-[480px]:grid-cols-2 @min-[1100px]:grid-cols-5 gap-3.5 sm:gap-4 items-end">
             {/* Input Saptawara (7 Hari) */}
             <div>
               <label
@@ -284,7 +284,7 @@ export const PiodalanSearchForm: React.FC<PiodalanSearchFormProps> = ({
             </div>
 
             {/* Tombol Eksekusi Cari Piodalan */}
-            <div>
+            <div className="@min-[480px]:col-span-2 @min-[1100px]:col-span-1">
               <button
                 type="submit"
                 disabled={isLoading || isMasterLoading || Boolean(masterError)}

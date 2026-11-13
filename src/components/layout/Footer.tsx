@@ -15,12 +15,12 @@ export default function Footer() {
 
   return (
     <footer className="border-t border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 py-5 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 dark:text-slate-400 mt-auto select-none transition-colors">
-      <div className="max-w-[1560px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="max-w-[1560px] mx-auto flex flex-col md:flex-row md:flex-wrap items-center justify-between gap-4">
         {/* ========================================================= */}
         {/* 1. SISI KIRI: HAK CIPTA & SLOGAN PELESTARIAN BUDAYA       */}
         {/* Sesuai AGENTS.md Bagian 5.4 & tabular-nums pada tahun      */}
         {/* ========================================================= */}
-        <div className="text-center md:text-left space-y-0.5">
+        <div className="text-center md:text-left md:flex-1 md:min-w-48 space-y-0.5">
           <p className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
             © <span className="tabular-nums font-semibold">{currentYear}</span> Kalender Bali Lengkap
           </p>
@@ -33,7 +33,7 @@ export default function Footer() {
         {/* 2. SISI TENGAH: TAUTAN PRIVASI, KETENTUAN, DAN KONTAK     */}
         {/* Sesuai AGENTS.md Bagian 5.4                               */}
         {/* ========================================================= */}
-        <div className="flex items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+        <div className="flex shrink-0 items-center gap-2.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <a
             href="#privasi"
             className="hover:text-primary transition-colors"
@@ -63,7 +63,7 @@ export default function Footer() {
         {/* 3. SISI KANAN: BADGE GOOGLE PLAY & LABEL VERSI 2.0        */}
         {/* Sesuai AGENTS.md Bagian 5.4 & tabular-nums                */}
         {/* ========================================================= */}
-        <div className="flex flex-col items-center md:items-end gap-1">
+        <div className="flex shrink-0 flex-col items-center md:items-end gap-1">
           {/* Tombol Badge Google Play Resmi */}
           <a
             href="https://play.google.com/store/apps/details?id=com.infowariga.android"
@@ -102,7 +102,7 @@ export default function Footer() {
               <div className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">
                 GET IT ON
               </div>
-              <div className="text-xs font-bold text-[#0f172a] dark:text-white -mt-0.5 group-hover:text-primary transition-colors">
+              <div className="whitespace-nowrap text-xs font-bold text-[#0f172a] dark:text-white -mt-0.5 group-hover:text-primary transition-colors">
                 Google Play
               </div>
             </div>

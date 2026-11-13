@@ -48,7 +48,7 @@ export const HariRayaFilter: React.FC<HariRayaFilterProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs mb-6">
+    <div className="@container bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs mb-6">
       {/* Header Form & Segmented Tab Switcher (Bulanan / Tahunan) Sesuai Referensi */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-5 border-b border-slate-100">
         <div>
@@ -89,15 +89,15 @@ export const HariRayaFilter: React.FC<HariRayaFilterProps> = ({
 
       {/* Grid Pilihan Input + Tombol Aksi */}
       <form onSubmit={handleSubmit} className="pt-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3.5 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-2 @min-[900px]:grid-cols-12 gap-3.5 items-end">
           {/* ============================================================= */}
           {/* CONTROL 1: Nama Hari Raya                                     */}
           {/* ============================================================= */}
           <div
             className={
               filterState.viewMode === 'bulanan'
-                ? 'sm:col-span-2 lg:col-span-4'
-                : 'sm:col-span-2 lg:col-span-6'
+                ? 'sm:col-span-2 @min-[900px]:col-span-4'
+                : 'sm:col-span-2 @min-[900px]:col-span-6'
             }
           >
             <label
@@ -128,7 +128,7 @@ export const HariRayaFilter: React.FC<HariRayaFilterProps> = ({
           {/* CONTROL 2: Pilihan Bulan (Hanya Tampil Jika Mode Bulanan)       */}
           {/* ============================================================= */}
           {filterState.viewMode === 'bulanan' && (
-            <div className="lg:col-span-3 animate-in fade-in duration-150">
+            <div className="@min-[900px]:col-span-3 animate-in fade-in duration-150">
               <label
                 htmlFor="filter-bulan"
                 className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
@@ -161,8 +161,8 @@ export const HariRayaFilter: React.FC<HariRayaFilterProps> = ({
           <div
             className={
               filterState.viewMode === 'bulanan'
-                ? 'lg:col-span-2'
-                : 'lg:col-span-3'
+                ? '@min-[900px]:col-span-2'
+                : '@min-[900px]:col-span-3'
             }
           >
             <label
@@ -193,7 +193,7 @@ export const HariRayaFilter: React.FC<HariRayaFilterProps> = ({
           {/* ============================================================= */}
           {/* CONTROL 4: Tombol Eksekusi "Cari hari raya"                   */}
           {/* ============================================================= */}
-          <div className="sm:col-span-2 lg:col-span-3">
+          <div className="sm:col-span-2 @min-[900px]:col-span-3">
             <button
               type="submit"
               className="w-full h-11 px-6 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-sm shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 [touch-action:manipulation]"

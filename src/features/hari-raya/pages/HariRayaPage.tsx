@@ -290,10 +290,10 @@ export default function HariRayaPage() {
                   className="bg-white rounded-2xl border border-slate-200/90 p-5 flex items-center gap-4"
                 >
                   <div className="w-14 h-14 bg-slate-100 rounded-xl shrink-0" />
-                  <div className="space-y-2 flex-1">
-                    <div className="w-20 h-3 bg-slate-200 rounded" />
-                    <div className="w-36 h-4 bg-slate-200 rounded" />
-                    <div className="w-16 h-4 bg-slate-100 rounded-full" />
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="w-20 max-w-full h-3 bg-slate-200 rounded" />
+                    <div className="w-36 max-w-full h-4 bg-slate-200 rounded" />
+                    <div className="w-16 max-w-full h-4 bg-slate-100 rounded-full" />
                   </div>
                 </div>
               ))}

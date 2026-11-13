@@ -26,12 +26,12 @@ export const DashboardSkeleton: React.FC = () => {
       <div className="bg-[#eaf7f5]/50 border border-[#cbebe5]/60 rounded-2xl p-6 sm:p-7">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* Sisi Kiri: Eyebrow, Tanggal Besar, Wewaran, & Pill Rekomendasi */}
-          <div className="space-y-3 flex-1">
+          <div className="space-y-3 flex-1 min-w-0">
             <div className="h-3 w-20 bg-teal-200/60 rounded-full" />
-            <div className="h-9 w-64 sm:w-80 bg-slate-200/80 rounded-xl" />
-            <div className="h-4 w-52 sm:w-64 bg-slate-200/60 rounded-lg" />
+            <div className="h-9 w-64 sm:w-80 max-w-full bg-slate-200/80 rounded-xl" />
+            <div className="h-4 w-52 sm:w-64 max-w-full bg-slate-200/60 rounded-lg" />
             <div className="pt-2">
-              <div className="h-7 w-72 bg-white/80 rounded-full border border-teal-100" />
+              <div className="h-7 w-72 max-w-full bg-white/80 rounded-full border border-teal-100" />
             </div>
           </div>
 
@@ -40,11 +40,11 @@ export const DashboardSkeleton: React.FC = () => {
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="bg-white rounded-xl border border-slate-200/60 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] space-y-2 shadow-2xs"
+                className="min-w-0 bg-white rounded-xl border border-slate-200/60 p-2 sm:p-4 sm:min-w-[115px] space-y-2 shadow-2xs"
               >
-                <div className="h-2.5 w-12 bg-slate-200 rounded-full" />
-                <div className="h-6 w-16 bg-slate-200/80 rounded-lg" />
-                <div className="h-2.5 w-14 bg-slate-100 rounded-full" />
+                <div className="h-2.5 w-12 max-w-full bg-slate-200 rounded-full" />
+                <div className="h-6 w-16 max-w-full bg-slate-200/80 rounded-lg" />
+                <div className="h-2.5 w-14 max-w-full bg-slate-100 rounded-full" />
               </div>
             ))}
           </div>
@@ -59,11 +59,11 @@ export const DashboardSkeleton: React.FC = () => {
         <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
           {/* Header Kalender */}
           <div className="flex items-center justify-between mb-5">
-            <div className="space-y-1.5">
-              <div className="h-5 w-36 bg-slate-200 rounded-lg" />
-              <div className="h-3 w-28 bg-slate-100 rounded-full" />
+            <div className="space-y-1.5 min-w-0">
+              <div className="h-5 w-36 max-w-full bg-slate-200 rounded-lg" />
+              <div className="h-3 w-28 max-w-full bg-slate-100 rounded-full" />
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex gap-1.5 shrink-0">
               <div className="w-8 h-8 rounded-xl bg-slate-100" />
               <div className="w-8 h-8 rounded-xl bg-slate-100" />
             </div>
@@ -81,10 +81,10 @@ export const DashboardSkeleton: React.FC = () => {
             {Array.from({ length: 35 }).map((_, idx) => (
               <div
                 key={idx}
-                className="min-h-[50px] sm:min-h-[56px] rounded-xl bg-[#fbfcfc] border border-slate-100 p-2 flex flex-col justify-between"
+                className="min-w-0 min-h-[50px] sm:min-h-[56px] rounded-xl bg-[#fbfcfc] border border-slate-100 p-1 sm:p-2 flex flex-col justify-between"
               >
-                <div className="h-3 w-4 bg-slate-200/70 rounded" />
-                <div className="h-2 w-8 bg-slate-100 rounded-full mt-auto" />
+                <div className="h-3 w-4 max-w-full bg-slate-200/70 rounded" />
+                <div className="h-2 w-8 max-w-full bg-slate-100 rounded-full mt-auto" />
               </div>
             ))}
           </div>
@@ -107,9 +107,9 @@ export const DashboardSkeleton: React.FC = () => {
                   className="p-2.5 sm:p-3 rounded-xl bg-[#f8fafc] border border-slate-200/70 flex items-center gap-3"
                 >
                   <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-slate-200 shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3.5 sm:h-4 w-32 bg-slate-200/80 rounded" />
-                    <div className="h-3 w-24 bg-slate-100 rounded-full" />
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="h-3.5 sm:h-4 w-32 max-w-full bg-slate-200/80 rounded" />
+                    <div className="h-3 w-24 max-w-full bg-slate-100 rounded-full" />
                   </div>
                   <div className="w-16 h-5 rounded-full bg-slate-100 shrink-0" />
                 </div>
@@ -143,9 +143,9 @@ export const DashboardSkeleton: React.FC = () => {
                   key={i}
                   className="p-3 rounded-xl bg-white/10 border border-white/10 flex items-center justify-between"
                 >
-                  <div className="space-y-1.5 flex-1">
-                    <div className="h-3.5 w-28 bg-white/25 rounded" />
-                    <div className="h-3 w-44 bg-white/15 rounded-full" />
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="h-3.5 w-28 max-w-full bg-white/25 rounded" />
+                    <div className="h-3 w-44 max-w-full bg-white/15 rounded-full" />
                   </div>
                   <div className="h-4 w-16 bg-white/20 rounded-md shrink-0" />
                 </div>
@@ -175,9 +175,9 @@ export const DashboardSkeleton: React.FC = () => {
                   className="p-3 rounded-xl bg-[#f8fafc] border border-slate-200/70 flex items-center gap-3.5"
                 >
                   <div className="w-10 h-10 rounded-xl bg-slate-200 shrink-0" />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3.5 w-32 bg-slate-200/80 rounded" />
-                    <div className="h-3 w-48 bg-slate-100 rounded-full" />
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="h-3.5 w-32 max-w-full bg-slate-200/80 rounded" />
+                    <div className="h-3 w-48 max-w-full bg-slate-100 rounded-full" />
                   </div>
                 </div>
               ))}

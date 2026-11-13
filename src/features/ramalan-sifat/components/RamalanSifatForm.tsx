@@ -130,15 +130,15 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs">
+    <div className="@container bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* ================================================================= */}
         {/* BLOK 3: GRID INPUT (TANGGAL, WAKTU LAHIR, & TOMBOL SUBMIT)         */}
         {/* Mengikuti Tata Letak Seragam Otonan & Wariga Personal             */}
         {/* ================================================================= */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
-          {/* Kolom 1: Tanggal Lahir (lg:col-span-5) */}
-          <div className="lg:col-span-5 space-y-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 @min-[900px]:grid-cols-12 gap-4 items-end">
+          {/* Kolom 1: Tanggal Lahir */}
+          <div className="@min-[900px]:col-span-5 space-y-1.5">
             <label
               htmlFor="ramalan-birth-date"
               className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -160,8 +160,8 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
             </div>
           </div>
 
-          {/* Kolom 2: Dropdown Waktu Lahir (lg:col-span-4) */}
-          <div className="lg:col-span-4 space-y-1.5">
+          {/* Kolom 2: Dropdown Waktu Lahir */}
+          <div className="@min-[900px]:col-span-4 space-y-1.5">
             <label
               htmlFor="ramalan-birth-time"
               className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -182,8 +182,8 @@ export const RamalanSifatForm: React.FC<RamalanSifatFormProps> = ({
             </div>
           </div>
 
-          {/* Kolom 3: Tombol Aksi Submit (lg:col-span-3 sm:col-span-2) */}
-          <div className="sm:col-span-2 lg:col-span-3">
+          {/* Kolom 3: Tombol Aksi Submit */}
+          <div className="sm:col-span-2 @min-[900px]:col-span-3">
             <button
               type="submit"
               disabled={isLoading}

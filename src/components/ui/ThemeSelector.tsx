@@ -74,7 +74,7 @@ export function ThemeSelector() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="absolute right-0 mt-2 w-80 sm:w-88 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden z-50 select-none"
+            className="fixed top-20 left-4 right-4 max-h-[calc(100dvh-5.5rem)] overflow-y-auto sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-2 sm:w-88 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 z-50 select-none"
           >
             {/* Header Panel */}
           <div className="p-3.5 bg-gradient-to-r from-slate-50 via-teal-50/20 to-slate-50 dark:from-slate-800/60 dark:via-slate-800/40 dark:to-slate-800/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">

@@ -42,8 +42,8 @@ export const KontakDeveloperCard: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs transition-all">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+    <div className="@container bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs transition-all">
+      <div className="flex flex-col @min-[1000px]:flex-row @min-[1000px]:items-center justify-between gap-6">
         {/* ================================================================= */}
         {/* 1. SISI KIRI: LOGO RESMI, IDENTITAS, & DESKRIPSI MISI             */}
         {/* ================================================================= */}
@@ -86,24 +86,24 @@ export const KontakDeveloperCard: React.FC = () => {
         {/* ================================================================= */}
         {/* 2. SISI KANAN: PILL EMAIL ESTETIK (PAS & MELEBAR SAAT HOVER)      */}
         {/* ================================================================= */}
-        <div className="shrink-0 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100 flex items-center">
+        <div className="min-w-0 max-w-full shrink-0 pt-3 @min-[1000px]:pt-0 border-t @min-[1000px]:border-t-0 border-slate-100 flex items-center">
           <button
             type="button"
             onClick={handleCopyEmail}
-            className="group relative inline-flex items-center px-3.5 py-2.5 rounded-xl bg-[#f8fafc] hover:bg-teal-50/70 active:bg-teal-100/70 border border-slate-200/80 hover:border-teal-300 shadow-2xs transition-all duration-300 ease-out cursor-pointer select-none [touch-action:manipulation]"
+            className="group relative inline-flex max-w-full items-center px-3.5 py-2.5 rounded-xl bg-[#f8fafc] hover:bg-teal-50/70 active:bg-teal-100/70 border border-slate-200/80 hover:border-teal-300 shadow-2xs transition-all duration-300 ease-out cursor-pointer select-none [touch-action:manipulation]"
             title="Klik untuk menyalin alamat email"
           >
             {/* Ikon Surat */}
             <Mail className="w-4 h-4 text-[#0d9488] shrink-0 group-hover:scale-105 transition-transform" />
 
             {/* Alamat Email */}
-            <span className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-teal-900 font-mono transition-colors ml-2">
+            <span className="min-w-0 break-all text-left text-xs sm:text-sm font-bold text-slate-800 group-hover:text-teal-900 font-mono transition-colors ml-2">
               {emailAddress}
             </span>
 
             {/* Container Ikon Salin: 0px secara default, melebar halus saat hover / copied */}
             <span
-              className={`inline-flex items-center overflow-hidden transition-all duration-300 ease-out ${
+              className={`inline-flex shrink-0 items-center overflow-hidden transition-all duration-300 ease-out ${
                 copied
                   ? 'max-w-[70px] opacity-100 ml-2'
                   : 'max-w-0 group-hover:max-w-6 opacity-0 group-hover:opacity-100 group-hover:ml-2'

@@ -265,7 +265,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
       {/* =================================================================== */}
       {/* 2. CARD FORM: HITUNG OTONAN                                         */}
       {/* =================================================================== */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs transition-all">
+      <div className="@container bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs transition-all">
         {/* Header Form & Segmented Tab Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
           <div>
@@ -311,9 +311,9 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
           {/* MODE 1: TANGGAL LAHIR (Masehi)                                  */}
           {/* =============================================================== */}
           {activeTab === 'tanggal_lahir' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
-              {/* Field 1: Tanggal Lahir (lg:col-span-4) dengan Date Picker Estetik */}
-              <div className="lg:col-span-4 space-y-1.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 @min-[900px]:grid-cols-12 gap-4 items-end">
+              {/* Field 1: Tanggal Lahir dengan Date Picker Estetik */}
+              <div className="@min-[900px]:col-span-4 space-y-1.5">
                 <label
                   htmlFor="birth-date"
                   className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -329,8 +329,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 />
               </div>
 
-              {/* Field 2: Waktu Lahir (lg:col-span-3) */}
-              <div className="lg:col-span-3 space-y-1.5">
+              {/* Field 2: Waktu Lahir */}
+              <div className="@min-[900px]:col-span-3 space-y-1.5">
                 <label
                   htmlFor="birth-time"
                   className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -351,8 +351,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 </div>
               </div>
 
-              {/* Field 3: Tahun Perhitungan (lg:col-span-2) */}
-              <div className="lg:col-span-2 space-y-1.5">
+              {/* Field 3: Tahun Perhitungan */}
+              <div className="@min-[900px]:col-span-2 space-y-1.5">
                 <label
                   htmlFor="target-year"
                   className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -376,8 +376,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 </div>
               </div>
 
-              {/* Tombol Aksi: Hitung Otonan (lg:col-span-3) */}
-              <div className="lg:col-span-3">
+              {/* Tombol Aksi: Hitung Otonan */}
+              <div className="@min-[900px]:col-span-3">
                 <button
                   type="submit"
                   disabled={isLoading}
@@ -407,9 +407,9 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
-                {/* Field 1: Saptawara (lg:col-span-3) */}
-                <div className="lg:col-span-3 space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 @min-[1100px]:grid-cols-5 gap-4 items-end">
+                {/* Field 1: Saptawara */}
+                <div className="space-y-1.5">
                   <label
                     htmlFor="saptawara-select"
                     className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -435,8 +435,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                   </div>
                 </div>
 
-                {/* Field 2: Pancawara (lg:col-span-3) */}
-                <div className="lg:col-span-3 space-y-1.5">
+                {/* Field 2: Pancawara */}
+                <div className="space-y-1.5">
                   <label
                     htmlFor="pancawara-select"
                     className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -462,8 +462,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                   </div>
                 </div>
 
-                {/* Field 3: Wuku (lg:col-span-2) */}
-                <div className="lg:col-span-2 space-y-1.5">
+                {/* Field 3: Wuku */}
+                <div className="space-y-1.5">
                   <label
                     htmlFor="wuku-select"
                     className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -489,8 +489,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                   </div>
                 </div>
 
-                {/* Field 4: Tahun Target (lg:col-span-2) */}
-                <div className="lg:col-span-2 space-y-1.5">
+                {/* Field 4: Tahun Target */}
+                <div className="space-y-1.5">
                   <label
                     htmlFor="target-year-manual"
                     className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
@@ -514,8 +514,8 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                   </div>
                 </div>
 
-                {/* Tombol Aksi: Hitung Otonan (lg:col-span-2) */}
-                <div className="lg:col-span-2">
+                {/* Tombol Aksi: Hitung Otonan */}
+                <div className="sm:col-span-2 @min-[1100px]:col-span-1">
                   <button
                     type="submit"
                     disabled={isLoading || isMasterLoading || isMasterError || !isWewaranComplete || !isValidPawukon}

@@ -20,8 +20,8 @@ export const BhagawadGitaSkeleton: FC = () => {
       {/* ---------------------------------------------------------------------- */}
       <div className="space-y-2.5">
         <div className="h-4 w-36 bg-slate-200 rounded" />
-        <div className="h-9 w-64 bg-slate-200 rounded-xl" />
-        <div className="h-4 w-80 sm:w-96 bg-slate-100 rounded" />
+        <div className="h-9 w-64 max-w-full bg-slate-200 rounded-xl" />
+        <div className="h-4 w-80 sm:w-96 max-w-full bg-slate-100 rounded" />
       </div>
 
       {/* ---------------------------------------------------------------------- */}
@@ -40,7 +40,7 @@ export const BhagawadGitaSkeleton: FC = () => {
       {/* ---------------------------------------------------------------------- */}
       {/* 3. SKELETON SEGMENTED TAB SWITCHER                                     */}
       {/* ---------------------------------------------------------------------- */}
-      <div className="h-11 w-80 bg-slate-100 rounded-xl border border-slate-200/40 p-1 flex gap-1">
+      <div className="h-11 w-80 max-w-full bg-slate-100 rounded-xl border border-slate-200/40 p-1 flex gap-1">
         <div className="h-full w-1/3 bg-white rounded-lg shadow-2xs" />
         <div className="h-full w-1/3 bg-transparent rounded-lg" />
         <div className="h-full w-1/3 bg-transparent rounded-lg" />

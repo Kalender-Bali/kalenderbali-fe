@@ -323,7 +323,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
             exit="exit"
             role="dialog"
             aria-modal="true"
-            className="absolute left-0 top-full mt-2 w-80 sm:w-88 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 z-50 select-none"
+            className="fixed top-4 left-4 w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] overflow-y-auto sm:absolute sm:left-0 sm:top-full sm:mt-2 sm:w-88 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 z-50 select-none"
           >
             {/* Header Popover: Selektor Cepat Bulan, Tahun, dan Tombol Navigasi */}
           <div className="flex items-center justify-between gap-1 pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">

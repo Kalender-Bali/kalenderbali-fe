@@ -188,14 +188,14 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs">
+    <div className="@container bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* =============================================================== */}
         {/* BARIS UTAMA FORM: INPUT & TOMBOL SEJAJAR DALAM 1 BARIS GRID     */}
         {/* =============================================================== */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 items-end">
-          {/* Kolom 1: Tanggal Lahir (lg:col-span-3) dengan Date Picker Estetik */}
-          <div className="lg:col-span-3 space-y-1.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 @min-[900px]:grid-cols-12 gap-4 items-end">
+          {/* Kolom 1: Tanggal Lahir dengan Date Picker Estetik */}
+          <div className="@min-[900px]:col-span-3 space-y-1.5">
             <label
               htmlFor="wariga-birth-date"
               className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block"
@@ -214,8 +214,8 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
             />
           </div>
 
-          {/* Kolom 2: Dropdown Waktu Lahir (lg:col-span-2) - Seragam dengan modul Otonan */}
-          <div className="lg:col-span-2 space-y-1.5">
+          {/* Kolom 2: Dropdown Waktu Lahir */}
+          <div className="@min-[900px]:col-span-2 space-y-1.5">
             <label
               htmlFor="wariga-birth-time"
               className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block"
@@ -236,8 +236,8 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
             </div>
           </div>
 
-          {/* Kolom 3: Bulan Target (lg:col-span-2) */}
-          <div className="lg:col-span-2 space-y-1.5">
+          {/* Kolom 3: Bulan Target */}
+          <div className="@min-[900px]:col-span-2 space-y-1.5">
             <label
               htmlFor="wariga-month-target"
               className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block"
@@ -261,8 +261,8 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
             </div>
           </div>
 
-          {/* Kolom 4: Tahun Target (lg:col-span-2) */}
-          <div className="lg:col-span-2 space-y-1.5">
+          {/* Kolom 4: Tahun Target */}
+          <div className="@min-[900px]:col-span-2 space-y-1.5">
             <label
               htmlFor="wariga-year-target"
               className="text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block"
@@ -283,8 +283,8 @@ export const WarigaPersonalForm: React.FC<WarigaPersonalFormProps> = ({
             </div>
           </div>
 
-          {/* Kolom 5: Tombol Submit Sejajar (lg:col-span-3 sm:col-span-2) */}
-          <div className="sm:col-span-2 lg:col-span-3">
+          {/* Kolom 5: Tombol Submit */}
+          <div className="sm:col-span-2 @min-[900px]:col-span-3">
             <button
               type="submit"
               disabled={isLoading}
