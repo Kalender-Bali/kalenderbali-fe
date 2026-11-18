@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:mengatur-dewasa": "node --test tests/mengaturDewasa.test.mjs",
+    "test:komunitas": "node --test --test-force-exit --test-concurrency=1 tests/komunitas.test.mjs tests/komunitasViews.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

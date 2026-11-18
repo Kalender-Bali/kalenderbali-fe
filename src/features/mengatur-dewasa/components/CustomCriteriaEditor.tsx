@@ -4,6 +4,7 @@ import type { CriteriaDraftItem, CustomCriteriaDraft, DewasaCriteriaField, Dewas
 import { createCriteriaGroup, createCriteriaItem } from '../utils/mengaturDewasaUtils';
 
 interface Props {
+  compact?: boolean;
   draft: CustomCriteriaDraft;
   fields: DewasaCriteriaField[];
   options: Record<string, UseQueryResult<DewasaCriteriaValue[], Error>>;
@@ -58,7 +59,7 @@ function CriteriaRow({ item, fields, options, onChange, onRemove }: {
 }
 
 // Satu kelompok berarti semua baris harus cocok; kelompok lain adalah alternatif.
-export function CustomCriteriaEditor({ draft, fields, options, isLoading, error, onRetry, onChange }: Props) {
+export function CustomCriteriaEditor({ compact = false, draft, fields, options, isLoading, error, onRetry, onChange }: Props) {
   const total = [...draft.recommended, ...draft.avoid].reduce((sum, group) => sum + group.items.length, 0);
   const sections = [
     { key: 'recommended' as const, title: 'Kriteria mendukung', description: 'Tanggal harus cocok dengan setidaknya satu kelompok mendukung, jika ada.' },
@@ -70,10 +71,10 @@ export function CustomCriteriaEditor({ draft, fields, options, isLoading, error,
   if (!fields.length) return <p className="text-sm text-slate-500">Belum ada jenis kriteria yang tersedia.</p>;
 
   return (
-    <div className="space-y-6">
-      <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">Semua kriteria dalam satu kelompok harus cocok. Antarkelompok berlaku pilihan salah satu.</p>
+    <div className={compact ? 'space-y-4' : 'space-y-6'}>
+      <p className={`${compact ? 'text-xs' : 'text-xs sm:text-sm'} text-slate-500 dark:text-slate-400 leading-relaxed`}>Semua syarat dalam satu kelompok harus cocok. Cukup salah satu kelompok yang cocok.</p>
       {sections.map(({ key, title, description }) => (
-        <section key={key} className="space-y-3" aria-label={title}>
+        <section key={key} className={compact ? 'space-y-3 rounded-xl border border-slate-200/70 dark:border-slate-700 bg-[#f8fafc] dark:bg-slate-800/40 p-4' : 'space-y-3'} aria-label={title}>
           <div><h4 className="text-sm font-bold text-[#0f172a] dark:text-white">{title}</h4><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{description}</p></div>
           {draft[key].map((group, groupIndex) => (
             <fieldset key={group.id} className="rounded-xl bg-[#f8fafc] dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 p-4 space-y-3">
@@ -90,7 +91,7 @@ export function CustomCriteriaEditor({ draft, fields, options, isLoading, error,
               </div>
             </fieldset>
           ))}
-          <button type="button" className={button} disabled={draft[key].length >= 20 || total >= 100} onClick={() => onChange({ ...draft, [key]: [...draft[key], createCriteriaGroup()] })}><Plus className="w-4 h-4" /> Tambah kelompok {key === 'recommended' ? 'mendukung' : 'dihindari'}</button>
+          <button type="button" className={`${button} ${compact ? 'w-full' : ''}`} aria-label={`Tambah kelompok ${key === 'recommended' ? 'mendukung' : 'dihindari'}`} disabled={draft[key].length >= 20 || total >= 100} onClick={() => onChange({ ...draft, [key]: [...draft[key], createCriteriaGroup()] })}><Plus className="w-4 h-4" />{compact ? 'Tambah kelompok' : `Tambah kelompok ${key === 'recommended' ? 'mendukung' : 'dihindari'}`}</button>
         </section>
       ))}
     </div>

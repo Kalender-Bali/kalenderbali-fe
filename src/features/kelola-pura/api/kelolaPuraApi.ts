@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/axios';
 import { apiArray, apiObject } from '@/lib/apiResponse';
+import { isCommunityType, onlyPuras } from '@/lib/puraScope';
 import type {
   PuraBackendItem,
   PuraFilterParams,
@@ -46,7 +47,8 @@ export async function fetchPuraList(params?: PuraFilterParams): Promise<PuraBack
 
   const response = await apiClient.get('/puras', { params: queryParams });
   const items = response.data?.data;
-  return apiArray<PuraBackendItem>(items);
+  // Endpoint detail lama tidak menerapkan scope; keluarkan Suka Duka sebelum masuk cache bersama.
+  return onlyPuras(apiArray<PuraBackendItem>(items));
 }
 
 /**
@@ -55,7 +57,9 @@ export async function fetchPuraList(params?: PuraFilterParams): Promise<PuraBack
  */
 export async function fetchPuraDetail(id: number | string): Promise<PuraBackendItem | null> {
   const response = await apiClient.get(`/puras/${id}`);
-  return apiObject<PuraBackendItem>(response.data?.data);
+  const profile = apiObject<PuraBackendItem>(response.data?.data);
+  if (isCommunityType(profile.type || '')) throw new Error('Profil Suka Duka tersedia pada menu Komunitas.');
+  return profile;
 }
 
 // ==============================================================================
@@ -189,6 +193,19 @@ export async function deletePiodalanAcara(acaraId: number | string): Promise<boo
 // 3. ENDPOINT TRANSPARANSI KAS KEUANGAN PURA
 // ==============================================================================
 
+/** Pembaca dan penulis memakai validator yang sama agar respons sukses rusak tidak dianggap tersimpan. */
+function financeEntry(value: unknown, ownerId?: number | string): PuraFinanceEntry {
+  const item = apiObject<PuraFinanceEntry>(value);
+  if (!Number.isSafeInteger(item.id) || item.id <= 0 || !Number.isSafeInteger(item.pura_id) || item.pura_id <= 0 ||
+      (ownerId !== undefined && String(item.pura_id) !== String(ownerId)) ||
+      !Number.isSafeInteger(item.category_id) || item.category_id <= 0 || !Number.isSafeInteger(item.amount) || item.amount <= 0 ||
+      !['debit', 'kredit'].includes(item.entry_type) || typeof item.category_name !== 'string' || typeof item.note !== 'string' ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(item.transaction_date) || Number.isNaN(Date.parse(`${item.transaction_date}T00:00:00+08:00`))) {
+    throw new Error('Mutasi kas dari server tidak valid atau berasal dari profil lain. Silakan coba lagi.');
+  }
+  return item;
+}
+
 /**
  * fetchFinanceCategories mengambil master kategori keuangan:
  * GET /api/v1/finance/categories
@@ -196,7 +213,11 @@ export async function deletePiodalanAcara(acaraId: number | string): Promise<boo
 export async function fetchFinanceCategories(): Promise<PuraFinanceCategory[]> {
   const response = await apiClient.get('/finance/categories');
   const data = response.data?.data;
-  return apiArray<PuraFinanceCategory>(data);
+  const categories = apiArray<PuraFinanceCategory>(data);
+  if (categories.some(item => !Number.isSafeInteger(item.id) || item.id <= 0 || typeof item.name !== 'string')) {
+    throw new Error('Kategori kas dari server tidak valid. Silakan coba lagi.');
+  }
+  return categories;
 }
 
 /**
@@ -217,7 +238,8 @@ export async function fetchPuraFinance(
 
   const response = await apiClient.get(`/puras/${puraId}/finance`, { params });
   const data = response.data?.data;
-  return apiArray<PuraFinanceEntry>(data);
+  // Tolak baris rusak atau pemilik berbeda agar tabel kas tidak mencampur antarprofil.
+  return apiArray<unknown>(data).map(item => financeEntry(item, puraId));
 }
 
 /**
@@ -246,7 +268,7 @@ export async function fetchPuraFinanceSummary(
 // ==============================================================================
 
 /**
- * createFinanceEntry mencatat mutasi kas baru langsung ke database (Khusus Admin):
+ * createFinanceEntry mencatat mutasi kas untuk Admin atau pengelola profil terkait:
  * POST /api/v1/puras/:id/finance
  */
 export async function createFinanceEntry(
@@ -254,11 +276,11 @@ export async function createFinanceEntry(
   payload: CreateFinanceEntryPayload
 ): Promise<PuraFinanceEntry> {
   const response = await apiClient.post(`/puras/${puraId}/finance`, payload);
-  return response.data?.data;
+  return financeEntry(response.data?.data, puraId);
 }
 
 /**
- * updateFinanceEntry mengubah catatan mutasi kas yang ada (Khusus Admin):
+ * updateFinanceEntry mengubah kas sesuai otorisasi Admin/pengelola di backend:
  * PUT /api/v1/finance/:id
  */
 export async function updateFinanceEntry(
@@ -266,11 +288,13 @@ export async function updateFinanceEntry(
   payload: UpdateFinanceEntryPayload
 ): Promise<PuraFinanceEntry> {
   const response = await apiClient.put(`/finance/${entryId}`, payload);
-  return response.data?.data;
+  const saved = financeEntry(response.data?.data);
+  if (String(saved.id) !== String(entryId)) throw new Error('ID transaksi hasil penyimpanan tidak sesuai. Silakan muat ulang.');
+  return saved;
 }
 
 /**
- * deleteFinanceEntry menghapus transaksi kas dari database (Khusus Admin):
+ * deleteFinanceEntry menghapus kas sesuai otorisasi Admin/pengelola di backend:
  * DELETE /api/v1/finance/:id
  */
 export async function deleteFinanceEntry(entryId: number | string): Promise<void> {

@@ -72,7 +72,8 @@ export function useAlaAyuning() {
 
   // Parameter untuk Mode Nama Padewasan:
   const queryName = searchParams.get('name') || '';
-  const queryMonth = Number(searchParams.get('month')) || todayParsed.month;
+  const monthParam = searchParams.get('month');
+  const queryMonth = monthParam !== null && monthParam !== '' ? Number(monthParam) : undefined;
   const queryYear = Number(searchParams.get('year')) || todayParsed.year;
 
   // URL berisi kriteria yang sudah dikirim lewat tombol Cari atau tautan hasil.
@@ -97,17 +98,13 @@ export function useAlaAyuning() {
     refetchOnWindowFocus: false,
   });
 
-  // -------------------------------------------------------------------------
-  // BLOK 3: QUERY 2 - RINGKASAN KEGIATAN PADA TANGGAL PILIHAN
-  // -------------------------------------------------------------------------
-  /**
-   * Mengambil anjuran dan pantangan per kegiatan untuk tanggal yang sedang diperiksa.
-   */
-  const dateSummaryQuery = useReadQuery<DewasaAyuTodayResponse, Error>({
+  // Memakai kecocokan aturan resmi dari seluruh padewasan tanggal pilihan
+  // untuk menyusun kesimpulan praktis, tanpa meminta pilihan kegiatan.
+  const practicalSummaryQuery = useReadQuery<DewasaAyuTodayResponse, Error>({
     queryKey: ['ala-ayuning', 'summary', activeDate],
     queryFn: () => fetchDewasaAyuSummary(activeDate),
     enabled: activeMode === 'date' && hasSearched,
-    staleTime: 1000 * 60 * 60, // Segar selama 1 jam
+    staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 24,
     refetchOnWindowFocus: false,
   });
@@ -152,11 +149,11 @@ export function useAlaAyuning() {
   // BLOK 6: QUERY 5 - PENCARIAN TANGGAL JATUH BERDASARKAN NAMA (MODE NAMA)
   // -------------------------------------------------------------------------
   /**
-   * Mencari seluruh tanggal jatuh dalam satu bulan tertentu di mana padewasan
+   * Mencari seluruh tanggal jatuh dalam satu bulan atau tahun di mana padewasan
    * yang dicari aktif (paritas sistem Laravel lama Gambar 1 & 2).
    */
   const byNameQuery = useReadQuery<CariByNamaResponse | null, Error>({
-    queryKey: ['ala-ayuning', 'by-name', queryName, queryMonth, queryYear],
+    queryKey: ['ala-ayuning', 'by-name', queryName, queryMonth ?? 0, queryYear],
     queryFn: async () => {
       if (!queryName) return null;
       return await searchPadewasanByName({
@@ -213,14 +210,18 @@ export function useAlaAyuning() {
   }, [searchParams, setSearchParams, todayWITA]);
 
   /**
-   * handleSearchByName mengeksekusi pencarian tanggal jatuh padewasan tertentu per bulan/tahun.
+   * handleSearchByName mengeksekusi pencarian tanggal jatuh padewasan tertentu per bulan/tahun (atau tahunan bila bulan kosong).
    */
   const handleSearchByName = useCallback(
-    (name: string, month: number, year: number) => {
+    (name: string, month: number | undefined, year: number) => {
       const nextParams = new URLSearchParams(searchParams);
       nextParams.set('mode', 'name');
       nextParams.set('name', name);
-      nextParams.set('month', String(month));
+      if (month && month >= 1 && month <= 12) {
+        nextParams.set('month', String(month));
+      } else {
+        nextParams.delete('month');
+      }
       nextParams.set('year', String(year));
       setSearchParams(nextParams);
     },
@@ -288,38 +289,38 @@ export function useAlaAyuning() {
   // BLOK 9: STATUS LOADING & ERROR GABUNGAN
   // -------------------------------------------------------------------------
   const hasResults = hasSearched && (activeMode === 'date'
-    ? padewasanHarianQuery.isSuccess && pawukonHarianQuery.isSuccess && dateSummaryQuery.isSuccess
+    ? padewasanHarianQuery.isSuccess && pawukonHarianQuery.isSuccess && practicalSummaryQuery.isSuccess
     : byNameQuery.isSuccess && Boolean(byNameQuery.data));
 
   const isLoading =
     activeMode === 'date'
-      ? padewasanHarianQuery.isLoading || pawukonHarianQuery.isLoading || dateSummaryQuery.isLoading
+      ? padewasanHarianQuery.isLoading || pawukonHarianQuery.isLoading || practicalSummaryQuery.isLoading
       : byNameQuery.isLoading;
 
   const isFetching =
     activeMode === 'date'
-      ? padewasanHarianQuery.isFetching || pawukonHarianQuery.isFetching || dateSummaryQuery.isFetching
+      ? padewasanHarianQuery.isFetching || pawukonHarianQuery.isFetching || practicalSummaryQuery.isFetching
       : byNameQuery.isFetching;
 
   const isError =
     activeMode === 'date'
-      ? padewasanHarianQuery.isError || pawukonHarianQuery.isError || dateSummaryQuery.isError
+      ? padewasanHarianQuery.isError || pawukonHarianQuery.isError || practicalSummaryQuery.isError
       : byNameQuery.isError;
 
   const errorMessage =
     (activeMode === 'date'
-      ? padewasanHarianQuery.error?.message || pawukonHarianQuery.error?.message || dateSummaryQuery.error?.message
+      ? padewasanHarianQuery.error?.message || pawukonHarianQuery.error?.message || practicalSummaryQuery.error?.message
       : byNameQuery.error?.message) || null;
 
   const refetch = useCallback(() => {
     if (activeMode === 'date') {
       padewasanHarianQuery.refetch();
       pawukonHarianQuery.refetch();
-      dateSummaryQuery.refetch();
+      practicalSummaryQuery.refetch();
     } else {
       byNameQuery.refetch();
     }
-  }, [activeMode, padewasanHarianQuery, pawukonHarianQuery, dateSummaryQuery, byNameQuery]);
+  }, [activeMode, padewasanHarianQuery, pawukonHarianQuery, practicalSummaryQuery, byNameQuery]);
 
   // -------------------------------------------------------------------------
   // BLOK 10: KONTRAK KELUARAN HOOK UNTUK KOMPONEN UI
@@ -340,8 +341,8 @@ export function useAlaAyuning() {
 
     // Data query harian (Mode Tanggal)
     padewasanList,
+    activityGuidance: practicalSummaryQuery.data?.activity_guidance ?? [],
     pawukonInfo: pawukonHarianQuery.data || null,
-    daySummary: dateSummaryQuery.data || null,
 
     // Statistik metrik harian
     totalAktif,

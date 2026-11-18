@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
-import { CalendarDays, X } from 'lucide-react';
+import { BellPlus, X } from 'lucide-react';
 import { formatFullIndoDate, getIndoDayName } from '@/features/kalender/utils/calendarUtils';
 import type { DewasaCriteriaField, DewasaDateResult, DewasaMatchedReason } from '../types/mengaturDewasa.types';
 
@@ -9,6 +8,7 @@ interface Props {
   result: DewasaDateResult;
   fields: DewasaCriteriaField[];
   onClose: () => void;
+  onAddReminder?: () => void;
 }
 
 function ReasonList({ title, reasons, fields }: { title: string; reasons: DewasaMatchedReason[]; fields: DewasaCriteriaField[] }) {
@@ -27,7 +27,7 @@ function ReasonList({ title, reasons, fields }: { title: string; reasons: Dewasa
 }
 
 // Portal mengelola fokus, Escape dan body scroll agar dialog dapat digunakan keyboard.
-export function MengaturDewasaDetailModal({ result, fields, onClose }: Props) {
+export function MengaturDewasaDetailModal({ result, fields, onClose, onAddReminder }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
@@ -76,7 +76,16 @@ export function MengaturDewasaDetailModal({ result, fields, onClose }: Props) {
           <ReasonList title="Kriteria mendukung yang cocok" reasons={result.matched_recommended} fields={fields} />
           <ReasonList title="Kriteria dihindari yang cocok" reasons={result.matched_avoid} fields={fields} />
           {calendar ? <section className="rounded-xl bg-[#f8fafc] border border-slate-200/70 p-4"><h3 className="text-sm font-bold text-[#0f172a]">Kalender Bali</h3><dl className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">{elements.map(([label, value]) => <div key={label}><dt className="text-[11px] font-semibold text-slate-500">{label}</dt><dd className="text-sm font-bold text-slate-700 tabular-nums">{value}</dd></div>)}{calendar.sasih && <><div><dt className="text-[11px] font-semibold text-slate-500">Sasih</dt><dd className="text-sm font-bold text-slate-700">{calendar.sasih.nama_sasih}</dd></div><div><dt className="text-[11px] font-semibold text-slate-500">Tahun Saka</dt><dd className="text-sm font-bold text-slate-700 tabular-nums">{calendar.sasih.tahun_saka}</dd></div></>}{calendar.pengalantaka && <><div><dt className="text-[11px] font-semibold text-slate-500">Pengalantaka</dt><dd className="text-sm font-bold text-slate-700">{calendar.pengalantaka.pengalantaka}</dd></div><div><dt className="text-[11px] font-semibold text-slate-500">Hari lunar</dt><dd className="text-sm font-bold text-slate-700 tabular-nums">{calendar.pengalantaka.penanggal_1}{calendar.pengalantaka.penanggal_2 > 0 && ` / ${calendar.pengalantaka.penanggal_2}`}</dd></div><div><dt className="text-[11px] font-semibold text-slate-500">Purnama / Tilem</dt><dd className="text-sm font-bold text-slate-700">{calendar.pengalantaka.purnama_tilem}</dd></div></>}</dl></section> : <p className="text-sm text-slate-500">Data kalender untuk tanggal ini tidak tersedia.</p>}
-          <Link to={`/kalender?date=${encodeURIComponent(result.tanggal)}`} className="h-11 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm transition-colors inline-flex items-center justify-center gap-2 [touch-action:manipulation]"><CalendarDays className="w-4 h-4" /> Lihat di kalender lengkap</Link>
+          {onAddReminder && (
+            <button
+              type="button"
+              onClick={onAddReminder}
+              className="min-h-11 px-5 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-sm transition-colors cursor-pointer inline-flex items-center justify-center gap-2 [touch-action:manipulation]"
+            >
+              <BellPlus className="w-4 h-4" aria-hidden="true" />
+              Tambah pengingat
+            </button>
+          )}
         </div>
       </div>
     </div>, document.body,

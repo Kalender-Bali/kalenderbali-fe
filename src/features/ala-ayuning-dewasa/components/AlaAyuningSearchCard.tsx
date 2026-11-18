@@ -43,9 +43,9 @@ interface AlaAyuningSearchCardProps {
 
   /** Parameter untuk mode nama padewasan */
   selectedName: string;
-  selectedMonth: number;
+  selectedMonth?: number;
   selectedYear: number;
-  onSearchByName: (name: string, month: number, year: number) => void;
+  onSearchByName: (name: string, month: number | undefined, year: number) => void;
 
   /** Katalog master data 220 padewasan dari server Go */
   masterList: PadewasanItem[];
@@ -86,7 +86,7 @@ export const AlaAyuningSearchCard: React.FC<AlaAyuningSearchCardProps> = ({
   // State lokal untuk mencegah refetch di setiap ketukan
   const [localDate, setLocalDate] = useState(selectedDate);
   const [localName, setLocalName] = useState(selectedName);
-  const [localMonth, setLocalMonth] = useState(selectedMonth);
+  const [localMonth, setLocalMonth] = useState<number | undefined>(selectedMonth);
   const [localYear, setLocalYear] = useState(selectedYear);
 
   // Opsi tahun: 5 tahun lalu s.d. 10 tahun mendatang
@@ -271,15 +271,16 @@ export const AlaAyuningSearchCard: React.FC<AlaAyuningSearchCardProps> = ({
                 htmlFor="ala-month-select"
                 className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5"
               >
-                BULAN
+                BULAN (OPSIONAL)
               </label>
               <div className="relative">
                 <select
                   id="ala-month-select"
-                  value={localMonth}
-                  onChange={(e) => setLocalMonth(Number(e.target.value))}
+                  value={localMonth ?? ''}
+                  onChange={(e) => setLocalMonth(e.target.value ? Number(e.target.value) : undefined)}
                   className="w-full h-11 px-3 pr-8 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-[#0f172a] focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all cursor-pointer appearance-none [touch-action:manipulation]"
                 >
+                  <option value="">Semua Bulan (Tahunan)</option>
                   {BULAN_OPTIONS.map((b) => (
                     <option key={b.value} value={b.value}>
                       {b.label}
@@ -339,8 +340,8 @@ export const AlaAyuningSearchCard: React.FC<AlaAyuningSearchCardProps> = ({
 
           {/* Keterangan kontekstual di bawah form nama */}
           <p className="text-xs text-slate-400 font-medium mt-3">
-            Temukan tanggal-tanggal di mana kriteria padewasan ini jatuh pada bulan dan tahun
-            terpilih (contoh: hari <em>Agni Agung Doyan Basmi</em> pada Oktober 2026).
+            Temukan tanggal-tanggal di mana kriteria padewasan ini jatuh pada bulan atau tahun
+            terpilih (contoh: hari <em>Agni Agung Doyan Basmi</em> pada tahun 2026).
           </p>
         </form>
       )}

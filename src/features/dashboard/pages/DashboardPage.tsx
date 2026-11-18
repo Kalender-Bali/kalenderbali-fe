@@ -5,6 +5,7 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 import { EASE_SMOOTH } from '@/lib/animations';
 import { useDashboardData } from '../hooks/useDashboardData';
 import { DashboardHero } from '../components/DashboardHero';
+import { DashboardPengingat } from '../components/DashboardPengingat';
 import { DashboardMiniCalendar } from '../components/DashboardMiniCalendar';
 import { DashboardUpcomingHariRaya } from '../components/DashboardUpcomingHariRaya';
 import { DashboardDewasaAyu } from '../components/DashboardDewasaAyu';
@@ -158,10 +159,20 @@ export default function DashboardPage() {
       </div>
 
       {/* =================================================================== */}
-      {/* BARIS 1: BANNER HERO "HARI INI" (WEWARAN, SASIH, PAWUKON, URIP)     */}
+      {/* BARIS 1: 2 KOLOM (INFORMASI HARI INI & PENGINGAT TERDEKAT)          */}
+      {/* Grid 12 kolom disamakan dengan Baris 2 (7 : 5) agar lebar card     */}
+      {/* Pengingat sejajar presisi dengan card Hari Raya Berikutnya          */}
       {/* =================================================================== */}
-      <section aria-label="Informasi Kalender Hari Ini">
-        <DashboardHero heroData={heroData} />
+      <section
+        aria-label="Informasi Kalender Hari Ini dan Pengingat Terdekat"
+        className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
+      >
+        <div className="lg:col-span-7 flex flex-col">
+          <DashboardHero heroData={heroData} />
+        </div>
+        <div className="lg:col-span-5 flex flex-col">
+          <DashboardPengingat todayDateISO={heroData.tanggalISO} />
+        </div>
       </section>
 
       {/* =================================================================== */}

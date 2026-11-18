@@ -8,10 +8,11 @@ import {
   formatFullIndoDate,
   getIndoDayName,
   getWarigaSummary,
-  getHariRayaBadgeStyle,
   getPadewasanSummary,
+  getTodayWITA,
 } from '../utils/calendarUtils';
 import { HariRayaDetailModal } from './HariRayaDetailModal';
+import { CalendarHolidayReminders } from './CalendarHolidayReminders';
 import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
 
 /**
@@ -41,6 +42,7 @@ interface DayDetailModalProps {
   onClose: () => void;
   dateString: string;
   dayData?: KalenderHarian;
+  onAddReminder: (holiday: HariRayaItem) => void;
 }
 
 export const DayDetailModal: React.FC<DayDetailModalProps> = ({
@@ -48,6 +50,7 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
   onClose,
   dateString,
   dayData,
+  onAddReminder,
 }) => {
   const navigate = useNavigate();
 
@@ -206,31 +209,7 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
           </div>
 
           {/* B. Hari Raya / Rahinan (Jika ada pada tanggal ini) */}
-          {hariRayaList.length > 0 && (
-            <div className="space-y-2">
-              <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">
-                Hari Raya & Rerainan
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {hariRayaList.map((hr) => {
-                  const badgeStyle = getHariRayaBadgeStyle(hr.nama);
-                  return (
-                    <button
-                      key={hr.id || hr.nama}
-                      type="button"
-                      onClick={() => setSelectedHoliday(hr)}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${badgeStyle.bg} ${badgeStyle.text} transition-colors cursor-pointer group active:scale-95 [touch-action:manipulation]`}
-                      title="Klik untuk membaca penjelasan hari raya ini"
-                    >
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${badgeStyle.dot}`} />
-                      <span>{hr.nama}</span>
-                      <span className="text-[10px] opacity-60 group-hover:opacity-100 transition-opacity">↗</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <CalendarHolidayReminders holidays={hariRayaList} date={dateString} today={getTodayWITA()} onDetail={setSelectedHoliday} onAdd={onAddReminder} />
 
           {/* C. Petunjuk Padewasan (Panduan Hari Baik - Rangkuman Dianjurkan & Pantangan) */}
           <div className="bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 rounded-xl p-4 space-y-2.5">

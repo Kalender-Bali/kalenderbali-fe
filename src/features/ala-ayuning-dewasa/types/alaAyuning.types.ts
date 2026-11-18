@@ -86,15 +86,15 @@ export interface CariByNamaRequest {
   /** Nama padewasan yang dicari (contoh: "Agni Agung Doyan Basmi", "Amerta Danta") */
   nama: string;
 
-  /** Angka bulan Masehi 1 s.d. 12 */
-  bulan: number;
+  /** Angka bulan Masehi 1 s.d. 12 (opsional; jika 0 atau tidak diset maka evaluasi tahunan) */
+  bulan?: number;
 
   /** Angka tahun Masehi 4 digit (misal: 2026) */
   tahun: number;
 }
 
 /**
- * CariByNamaResponse merangkum hasil pencarian tanggal jatuh padewasan tertentu dalam satu bulan.
+ * CariByNamaResponse merangkum hasil pencarian tanggal jatuh padewasan tertentu dalam satu bulan atau tahun.
  */
 export interface CariByNamaResponse {
   /** ID padewasan yang dicari */
@@ -109,7 +109,7 @@ export interface CariByNamaResponse {
   /** Kode keparahan alahing dewasa ("1".."4") */
   severity_code: string;
 
-  /** Bulan yang dievaluasi (1..12) */
+  /** Bulan yang dievaluasi (1..12, atau 0 bila pencarian tahunan) */
   bulan: number;
 
   /** Tahun yang dievaluasi */

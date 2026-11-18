@@ -45,6 +45,9 @@ export interface PuraBackendItem {
   /** Status publikasi (Published, Review, Rejected) */
   status: string;
 
+  /** Mapping dari detail BE; dipakai memeriksa hak pengelola tanpa role akun baru. */
+  manager?: { user_id: number; name: string; email: string }[];
+
   /** Nomor telepon kontak penanggungjawab (opsional) */
   phone?: string | null;
 
@@ -167,9 +170,7 @@ export interface PuraFinanceCategorySummary {
  * GET /api/v1/puras/:id/finance/summary
  */
 export interface PuraFinanceSummary {
-  /** Daftar seluruh entri transaksi */
-  entries: PuraFinanceEntry[];
-
+  // HTTP summary hanya berisi rekap; transaksi dibaca dari endpoint /finance.
   /** Total uang masuk (punia/dana masuk) */
   total_debit: number;
 

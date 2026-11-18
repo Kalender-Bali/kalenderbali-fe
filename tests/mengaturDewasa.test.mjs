@@ -2,12 +2,21 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createServer } from 'vite';
 
 // Muat modul TypeScript melalui Vite yang sama tanpa membuka server jaringan.
 const server = await createServer({
   configFile: false,
   resolve: { alias: { '@': `${process.cwd()}/src` } },
+  ssr: { noExternal: ['react-dom'] },
+  plugins: [{
+    name: 'dewasa-test-portal',
+    enforce: 'pre',
+    resolveId(source) { if (source === 'react-dom') return '\0dewasa-test-portal'; },
+    load(id) { if (id === '\0dewasa-test-portal') return 'export const createPortal = node => node;'; },
+  }],
   server: { middlewareMode: true, ws: false },
   appType: 'custom',
 });
@@ -114,6 +123,65 @@ test('hasil awal menyajikan tanggal eligible dan status lain sebagai filter', ()
   assert.match(html, /Ekawara: /);
   assert.match(html, /Luang/);
   assert.doesNotMatch(html, /2 November 2026/);
+});
+
+test('Detail Tanggal menawarkan pengingat yang memakai tanggal terpilih dan kriteria sumber', async (t) => {
+  const { MengaturDewasaDetailModal } = await server.ssrLoadModule('/src/features/mengatur-dewasa/components/MengaturDewasaDetailModal.tsx');
+  const { PengingatDewasaResultDialog } = await server.ssrLoadModule('/src/features/pengingat/components/PengingatDewasaResultDialog.tsx');
+  const { dewasaCandidates } = await server.ssrLoadModule('/src/features/pengingat/utils/pengingatSources.ts');
+  const { reminderCreatePayload } = await server.ssrLoadModule('/src/features/pengingat/api/pengingatApi.ts');
+  const { useAuthStore, authQueryScope } = await server.ssrLoadModule('/src/stores/useAuthStore.ts');
+  const initialAuth = { ...useAuthStore.getInitialState() };
+  const previousAuth = useAuthStore.getState();
+  const previousDocument = globalThis.document;
+  const client = new QueryClient();
+  t.after(() => {
+    Object.assign(useAuthStore.getInitialState(), initialAuth);
+    useAuthStore.setState(previousAuth);
+    if (previousDocument === undefined) delete globalThis.document;
+    else globalThis.document = previousDocument;
+    client.clear();
+  });
+  globalThis.document = { body: {} };
+
+  const result = { tanggal: '2099-11-24', status: 'eligible', eligible: true, matched_recommended: [{ name: 'Dina Mandi' }], matched_avoid: [] };
+  const props = { result, fields, onClose() {} };
+  const detail = renderToString(React.createElement(MengaturDewasaDetailModal, { ...props, onAddReminder() {} }));
+  assert.match(detail, /Tambah pengingat/);
+  assert.doesNotMatch(detail, /Lihat di kalender lengkap/);
+  assert.doesNotMatch(renderToString(React.createElement(MengaturDewasaDetailModal, props)), /Tambah pengingat/);
+
+  const request = { mode: 'activity', activity_id: '17', tanggal_mulai: '2099-11-01', tanggal_selesai: '2099-11-30' };
+  const response = { data: { activity: { id: '17', name: 'Penyucian diri' }, results: [{ ...result, tanggal: '2099-11-20' }, result] }, meta: {} };
+  const candidate = dewasaCandidates(request, response, { mode: 'activity', sections: [] }, '2099-11-18')
+    .find(item => item.nextDate === result.tanggal);
+  assert.ok(candidate);
+  const payload = reminderCreatePayload({ ...candidate, title: 'Melukat keluarga', repeat: false, alertDays: [1, 0], note: '' });
+  assert.equal(payload.nextDate, '2099-11-24');
+  assert.deepEqual(payload.source, { feature: 'mengatur-dewasa', request });
+
+  const auth = { ...initialAuth, isAuthenticated: true, user: { id: 'dewasa-fixture', role: 'Guest' }, token: 'fixture-only' };
+  Object.assign(useAuthStore.getInitialState(), auth);
+  useAuthStore.setState(auth);
+  const scope = authQueryScope(auth);
+  client.setQueryData(['reminders', scope], [{ kind: 'piodalan' }]);
+  const renderDialog = () => renderToString(React.createElement(QueryClientProvider, { client },
+    React.createElement(MemoryRouter, {}, React.createElement(PengingatDewasaResultDialog, { candidate, onClose() {} }))));
+
+  client.setQueryData(['reminder-policy', scope], { tier: 'Premium', maxPerFeature: 10, canRepeat: true });
+  const form = renderDialog();
+  assert.match(form, /dateTime="2099-11-24"/);
+  assert.match(form, /Penyucian diri/);
+  assert.match(form, /Dina Mandi/);
+  assert.match(form, /Nama rencana kegiatan/);
+  assert.match(form, /Hanya jadwal yang dipilih/);
+  assert.doesNotMatch(form, /type="date"|2099-11-20|<select/);
+
+  client.setQueryData(['reminder-policy', scope], { tier: 'Free', maxPerFeature: 1, canRepeat: false });
+  assert.match(renderDialog(), /Simpan pengingat/);
+  client.setQueryData(['reminders', scope], [{ kind: 'mengatur-dewasa' }]);
+  assert.match(renderDialog(), /Tambah Lebih Banyak Pengingat/);
+  assert.doesNotMatch(renderDialog(), /Simpan pengingat/);
 });
 
 test('401 dari token lama tidak mengeluarkan sesi baru, tetapi token aktif tetap ditangani', async (t) => {

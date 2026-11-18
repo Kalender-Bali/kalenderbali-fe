@@ -658,21 +658,23 @@ html.dark .ring-slate-800 {
 }
 
 /* Penyesuaian Gradient Header Modal Dialog & Hero di Mode Gelap (Eliminasi Silver / Putih) */
-html.dark [class*="from-teal-50"],
-html.dark [class*="from-teal-100"] {
+html.dark [class*="from-teal-50"]:not([class*="dark:from-"]),
+html.dark [class*="from-teal-100"]:not([class*="dark:from-"]),
+html.dark [class*="from-amber-50"]:not([class*="dark:from-"]),
+html.dark [class*="from-amber-100"]:not([class*="dark:from-"]) {
   --tw-gradient-from: #1e293b !important; /* slate-800 */
 }
-html.dark [class*="via-slate-50"],
-html.dark [class*="via-slate-100"],
-html.dark [class*="via-teal-50"],
-html.dark [class*="via-amber-50"],
-html.dark .via-white {
+html.dark [class*="via-slate-50"]:not([class*="dark:via-"]),
+html.dark [class*="via-slate-100"]:not([class*="dark:via-"]),
+html.dark [class*="via-teal-50"]:not([class*="dark:via-"]),
+html.dark [class*="via-amber-50"]:not([class*="dark:via-"]),
+html.dark .via-white:not([class*="dark:via-"]) {
   --tw-gradient-via: #1e293b !important;
 }
-html.dark [class*="to-emerald-50"],
-html.dark [class*="to-emerald-100"],
-html.dark [class*="to-slate-50"],
-html.dark [class*="to-teal-50"] {
+html.dark [class*="to-emerald-50"]:not([class*="dark:to-"]),
+html.dark [class*="to-emerald-100"]:not([class*="dark:to-"]),
+html.dark [class*="to-slate-50"]:not([class*="dark:to-"]),
+html.dark [class*="to-teal-50"]:not([class*="dark:to-"]) {
   --tw-gradient-to: #0f172a !important; /* slate-900 */
 }
 

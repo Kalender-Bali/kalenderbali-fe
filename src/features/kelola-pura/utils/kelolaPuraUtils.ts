@@ -124,7 +124,6 @@ export const PURA_TYPES = [
   'Kahyangan Tiga',
   'Kawitan',
   'Swagina',
-  'Suka Duka',
 ] as const;
 
 /**

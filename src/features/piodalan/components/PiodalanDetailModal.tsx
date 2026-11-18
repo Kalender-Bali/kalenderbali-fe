@@ -4,12 +4,14 @@ import {
   X,
   ArrowRight,
   Info,
+  BellPlus,
 } from 'lucide-react';
 import type { PiodalanScheduleItem } from '../types/piodalan.types';
 import { useDayWariga } from '../hooks/usePiodalan';
 import { calculateZodiak } from '@/features/otonan/utils/warigaUtils';
 import { WarigaDataState } from '@/features/otonan/components/WarigaDataState';
 import { WarigaExplanationModal } from '@/features/otonan/components/WarigaExplanationModal';
+import { getTodayWITA } from '../utils/piodalanUtils';
 
 /**
  * ==============================================================================
@@ -26,6 +28,7 @@ interface PiodalanDetailModalProps {
 
   /** Data jadwal piodalan / tanggal yang dipilih */
   schedule: PiodalanScheduleItem | null;
+  onAddReminder: (dateStr: string) => void;
 }
 
 /** Tipe data baris tabel wariga */
@@ -59,6 +62,7 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
   isOpen,
   onClose,
   schedule,
+  onAddReminder,
 }) => {
   // State sub-modal penjelasan makna wariga (saat panah → diklik)
   const [explanationTarget, setExplanationTarget] = useState<{
@@ -371,13 +375,16 @@ export const PiodalanDetailModal: React.FC<PiodalanDetailModalProps> = ({
         </div>
 
         {/* ================================================================== */}
-        {/* FOOTER MODAL: TOMBOL TUTUP UTAMA TEAL                             */}
+        {/* FOOTER MODAL: PENGINGAT TANGGAL DAN TUTUP                         */}
         {/* ================================================================== */}
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-end shrink-0">
+        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2 shrink-0">
+          <button type="button" onClick={() => onAddReminder(schedule.dateStr)} disabled={schedule.dateStr < getTodayWITA()} title={schedule.dateStr < getTodayWITA() ? 'Tanggal ini sudah terlewat' : 'Atur pengingat untuk tanggal ini; pilihan pura opsional'} className="h-11 px-5 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed [touch-action:manipulation]">
+            <BellPlus className="w-4 h-4" aria-hidden="true" />Tambah pengingat
+          </button>
           <button
             type="button"
             onClick={onClose}
-            className="h-10 px-6 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer [touch-action:manipulation]"
+            className="h-11 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm transition-all cursor-pointer [touch-action:manipulation]"
           >
             Tutup
           </button>

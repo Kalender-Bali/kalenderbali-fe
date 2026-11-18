@@ -6,6 +6,7 @@ import {
   FileText,
   Landmark,
   Newspaper,
+  BellRing,
   Users,
   ChevronDown,
   ChevronRight,
@@ -46,6 +47,7 @@ const routePrefetchers: Record<string, () => void> = {
   '/garis-hidup': () => { import('@/features/garis-hidup/pages/GarisHidupPage'); },
   '/jodoh': () => { import('@/features/jodoh/pages/JodohPage'); },
   '/bhagawadgita': () => { import('@/features/bhagawad-gita/pages/BhagawadGitaPage'); },
+  '/pengingat': () => { import('@/features/pengingat/pages/PengingatPage'); },
 };
 
 const handlePrefetch = (to: string) => {
@@ -92,6 +94,7 @@ export default function Sidebar() {
       { to: '/garis-hidup', label: 'Garis Hidup' },
       { to: '/jodoh', label: 'Jodoh' },
       { to: '/bhagawadgita', label: 'Bhagawad Gita' },
+      { to: '/kartu-ucapan', label: 'Kartu Ucapan' },
     ],
   };
 
@@ -102,7 +105,10 @@ export default function Sidebar() {
   const secondaryNavItems: NavItem[] = [
     { to: '/keterangan', label: 'Keterangan', icon: FileText },
     { to: '/kelola-pura', label: 'Kelola Pura', icon: Landmark },
+    // Komunitas memiliki direktori dan buku kas tersendiri meskipun memakai API Pura.
+    { to: '/komunitas', label: 'Komunitas', icon: Users },
     { to: '/warta', label: 'Warta Budaya', icon: Newspaper },
+    { to: '/pengingat', label: 'Pengingat', icon: BellRing },
   ];
 
   /**
@@ -288,7 +294,7 @@ export default function Sidebar() {
               )}
             </div>
 
-            {/* Menu Item Tambahan: Keterangan, Kelola Pura, Warta */}
+            {/* Menu Item Tambahan: Keterangan, Kelola Pura, Warta, Pengingat */}
             {secondaryNavItems.map((item) => {
               const Icon = item.icon;
               return (

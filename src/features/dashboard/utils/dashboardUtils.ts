@@ -13,6 +13,7 @@
  */
 
 import type { KalenderHarian } from '@/features/kalender/types/kalender.types';
+import type { DewasaAyuTodayResponse } from '@/features/ala-ayuning-dewasa/types/alaAyuning.types';
 import {
   formatFullIndoDate,
   getTodayWITA,
@@ -21,12 +22,36 @@ import {
   normalizeCalendarString,
 } from '@/features/kalender/utils/calendarUtils';
 import type {
+  DewasaAyuDashboard,
   DashboardMiniCalendarDay,
   PiodalanDashboardItem,
   UpcomingHariRayaItem,
 } from '../types/dashboard.types';
 import type { PuraBackendItem } from '@/features/piodalan/types/piodalan.types';
 import { getHariRayaSubtext } from '../data/dashboardMockData';
+
+/** Ringkasan dashboard berpusat pada hari ini, tanpa meminta pilihan kegiatan. */
+export function buildDashboardDewasaAyu(
+  summary: DewasaAyuTodayResponse | null | undefined,
+  todayWITA: string,
+): DewasaAyuDashboard {
+  return {
+    tanggalISO: todayWITA,
+    total: summary?.total ?? 0,
+    headline: !summary
+      ? 'Petunjuk padewasan hari ini belum tersedia.'
+      : summary.total === 0
+        ? 'Tidak ada padewasan aktif yang tercatat hari ini.'
+        : `Terdapat ${summary.total} padewasan aktif hari ini. Berikut ringkasan anjuran dan pantangan yang tercatat.`,
+    items: (summary?.items ?? []).slice(0, 3).map((item) => ({
+      id: item.id,
+      nama: item.nama,
+      keterangan: item.keterangan || '',
+      tag: 'PADEWASAN',
+    })),
+    actionUrl: `/ala-ayuning-dewasa?mode=date&date=${todayWITA}`,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // 1. Konstanta Header Nama Hari (Senin-Pertama: SEN s.d. MIN)

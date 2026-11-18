@@ -24,6 +24,7 @@ function renderResults(mode, cycles, dates = ['2023-05-21', '2023-12-17']) {
       penjelasan: '',
     },
     onOpenDetailModal: () => {},
+    onAddReminder: () => {},
   }));
 }
 
@@ -34,6 +35,30 @@ test('mode elemen menampilkan kedua tanggal tanpa mengklaim nomor siklus sejak l
     assert.match(html, /17 Desember 2023/);
     assert.doesNotMatch(html, /SIKLUS KE|sejak tanggal lahir/);
   }
+});
+
+test('aksi setiap hasil membuka pengingat untuk tanggal yang tepat tanpa mengunduh kalender', () => {
+  const dates = ['2099-01-01', '2099-07-30'];
+  let selected;
+  const element = OtonanResultSection({
+    data: { input_dinormalisasi: { tipe_pencarian: 'elemen_kalender', elemen: elements, sebelum_jam_6: false }, hasil: dates.map(tanggal => ({ tanggal, perayaan_ke: null, detail_elemen: elements })), penjelasan: '' },
+    onOpenDetailModal() {}, onAddReminder(date) { selected = date; },
+  });
+  const html = renderToStaticMarkup(element);
+  assert.doesNotMatch(html, /Tambahkan ke kalender/);
+  assert.equal((html.match(/>Tambah pengingat<\/span>/g) ?? []).length, 2);
+  function buttons(node) {
+    if (!node || typeof node !== 'object') return [];
+    if (Array.isArray(node)) return node.flatMap(buttons);
+    return [...(node.type === 'button' && node.props['aria-label']?.startsWith('Tambah pengingat Otonan') ? [node] : []), ...buttons(node.props?.children)];
+  }
+  const actions = buttons(element);
+  for (let i = 0; i < dates.length; i++) {
+    assert.equal(actions[i].props.disabled, false);
+    actions[i].props.onClick();
+    assert.equal(selected, dates[i]);
+  }
+  assert.match(renderResults('tanggal_lahir', [37]), /disabled=""/);
 });
 
 test('mode tanggal lahir tetap menampilkan nomor siklus yang diketahui', () => {

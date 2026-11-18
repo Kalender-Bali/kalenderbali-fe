@@ -20,6 +20,8 @@ import { CalendarGrid } from '../components/CalendarGrid';
 import { CalendarInspector } from '../components/CalendarInspector';
 import { CalendarBottomSection } from '../components/CalendarBottomSection';
 import { DayDetailModal } from '../components/DayDetailModal';
+import type { HariRayaItem } from '../types/kalender.types';
+import { PengingatHariRayaCalendarDialog } from '@/features/pengingat/components/PengingatHariRayaCalendarDialog';
 
 /**
  * ============================================================================
@@ -83,6 +85,7 @@ function CalendarContent() {
 
   // State lokal modal dialog rincian hari (dibuka saat tombol "Lihat detail hari" diklik)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [reminder, setReminder] = useState<{ holiday: HariRayaItem; date: string } | null>(null);
 
   // -------------------------------------------------------------------------
   // 1. SINKRONISASI TANGGAL AKTIF KE URL PARAMETER (?date=YYYY-MM-DD)
@@ -317,7 +320,12 @@ function CalendarContent() {
         onClose={() => setIsDetailModalOpen(false)}
         dateString={selectedDate}
         dayData={selectedData}
+        onAddReminder={holiday => {
+          setIsDetailModalOpen(false);
+          setReminder({ holiday, date: selectedDate });
+        }}
       />
+      {reminder && <PengingatHariRayaCalendarDialog key={`${reminder.holiday.id}:${reminder.date}`} holiday={reminder.holiday} date={reminder.date} onClose={() => { setReminder(null); setIsDetailModalOpen(true); }} />}
     </motion.div>
   );
 }

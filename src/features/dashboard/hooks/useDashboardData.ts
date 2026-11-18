@@ -31,11 +31,11 @@ import {
 import type {
   DashboardHeroData,
   DashboardMiniCalendarDay,
-  DewasaAyuDashboard,
   PiodalanDashboardItem,
   UpcomingHariRayaItem,
 } from '../types/dashboard.types';
 import {
+  buildDashboardDewasaAyu,
   extractTopUpcomingHariRaya,
   extractTopUpcomingPiodalan,
   generateMiniCalendarGrid,
@@ -94,6 +94,7 @@ export function useDashboardData() {
     queryFn: fetchDewasaAyuToday,
     staleTime: 1000 * 60 * 5,
   });
+  const dewasaAyu = buildDashboardDewasaAyu(dewasaToday.data, todayWITA);
 
   // ---------------------------------------------------------------------------
   // 3. Kompilasi Data Hero "HARI INI"
@@ -129,9 +130,10 @@ export function useDashboardData() {
       dinaKa: todayDay ? warigaSummary.dinaKa : null,
       urip: todayDay?.wewaran.neptu ?? null,
       arah: todayDay ? `Arah ${warigaSummary.arah.toLowerCase()}` : 'Arah belum tersedia',
-      quoteHariIni: dewasaToday.data?.headline || 'Petunjuk padewasan belum tersedia.',
+      quoteHariIni: dewasaAyu.headline,
+      tahunSaka: todayDay?.sasih?.tahun_saka ?? null,
     };
-  }, [todayYearCalendarDays, todayWITA, dewasaToday.data]);
+  }, [todayYearCalendarDays, todayWITA, dewasaAyu.headline]);
 
   // ---------------------------------------------------------------------------
   // 4. Generator Matriks Sel Mini Kalender Bulanan (Senin s.d. Minggu)
@@ -209,17 +211,6 @@ export function useDashboardData() {
   // ---------------------------------------------------------------------------
   // 8. Integrasi Data Dewasa Ayu Hari Ini & Piodalan Terdekat (Masing-masing 3 Item)
   // ---------------------------------------------------------------------------
-  const dewasaAyu: DewasaAyuDashboard = {
-    status: dewasaToday.data?.status_label === 'BAIK' ? 'BAIK' : 'NETRAL',
-    statusLabel: dewasaToday.isLoading ? 'MEMUAT' : dewasaToday.data?.status_label || 'BELUM TERSEDIA',
-    headline: dewasaToday.data?.headline || (dewasaToday.isLoading ? 'Memuat petunjuk padewasan hari ini.' : 'Petunjuk padewasan belum tersedia.'),
-    items: (dewasaToday.data?.items ?? []).map((item) => ({
-      id: item.id, nama: item.nama, keterangan: item.keterangan || '', tag: 'PADEWASAN',
-    })),
-    activityGuidance: dewasaToday.data?.activity_guidance ?? [],
-    actionUrl: `/ala-ayuning-dewasa?mode=date&date=${todayWITA}`,
-  };
-
   // Ekstraksi 3 piodalan pura terdekat setelah hari ini dari data real kalender & pura resmi
   const realUpcomingPiodalan: PiodalanDashboardItem[] = useMemo(() => {
     const daysPool = [...todayYearCalendarDays, ...nextTodayYearCalendarDays];

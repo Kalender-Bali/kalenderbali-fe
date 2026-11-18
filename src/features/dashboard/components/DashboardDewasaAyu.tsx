@@ -1,20 +1,20 @@
 import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import type { DewasaAyuDashboard } from '../types/dashboard.types';
-import { DewasaActivityPanel } from '@/features/ala-ayuning-dewasa/components/DewasaActivityPanel';
+import { formatFullIndoDate } from '@/features/kalender/utils/calendarUtils';
 import { QueryErrorState } from '@/components/ui/QueryErrorState';
 
 /**
  * ============================================================================
  * KOMPONEN: DashboardDewasaAyu (Baris 3 Kiri — Dewasa Ayu Hari Ini)
  * ============================================================================
- * Menampilkan petunjuk padewasan berdasarkan kegiatan yang dipilih:
+ * Menampilkan konteks padewasan hari ini dalam zona WITA:
  *  - Latar Card: Gradient Teal Tirta Bali pekat (from-[#0e9f90] via-[#0c8e80] to-[#0a756a])
- *  - Baris Atas: Nama fitur dan status ringkasan dari backend
+ *  - Baris Atas: Nama fitur dan tanggal hari ini
  *  - Headline: Ringkasan narasi petunjuk hari ini
- *  - Area Tengah: Pilihan kegiatan, anjuran, serta seluruh pantangan yang cocok
+ *  - Area Tengah: Pratinjau padewasan aktif beserta keterangan lengkapnya
  *  - Baris Bawah: Tautan "Lihat selengkapnya →" menuju ke /ala-ayuning-dewasa
  *
  * Mengikuti Aturan Desain AGENTS.md:
@@ -31,8 +31,6 @@ interface DashboardDewasaAyuProps {
 }
 
 export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data, error, onRetry, isLoading }) => {
-  const navigate = useNavigate();
-
   if (isLoading) return <DataSkeleton label="Memuat petunjuk Dewasa Ayu..." className="h-72" />;
 
   if (error && onRetry) return <QueryErrorState title="Gagal memuat petunjuk Dewasa Ayu" error={error} onRetry={onRetry} />;
@@ -49,35 +47,33 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data, er
       {/* 1. BARIS ATAS: NAMA FITUR & STATUS RINGKASAN                        */}
       {/* =================================================================== */}
       <div>
-        <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           {/* Pill Nama Modul dengan ikon sparkle */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 dark:bg-teal-950/80 dark:border dark:border-teal-500/40 backdrop-blur-xs text-white text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider">
             <Sparkles size={13} className="text-teal-200 dark:text-teal-300 shrink-0" />
             <span>DEWASA AYU HARI INI</span>
           </div>
 
-          {/* Status bersumber dari ringkasan backend */}
+          {/* Tanggal ringkasan tetap mengikuti hari ini WITA */}
           <div className="px-2.5 py-0.5 rounded-full bg-white/20 dark:bg-emerald-950/60 dark:border dark:border-emerald-500/30 backdrop-blur-xs text-white dark:text-emerald-300 text-[10px] font-extrabold uppercase tracking-widest">
-            {data.statusLabel}
+            <time dateTime={data.tanggalISO} className="tabular-nums">{formatFullIndoDate(data.tanggalISO)}</time>
           </div>
         </div>
 
-        {/* Petunjuk pemilihan kegiatan */}
-        <p className="text-xs sm:text-sm text-teal-50/90 dark:text-slate-300 font-medium leading-snug mb-3">
+        {/* Konteks padewasan harian tanpa penilaian baik/buruk secara umum */}
+        <p className="text-xs sm:text-sm text-teal-50/90 dark:text-slate-300 font-medium leading-snug mb-3 tabular-nums">
           {data.headline}
         </p>
 
         {/* ================================================================= */}
-        {/* 2. AREA TENGAH: ANJURAN & PANTANGAN PER KEGIATAN                 */}
+        {/* 2. AREA TENGAH: PRATINJAU PADEWASAN HARI INI                     */}
         {/* ================================================================= */}
-        {data.activityGuidance?.length ? (
-          <DewasaActivityPanel activities={data.activityGuidance} id="dashboard-dewasa-activity" />
-        ) : <div className="space-y-2.5">
+        <div className="space-y-2.5">
           {topThreeItems.map((item) => (
-            <div
+            <Link
               key={item.id}
-              onClick={() => navigate(data.actionUrl)}
-              className="p-2.5 sm:p-3 rounded-xl bg-white/10 dark:bg-slate-800/80 hover:bg-white/15 dark:hover:bg-slate-800 border border-white/10 dark:border-slate-700/80 backdrop-blur-xs transition-all cursor-pointer group"
+              to={data.actionUrl}
+              className="block min-h-11 p-2.5 sm:p-3 rounded-xl bg-white/10 dark:bg-slate-800/80 hover:bg-white/15 dark:hover:bg-slate-800 border border-white/10 dark:border-slate-700/80 backdrop-blur-xs transition-all cursor-pointer group [touch-action:manipulation] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-teal-100 dark:group-hover:text-teal-300 transition-colors">
@@ -90,9 +86,9 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data, er
               <p className="text-[11px] sm:text-xs text-teal-100/80 dark:text-slate-300 font-medium whitespace-pre-line break-words mt-1">
                 {item.keterangan}
               </p>
-            </div>
+            </Link>
           ))}
-        </div>}
+        </div>
       </div>
 
       {/* =================================================================== */}
@@ -100,18 +96,19 @@ export const DashboardDewasaAyu: React.FC<DashboardDewasaAyuProps> = ({ data, er
       {/* =================================================================== */}
       <div className="flex items-center justify-between gap-3 pt-3 mt-4 border-t border-white/10 dark:border-slate-800">
         <span className="text-[11px] text-teal-100/70 dark:text-slate-400 font-medium">
-          Wariga harian
+          {data.total > topThreeItems.length
+            ? <span className="tabular-nums">Menampilkan {topThreeItems.length} dari {data.total} padewasan</span>
+            : 'Wariga harian'}
         </span>
 
         {/* Tautan Lihat Selengkapnya ke Halaman Ala Ayuning Dewasa */}
-        <button
-          type="button"
-          onClick={() => navigate(data.actionUrl)}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-white hover:text-teal-200 dark:text-teal-300 dark:hover:text-teal-200 transition-colors cursor-pointer [touch-action:manipulation] py-1"
+        <Link
+          to={data.actionUrl}
+          className="inline-flex min-h-11 items-center gap-1.5 text-xs font-bold text-white hover:text-teal-200 dark:text-teal-300 dark:hover:text-teal-200 transition-colors cursor-pointer [touch-action:manipulation] py-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <span>Lihat selengkapnya</span>
           <ArrowRight size={13} className="shrink-0" />
-        </button>
+        </Link>
       </div>
     </div>
   );

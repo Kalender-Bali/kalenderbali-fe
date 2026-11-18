@@ -1,13 +1,14 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import type { OtonanSearchParams, OtonanSearchType } from '../types/otonan.types';
+import type { OtonanResponseData, OtonanSearchParams, OtonanSearchType } from '../types/otonan.types';
 import { useOtonanSearch } from '../hooks/useOtonan';
 import { formatIndoDate, getTodayWITA } from '../utils/otonanUtils';
 import { OtonanHero } from '../components/OtonanHero';
 import { OtonanFormSection } from '../components/OtonanFormSection';
 import { OtonanResultSection } from '../components/OtonanResultSection';
 import { OtonanDetailModal } from '../components/OtonanDetailModal';
+import { PengingatOtonanResultDialog } from '@/features/pengingat/components/PengingatOtonanResultDialog';
 
 /**
  * ============================================================================
@@ -35,6 +36,7 @@ export default function OtonanPage() {
   // State modal dialog rincian wariga otonan & tanggal yang dipilih
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
   const [selectedOtonanDate, setSelectedOtonanDate] = useState<string | null>(null);
+  const [reminder, setReminder] = useState<{ request: OtonanSearchParams; response: OtonanResponseData; date: string } | null>(null);
 
   const handleOpenDetailModal = (dateStr: string) => {
     setSelectedOtonanDate(dateStr);
@@ -227,6 +229,9 @@ export default function OtonanPage() {
         <OtonanResultSection
           data={otonanData}
           onOpenDetailModal={handleOpenDetailModal}
+          onAddReminder={date => {
+            if (activeParams) setReminder({ request: structuredClone(activeParams), response: structuredClone(otonanData), date });
+          }}
         />
       )}
 
@@ -239,6 +244,7 @@ export default function OtonanPage() {
         selectedDate={selectedOtonanDate || otonanData?.hasil?.[0]?.tanggal}
         data={otonanData}
       />
+      {reminder && <PengingatOtonanResultDialog request={reminder.request} response={reminder.response} date={reminder.date} onClose={() => setReminder(null)} />}
     </div>
   );
 }

@@ -18,57 +18,43 @@ import React from 'react';
 export const AlaAyuningSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse select-none" aria-busy="true" aria-label="Memuat data padewasan">
-      {/* ===================================================================== */}
-      {/* SKELETON 1: ROW TENGAH (RINGKASAN KIRI + PAWUKON KANAN)               */}
-      {/* ===================================================================== */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Kolom Kiri: Skeleton Summary Card (7 dari 12 Kolom) */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="space-y-2">
-              <div className="h-5 w-40 bg-slate-200 rounded-lg" />
-              <div className="h-3 w-56 bg-slate-100 rounded-md" />
-            </div>
-            <div className="h-6 w-20 bg-slate-200 rounded-full" />
-          </div>
-
-          <div className="space-y-3 p-4 rounded-xl bg-slate-50 border border-slate-100">
-            <div className="h-4 w-48 bg-slate-200 rounded-md" />
-            <div className="h-3 w-full bg-slate-100 rounded-md" />
-            <div className="h-3 w-3/4 bg-slate-100 rounded-md" />
-          </div>
-
-          <div className="space-y-2 pt-1">
-            <div className="h-3 w-36 bg-slate-200 rounded-md" />
-            <div className="flex flex-wrap gap-2">
-              <div className="h-7 w-28 bg-slate-100 rounded-lg" />
-              <div className="h-7 w-32 bg-slate-100 rounded-lg" />
-              <div className="h-7 w-24 bg-slate-100 rounded-lg" />
-            </div>
+      {/* Tanggal dan pawukon di atas, ringkasan praktis di bawah */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-7 shadow-xs space-y-5">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="h-6 w-48 bg-slate-200 rounded-lg" />
+            <div className="h-7 w-32 bg-slate-100 rounded-full" />
           </div>
         </div>
-
-        {/* Kolom Kanan: Skeleton Pawukon Card (5 dari 12 Kolom) */}
-        <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-7 shadow-xs space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-            <div className="h-5 w-36 bg-slate-200 rounded-lg" />
-            <div className="h-5 w-12 bg-slate-100 rounded-md" />
+        <div className="space-y-4">
+          <div className="h-5 w-64 max-w-full bg-slate-200 rounded-md" />
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:flex-wrap sm:gap-x-8">
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="space-y-1">
+                <div className="h-4 w-16 bg-slate-100 rounded-md" />
+                <div className="h-5 w-20 bg-slate-200 rounded-md" />
+              </div>
+            ))}
           </div>
-
-          <div className="flex items-baseline gap-3">
-            <div className="h-10 w-12 bg-slate-200 rounded-xl" />
-            <div className="space-y-1.5 flex-1">
-              <div className="h-4 w-32 bg-slate-200 rounded-md" />
-              <div className="h-3 w-40 bg-slate-100 rounded-md" />
-            </div>
+        </div>
+        <div className="border-t border-slate-100 dark:border-slate-800 pt-4">
+          <div className="space-y-3">
+            <div className="h-5 w-48 max-w-full bg-slate-200 rounded-md" />
+            <div className="h-5 w-full bg-slate-100 rounded-md" />
+            {Array.from({ length: 2 }, (_, i) => (
+              <div key={i} className="flex items-start gap-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 p-4 sm:p-5">
+                <div className="w-9 h-9 rounded-xl bg-slate-200 shrink-0" />
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="h-5 w-32 max-w-full bg-slate-200 rounded-md" />
+                  <div className="h-5 w-full bg-slate-100 rounded-md" />
+                </div>
+              </div>
+            ))}
+            <div className="h-4 w-3/4 bg-slate-100 rounded-md" />
           </div>
-
-          <div className="rounded-xl border border-slate-200/70 p-3 bg-slate-50 space-y-2">
-            <div className="h-5 bg-slate-100 rounded-md" />
-            <div className="h-5 bg-slate-100 rounded-md" />
-            <div className="h-5 bg-slate-100 rounded-md" />
-            <div className="h-5 bg-slate-100 rounded-md" />
-          </div>
+        </div>
+        <div className="flex items-center justify-end">
+          <div className="h-11 w-24 bg-slate-100 rounded-lg" />
         </div>
       </div>
 

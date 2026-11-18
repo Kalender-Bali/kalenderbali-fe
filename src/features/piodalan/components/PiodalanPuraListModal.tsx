@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Sparkles,
   CalendarDays,
+  BellPlus,
 } from 'lucide-react';
 import type {
   PiodalanDayGroup,
@@ -22,7 +23,7 @@ import type {
 } from '../types/piodalan.types';
 import { usePuraCeremonies } from '../hooks/usePiodalan';
 import { QueryErrorState } from '@/components/ui/QueryErrorState';
-import { getPuraTypeBadgeStyle } from '../utils/piodalanUtils';
+import { getPuraTypeBadgeStyle, getTodayWITA } from '../utils/piodalanUtils';
 
 /**
  * ==============================================================================
@@ -45,6 +46,7 @@ interface PiodalanPuraListModalProps {
 
   /** Callback jika pengguna ingin membuka Detail Wariga tanggal ini */
   onOpenDayWariga?: (dateStr: string) => void;
+  onAddReminder?: (dayGroup: PiodalanDayGroup, puraId: number) => void;
 }
 
 /**
@@ -74,6 +76,7 @@ export const PiodalanPuraListModal: React.FC<PiodalanPuraListModalProps> = ({
   dayGroup,
   initialSelectedPuraId = null,
   onOpenDayWariga,
+  onAddReminder,
 }) => {
   // Pura yang sedang dipilih untuk melihat rincian piodalan & susunan acaranya (Level 3)
   const [selectedPura, setSelectedPura] = useState<PiodalanDayPuraItem | null>(() => {
@@ -579,7 +582,7 @@ export const PiodalanPuraListModal: React.FC<PiodalanPuraListModalProps> = ({
         {/* Sesuai Permintaan Pengguna: Tombol Kembali ke Daftar Pura          */}
         {/* HANYA DITEMPATKAN DI SINI (BAGIAN BAWAH)                           */}
         {/* ================================================================== */}
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 shrink-0">
           {selectedPura ? (
             <button
               type="button"
@@ -595,13 +598,18 @@ export const PiodalanPuraListModal: React.FC<PiodalanPuraListModalProps> = ({
             </span>
           )}
 
+          <div className="flex flex-wrap items-center gap-2 ml-auto">
+          {selectedPura && onAddReminder && <button type="button" onClick={() => onAddReminder(dayGroup, selectedPura.id)} disabled={dayGroup.dateStr < getTodayWITA()} title={dayGroup.dateStr < getTodayWITA() ? 'Tanggal ini sudah terlewat' : `Atur pengingat ${selectedPura.name} pada ${dayGroup.formattedDate}`} className="h-11 px-5 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed [touch-action:manipulation]">
+            <BellPlus className="w-4 h-4" aria-hidden="true" />Tambah pengingat
+          </button>}
           <button
             type="button"
             onClick={onClose}
-            className="h-10 px-5 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer [touch-action:manipulation]"
+            className="h-11 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm transition-all cursor-pointer [touch-action:manipulation]"
           >
             Tutup
           </button>
+          </div>
         </div>
       </div>
     </div>,

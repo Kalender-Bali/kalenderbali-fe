@@ -18,6 +18,7 @@ import { PiodalanResultList } from '../components/PiodalanResultList';
 import { PiodalanSidebarWidgets } from '../components/PiodalanSidebarWidgets';
 import { PiodalanDetailModal } from '../components/PiodalanDetailModal';
 import { PiodalanPuraListModal } from '../components/PiodalanPuraListModal';
+import { PengingatPiodalanResultDialog } from '@/features/pengingat/components/PengingatPiodalanResultDialog';
 
 /**
  * ==============================================================================
@@ -163,6 +164,7 @@ export const PiodalanPage: React.FC = () => {
   // State untuk modal pop-up hierarkis: Level 2 (List Pura) & Level 3 (Detail Pura & Susunan Acara)
   const [puraListModalGroup, setPuraListModalGroup] = useState<PiodalanDayGroup | null>(null);
   const [selectedPuraIdForModal, setSelectedPuraIdForModal] = useState<number | null>(null);
+  const [reminder, setReminder] = useState<{ group: PiodalanDayGroup; returnToDetail: boolean; puraId?: number } | null>(null);
 
   // State untuk modal pop-up rincian 15 dimensi Wariga Bali (Detail Tanggal)
   const [warigaModalState, setWarigaModalState] = useState<{
@@ -298,6 +300,15 @@ export const PiodalanPage: React.FC = () => {
       isOpen: true,
       schedule: scheduleForWariga,
     });
+  };
+
+  const handleAddReminder = (date: string, returnToDetail = false) => {
+    const group = dayGroups.find(item => item.dateStr === date) ?? (puraListModalGroup?.dateStr === date ? puraListModalGroup : null);
+    if (!group) return;
+    setReminder({ group: structuredClone(group), returnToDetail });
+    setWarigaModalState(current => ({ ...current, isOpen: false }));
+    setPuraListModalGroup(null);
+    setSelectedPuraIdForModal(null);
   };
 
   // Judul dinamis hasil pencarian piodalan (sesuai gambar referensi: "Data Piodalan Bulan ...")
@@ -457,6 +468,12 @@ export const PiodalanPage: React.FC = () => {
         dayGroup={puraListModalGroup}
         initialSelectedPuraId={selectedPuraIdForModal}
         onOpenDayWariga={handleOpenDayWariga}
+        onAddReminder={(group, puraId) => {
+          setReminder({ group: structuredClone(group), returnToDetail: false, puraId });
+          setPuraListModalGroup(null);
+          setSelectedPuraIdForModal(null);
+          setWarigaModalState(current => ({ ...current, isOpen: false }));
+        }}
       />
 
       {/* ==================================================================== */}
@@ -467,7 +484,17 @@ export const PiodalanPage: React.FC = () => {
         isOpen={warigaModalState.isOpen}
         onClose={() => setWarigaModalState((prev) => ({ ...prev, isOpen: false }))}
         schedule={warigaModalState.schedule}
+        onAddReminder={date => handleAddReminder(date, true)}
       />
+      {reminder && <PengingatPiodalanResultDialog group={reminder.group} lockedPuraId={reminder.puraId !== undefined ? String(reminder.puraId) : undefined} onClose={() => {
+        const restore = reminder.returnToDetail;
+        setReminder(null);
+        if (restore) setWarigaModalState(current => ({ ...current, isOpen: true }));
+        if (reminder.puraId !== undefined) {
+          setPuraListModalGroup(reminder.group);
+          setSelectedPuraIdForModal(reminder.puraId);
+        }
+      }} />}
     </div>
   );
 };

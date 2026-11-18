@@ -1,0 +1,147 @@
+{
+  "at": "2026-11-17T17:03:28.172Z",
+  "backend": "http://127.0.0.1:8080/api/v1",
+  "mode": "live-crud",
+  "checks": [
+    {
+      "name": "Direktori publik dan katalog wilayah dibaca parser FE",
+      "status": "pass",
+      "ms": 1447
+    },
+    {
+      "name": "Member membuat Review dan otomatis menjadi pengelola",
+      "status": "pass",
+      "ms": 1691
+    },
+    {
+      "name": "Tab Saya, Pengajuan, dan wilayah privat sesuai mapping",
+      "status": "pass",
+      "ms": 3081
+    },
+    {
+      "name": "Review tidak muncul pada direktori publik dan detail tamu ditolak",
+      "status": "pass",
+      "ms": 2658
+    },
+    {
+      "name": "Pengelola memperbarui profil dan peta tanpa field odalan",
+      "status": "pass",
+      "ms": 3774
+    },
+    {
+      "name": "Member lain tidak dapat membaca Review atau mengubah profil/kas",
+      "status": "pass",
+      "ms": 4072
+    },
+    {
+      "name": "Admin menolak lalu menerbitkan pengajuan melalui API FE",
+      "status": "pass",
+      "ms": 2836
+    },
+    {
+      "name": "Profil terbit dapat dibaca publik dengan search dan wilayah",
+      "status": "pass",
+      "ms": 1881
+    },
+    {
+      "name": "Admin membuat komunitas lain pada lokasi sama, langsung Published",
+      "status": "pass",
+      "ms": 1495
+    },
+    {
+      "name": "Profil pura pembanding dibuat khusus audit pada lokasi sama",
+      "status": "pass",
+      "ms": 1456
+    },
+    {
+      "name": "Daftar Kelola Pura dan Piodalan mengecualikan komunitas",
+      "status": "pass",
+      "ms": 3058
+    },
+    {
+      "name": "Pengelola mencatat debit melalui fungsi kas FE",
+      "status": "pass",
+      "ms": 1464
+    },
+    {
+      "name": "Pengelola mencatat kredit dan mengedit transaksi",
+      "status": "pass",
+      "ms": 2886
+    },
+    {
+      "name": "Tabel/filter dan ringkasan sesuai debit 250000 kredit 50000 saldo 200000",
+      "status": "pass",
+      "ms": 2962
+    },
+    {
+      "name": "Member tanpa mapping ditolak pada edit/hapus transaksi serta moderasi/mapping",
+      "status": "pass",
+      "ms": 3965
+    },
+    {
+      "name": "Kas komunitas dan pura tetap terpisah walaupun alamat sama",
+      "status": "pass",
+      "ms": 2223
+    },
+    {
+      "name": "Admin menambahkan pengelola dan hak tersebut langsung berlaku",
+      "status": "pass",
+      "ms": 5732
+    },
+    {
+      "name": "Pencabutan mapping langsung menolak penulisan dengan token lama",
+      "status": "pass",
+      "ms": 2119
+    },
+    {
+      "name": "Hapus transaksi memperbarui ringkasan dan persisten saat dibaca ulang",
+      "status": "pass",
+      "ms": 2881
+    },
+    {
+      "name": "Member tidak dapat menghapus profil komunitas",
+      "status": "pass",
+      "ms": 1169
+    },
+    {
+      "name": "Admin menghapus profil audit dan kas terkait ikut hilang",
+      "status": "pass",
+      "ms": 5003
+    }
+  ],
+  "created": [
+    {
+      "id": 481,
+      "type": "community"
+    },
+    {
+      "id": 482,
+      "type": "community"
+    },
+    {
+      "id": 483,
+      "type": "pura"
+    }
+  ],
+  "cleanup": [
+    {
+      "id": 481,
+      "deleted": true
+    },
+    {
+      "id": 482,
+      "deleted": true
+    },
+    {
+      "id": 483,
+      "deleted": true
+    }
+  ],
+  "error": null,
+  "marker": "AUDIT-KOMUNITAS-1794935008172",
+  "totals": {
+    "pass": 21,
+    "fail": 0,
+    "remainingProfiles": 0
+  }
+}

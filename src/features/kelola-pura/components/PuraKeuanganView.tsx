@@ -20,6 +20,7 @@ import {
   useFinanceCategoriesData,
   useFinanceMutations,
   useFinanceSubmissions,
+  usePuraDetailData,
 } from '../hooks/useKelolaPura';
 import {
   formatRupiah,
@@ -84,6 +85,11 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
     const roleLower = (user.role || '').toLowerCase();
     return roleLower === 'admin' || user.tier === 'Admin';
   }, [user]);
+
+  // Mapping terbaru menentukan hak tulis kas; Premium tetap hanya jalur usulan lama.
+  const managementProfile = usePuraDetailData(puraId);
+  const canManage = !managementProfile.isError && !!managementProfile.data && (isAdmin ||
+    managementProfile.data.manager?.some(manager => String(manager.user_id) === user?.id) === true);
 
   // Role Member Premium memiliki hak mengajukan draf usulan catatan kas baru
   const isPremium = useMemo(() => {
@@ -224,8 +230,8 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
 
           {/* Baris Tombol Aksi Pengguna */}
           <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
-            {/* Aksi 1: Tombol Tambah Transaksi (Hanya untuk Admin) */}
-            {isAdmin && (
+            {/* Aksi kas langsung tersedia bagi Admin atau pengelola pura yang dipetakan. */}
+            {canManage && (
               <button
                 type="button"
                 onClick={() => {
@@ -261,7 +267,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
             )}
 
             {/* Aksi 3: Tombol Ajukan Usulan / Koreksi Kas (Untuk Member / Guest) */}
-            {!isAdmin && (
+            {!canManage && (
               <button
                 type="button"
                 onClick={handleOpenSubmission}
@@ -566,7 +572,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
                   <th scope="col" className="py-3.5 px-4 text-right whitespace-nowrap">
                     Nominal (Rp)
                   </th>
-                  {isAdmin && (
+                  {canManage && (
                     <th scope="col" className="py-3.5 px-4 text-center w-28">
                       Aksi
                     </th>
@@ -633,7 +639,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
                       </td>
 
                       {/* Tombol Aksi Khusus Admin */}
-                      {isAdmin && (
+                      {canManage && (
                         <td className="py-3 px-4 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center gap-1">
                             {/* Tombol Edit */}
@@ -684,7 +690,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
               </h3>
               <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
                 Tidak ada entri mutasi kas yang ditemukan untuk kriteria filter yang Anda pilih.
-                {isAdmin && ' Anda dapat menambahkan catatan kas baru melalui tombol di atas.'}
+                {canManage && ' Anda dapat menambahkan catatan kas baru melalui tombol di atas.'}
               </p>
             </div>
           </div>
@@ -695,7 +701,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
       {/* 9. MODAL FORMULIR TRANSAKSI KAS (KHUSUS ADMINISTRATOR)               */}
       {/* ==================================================================== */}
       <FinanceEntryModal
-        isOpen={isEntryModalOpen}
+        isOpen={isEntryModalOpen && canManage}
         onClose={() => {
           setIsEntryModalOpen(false);
           setEntryToEdit(null);
@@ -722,7 +728,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
       {/* 11. MODAL KONFIRMASI HAPUS TRANSAKSI KAS (KHUSUS ADMINISTRATOR)      */}
       {/* ==================================================================== */}
       <FinanceDeleteConfirmModal
-        isOpen={Boolean(entryToDelete)}
+        isOpen={Boolean(entryToDelete) && canManage}
         entry={entryToDelete}
         isLoading={isDeleting}
         onClose={handleCloseDeleteModal}

@@ -1,0 +1,86 @@
+{
+  "at": "2026-11-17T17:06:10.431Z",
+  "backend": "http://127.0.0.1:8080/api/v1",
+  "mode": "read-only",
+  "checks": [
+    {
+      "name": "Direktori publik diparse modul API FE tanpa adapter simulasi",
+      "status": "pass",
+      "ms": 758
+    },
+    {
+      "name": "Katalog wilayah komunitas diparse modul FE",
+      "status": "pass",
+      "ms": 699
+    },
+    {
+      "name": "Pencarian yang tidak cocok menghasilkan kosong yang sah",
+      "status": "pass",
+      "ms": 699
+    },
+    {
+      "name": "Master negara tersedia untuk form",
+      "status": "pass",
+      "ms": 776
+    },
+    {
+      "name": "Kategori kas global diparse modul FE",
+      "status": "pass",
+      "ms": 695
+    },
+    {
+      "name": "Detail profil 473 menggunakan kontrak HTTP nyata",
+      "status": "pass",
+      "ms": 1140
+    },
+    {
+      "name": "Pencarian dan filter wilayah menemukan profil 473",
+      "status": "pass",
+      "ms": 691
+    },
+    {
+      "name": "Mutasi kas 473 diparse dan pemilik sesuai",
+      "status": "pass",
+      "ms": 732
+    },
+    {
+      "name": "Ringkasan kas 473 cocok dengan transaksi sebenarnya",
+      "status": "pass",
+      "ms": 729
+    },
+    {
+      "name": "Filter kategori dan tahun kas 473 diterima backend",
+      "status": "pass",
+      "ms": 1465
+    },
+    {
+      "name": "Tab privat, pengelola, dan katalog Admin menolak tamu",
+      "status": "pass",
+      "ms": 2630
+    },
+    {
+      "name": "Penulisan profil/kas tanpa login ditolak sebelum menulis",
+      "status": "pass",
+      "ms": 1315
+    },
+    {
+      "name": "Scope dan cursor direktori yang tidak valid ditolak",
+      "status": "pass",
+      "ms": 1308
+    },
+    {
+      "name": "Direktori Kelola Pura dan Piodalan tidak mencampur Suka Duka",
+      "status": "pass",
+      "ms": 2744
+    }
+  ],
+  "created": [],
+  "cleanup": [],
+  "error": null,
+  "marker": "AUDIT-KOMUNITAS-1794935170431",
+  "totals": {
+    "pass": 14,
+    "fail": 0,
+    "remainingProfiles": 0
+  }
+}

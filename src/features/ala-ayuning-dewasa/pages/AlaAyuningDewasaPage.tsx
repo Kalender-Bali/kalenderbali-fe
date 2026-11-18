@@ -4,7 +4,6 @@ import { useAlaAyuning } from '../hooks/useAlaAyuning';
 import { AlaAyuningHero } from '../components/AlaAyuningHero';
 import { AlaAyuningSearchCard } from '../components/AlaAyuningSearchCard';
 import { AlaAyuningSummaryCard } from '../components/AlaAyuningSummaryCard';
-import { AlaAyuningPawukonCard } from '../components/AlaAyuningPawukonCard';
 import { AlaAyuningDasarSection } from '../components/AlaAyuningDasarSection';
 import { AlaAyuningDateResultsCard } from '../components/AlaAyuningDateResultsCard';
 import { AlaAyuningDetailModal } from '../components/AlaAyuningDetailModal';
@@ -30,7 +29,7 @@ import { getIndoMonthName, parseISODate } from '@/features/kalender/utils/calend
  *
  *  4. Penyajian Hasil Berdasarkan Mode:
  *     - Mode Tanggal:
- *       * Row Atas (Split 2-Kolom): Ringkasan Kualitas Hari (SummaryCard) & Pawukon WITA (PawukonCard).
+ *       * Row Atas: Satu kartu ringkasan padewasan dan pawukon pada tanggal pilihan.
  *       * Row Bawah: Grid 2-Kolom Dasar Padewasan Aktif dengan badge resmi Alahing Dewasa.
  *     - Mode Nama Padewasan (Paritas Gambar 1 & 2 Sistem Laravel Lama):
  *       * Daftar tanggal jatuh padewasan dalam bulan/tahun terpilih & kartu informasi sastra lontar.
@@ -63,8 +62,8 @@ export default function AlaAyuningDewasaPage() {
 
     // Data query harian (Mode Tanggal)
     padewasanList,
+    activityGuidance,
     pawukonInfo,
-    daySummary,
 
     // Data query per nama (Mode Nama)
     masterPadewasan,
@@ -106,8 +105,8 @@ export default function AlaAyuningDewasaPage() {
       const wukuText = pawukonInfo?.wuku ? ` · Wuku ${pawukonInfo.wuku}` : '';
       document.title = `Ala Ayuning Dewasa: ${day} ${monthName} ${year}${wukuText} | Kalender Bali`;
     } else if (activeMode === 'name' && queryName) {
-      const monthName = getIndoMonthName(queryMonth);
-      document.title = `Padewasan: ${queryName} (${monthName} ${queryYear}) | Kalender Bali`;
+      const periodeStr = queryMonth ? `${getIndoMonthName(queryMonth)} ${queryYear}` : `Tahun ${queryYear}`;
+      document.title = `Padewasan: ${queryName} (${periodeStr}) | Kalender Bali`;
     } else {
       document.title = 'Ala Ayuning Dewasa · Panduan Hari Baik & Buruk | Kalender Bali';
     }
@@ -192,28 +191,14 @@ export default function AlaAyuningDewasaPage() {
           {/* ----------------------------------------------------------------- */}
           {activeMode === 'date' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              {/* Row Tengah: Ringkasan Hari Ini (Kiri) + Pawukon WITA (Kanan) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                {/* Kolom Kiri: Kartu Ringkasan Kualitas Hari (7 dari 12 Kolom) */}
-                <div className="lg:col-span-7">
-                  <AlaAyuningSummaryCard
-                    formattedDate={formattedActiveDate}
-                    statusLabel={daySummary?.status_label || 'PER KEGIATAN'}
-                    headline={daySummary?.headline}
-                    activityGuidance={daySummary?.activity_guidance}
-                    padewasanList={padewasanList}
-                    onScrollToDasar={handleScrollToDasar}
-                  />
-                </div>
-
-                {/* Kolom Kanan: Kartu 4 Dimensi Pawukon Hari Ini (5 dari 12 Kolom) */}
-                <div className="lg:col-span-5">
-                  <AlaAyuningPawukonCard
-                    activeDate={activeDate}
-                    pawukonInfo={pawukonInfo}
-                  />
-                </div>
-              </div>
+              <AlaAyuningSummaryCard
+                activeDate={activeDate}
+                pawukonInfo={pawukonInfo}
+                formattedDate={formattedActiveDate}
+                padewasanList={padewasanList}
+                activityGuidance={activityGuidance}
+                onScrollToDasar={handleScrollToDasar}
+              />
 
               {/* Row Bawah: Grid 2-Kolom Seluruh Unsur Padewasan Aktif */}
               <div ref={dasarSectionRef}>

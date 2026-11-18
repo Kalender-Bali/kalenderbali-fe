@@ -37,7 +37,8 @@ export const AlaAyuningDateResultsCard: React.FC<AlaAyuningDateResultsCardProps>
   result,
   onSelectDate,
 }) => {
-  const monthName = getIndoMonthName(result.bulan);
+  const isAnnual = !result.bulan || result.bulan === 0;
+  const monthName = !isAnnual ? getIndoMonthName(result.bulan) : '';
   const alahingMeta = getAlahingDewasaMeta(result.severity_code);
 
   const isLarangan =
@@ -49,19 +50,19 @@ export const AlaAyuningDateResultsCard: React.FC<AlaAyuningDateResultsCardProps>
       {/* ===================================================================== */}
       {/* BLOK 1: KOLOM KIRI - DAFTAR TANGGAL JATUH (5 dari 12 Kolom Desktop)  */}
       {/* ===================================================================== */}
-      <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="lg:col-span-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
         {/* Header Hasil Pencarian */}
-        <div className="border-b border-slate-100 pb-3">
+        <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm sm:text-base font-extrabold text-[#0f172a] tracking-tight">
-              Tanggal Jatuh di Bulan Ini
+            <h3 className="text-sm sm:text-base font-extrabold text-[#0f172a] dark:text-white tracking-tight">
+              {isAnnual ? 'Tanggal Jatuh di Tahun Ini' : 'Tanggal Jatuh di Bulan Ini'}
             </h3>
             <span className="text-xs font-bold text-teal-700 bg-teal-50 border border-teal-200/60 px-2 py-0.5 rounded-md tabular-nums">
               {result.total_hari} Hari
             </span>
           </div>
-          <p className="text-xs text-slate-500 font-medium">
-            Periode: {monthName} {result.tahun}
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tabular-nums">
+            Periode: {isAnnual ? `Tahun ${result.tahun}` : `${monthName} ${result.tahun}`}
           </p>
         </div>
 
@@ -69,14 +70,15 @@ export const AlaAyuningDateResultsCard: React.FC<AlaAyuningDateResultsCardProps>
         {result.tanggal_jatuh.length > 0 ? (
           <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
             {result.tanggal_jatuh.map((dateStr) => {
-              const { day } = parseISODate(dateStr);
+              const { day, month } = parseISODate(dateStr);
+              const itemMonthName = getIndoMonthName(month);
               const dayName = getIndoDayName(dateStr);
 
               return (
                 <div
                   key={dateStr}
                   onClick={() => onSelectDate(dateStr)}
-                  className="group p-3.5 rounded-xl border border-slate-200/80 bg-[#f8fafc]/60 hover:bg-white hover:border-teal-500/50 hover:shadow-xs transition-all cursor-pointer active:scale-[0.99] flex items-center justify-between gap-3"
+                  className="group p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-[#f8fafc]/60 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-800 hover:border-teal-500/50 dark:hover:border-teal-500/50 hover:shadow-xs transition-all cursor-pointer active:scale-[0.99] flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3">
                     {/* Kotak Tanggal */}
@@ -84,31 +86,33 @@ export const AlaAyuningDateResultsCard: React.FC<AlaAyuningDateResultsCardProps>
                       <span className="text-sm font-extrabold tabular-nums leading-none">
                         {day}
                       </span>
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-teal-600">
-                        {monthName.slice(0, 3)}
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-teal-600 dark:text-teal-300">
+                        {itemMonthName.slice(0, 3)}
                       </span>
                     </div>
 
                     <div>
-                      <h4 className="text-xs sm:text-sm font-extrabold text-[#0f172a] group-hover:text-teal-700 transition-colors">
-                        {dayName}, {day} {monthName} {result.tahun}
+                      <h4 className="text-xs sm:text-sm font-extrabold not-dark:text-[#0f172a] dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors tabular-nums">
+                        {dayName}, {day} {itemMonthName} {result.tahun}
                       </h4>
-                      <span className="text-[11px] text-slate-400 font-medium">
+                      <span className="text-[11px] not-dark:text-slate-400 dark:text-slate-300 font-medium">
                         Klik untuk periksa hari lengkap
                       </span>
                     </div>
                   </div>
 
-                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-all" />
+                  <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-400 group-hover:text-teal-600 dark:group-hover:text-teal-300 group-hover:translate-x-0.5 transition-all" />
                 </div>
               );
             })}
           </div>
         ) : (
-          <div className="p-6 rounded-xl bg-slate-50 border border-slate-100 text-center space-y-1">
-            <Info className="w-5 h-5 text-slate-400 mx-auto" />
-            <p className="text-xs text-slate-500 font-medium">
-              Kriteria ini tidak jatuh pada bulan {monthName} {result.tahun}.
+          <div className="p-6 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 text-center space-y-1">
+            <Info className="w-5 h-5 text-slate-400 dark:text-slate-400 mx-auto" />
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tabular-nums">
+              {isAnnual
+                ? `Kriteria ini tidak jatuh pada tahun ${result.tahun}.`
+                : `Kriteria ini tidak jatuh pada bulan ${monthName} ${result.tahun}.`}
             </p>
           </div>
         )}

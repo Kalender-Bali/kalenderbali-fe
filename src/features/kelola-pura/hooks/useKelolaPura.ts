@@ -81,8 +81,9 @@ export function usePuraDetailData(puraId: number | string | null) {
     meta: { authScoped: true },
     queryFn: () => (puraId ? fetchPuraDetail(puraId) : null),
     enabled: Boolean(puraId),
-    staleTime: 1000 * 60 * 30, // 30 menit
-    refetchOnWindowFocus: false,
+    // Detail juga memuat mapping pengelola; periksa ulang saat halaman kembali aktif.
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 }
 

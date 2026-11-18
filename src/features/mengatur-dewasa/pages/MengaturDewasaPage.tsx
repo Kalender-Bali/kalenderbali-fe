@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { formatFullIndoDate, getIndoMonthName, getTodayWITA } from '@/features/kalender/utils/calendarUtils';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { PengingatDewasaResultDialog } from '@/features/pengingat/components/PengingatDewasaResultDialog';
+import { dewasaCandidates } from '@/features/pengingat/utils/pengingatSources';
 import { CustomCriteriaEditor } from '../components/CustomCriteriaEditor';
 import { MengaturDewasaDetailModal } from '../components/MengaturDewasaDetailModal';
 import { MengaturDewasaForm } from '../components/MengaturDewasaForm';
@@ -50,6 +52,7 @@ export default function MengaturDewasaPage() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [sessionNotice, setSessionNotice] = useState<string | null>(null);
   const [selectedResult, setSelectedResult] = useState<DewasaDateResult | null>(null);
+  const [reminderOpen, setReminderOpen] = useState(false);
   const [submittedCriteria, setSubmittedCriteria] = useState<DewasaCriteriaSummary | null>(null);
   const observedUrl = useRef(paramsKey);
   const writtenUrl = useRef<string | null>(null);
@@ -68,7 +71,12 @@ export default function MengaturDewasaPage() {
   const valuesByField = Object.fromEntries(referenceFields.map((field, index) => [field, referenceQueries[index]?.isSuccess ? referenceQueries[index].data : undefined]));
   const customCount = [...form.custom.recommended, ...form.custom.avoid].reduce((sum, group) => sum + group.items.length, 0);
   const closeDetail = useCallback(() => setSelectedResult(null), []);
+  const closeReminder = useCallback(() => setReminderOpen(false), []);
   const cancelSearch = search.cancelSearch;
+  const reminderCandidate = selectedResult && search.data && search.variables && submittedCriteria
+    ? dewasaCandidates(search.variables, search.data, submittedCriteria, today)
+        .find(candidate => candidate.nextDate === selectedResult.tanggal)
+    : undefined;
 
   useEffect(() => {
     try { window.sessionStorage.removeItem(LOGIN_DRAFT_KEY); } catch { /* Browser dapat menonaktifkan penyimpanan. */ }
@@ -78,6 +86,7 @@ export default function MengaturDewasaPage() {
   useEffect(() => useAuthStore.subscribe((current, previous) => {
     if (current.user?.id !== previous.user?.id || current.token !== previous.token || current.isAuthenticated !== previous.isAuthenticated) {
       setSelectedResult(null);
+      setReminderOpen(false);
       setSubmittedCriteria(null);
       if (previous.isAuthenticated && !current.isAuthenticated) {
         setSessionNotice('Sesi berakhir atau Anda telah keluar. Masuk kembali untuk mencari tanggal.');
@@ -95,6 +104,7 @@ export default function MengaturDewasaPage() {
     const context = readDewasaUrlContext(new URLSearchParams(paramsKey), today);
     cancelSearch();
     setSelectedResult(null);
+    setReminderOpen(false);
     setSubmittedCriteria(null);
     setValidationError(null);
     setForm((previous) => ({ ...previous, ...context }));
@@ -110,6 +120,7 @@ export default function MengaturDewasaPage() {
   function updateForm(patch: Partial<typeof form>) {
     search.cancelSearch();
     setSelectedResult(null);
+    setReminderOpen(false);
     setSubmittedCriteria(null);
     setValidationError(null);
     const next = { ...form, ...patch };
@@ -209,7 +220,16 @@ export default function MengaturDewasaPage() {
         </section>
         {search.data && <div className="lg:col-span-4"><MengaturDewasaSummary response={search.data} criteria={submittedCriteria} /></div>}
       </div>}
-      {selectedResult && <MengaturDewasaDetailModal result={selectedResult} fields={fields.data ?? []} onClose={closeDetail} />}
+      {selectedResult && (reminderOpen && reminderCandidate ? (
+        <PengingatDewasaResultDialog candidate={reminderCandidate} onClose={closeReminder} />
+      ) : (
+        <MengaturDewasaDetailModal
+          result={selectedResult}
+          fields={fields.data ?? []}
+          onClose={closeDetail}
+          onAddReminder={reminderCandidate ? () => setReminderOpen(true) : undefined}
+        />
+      ))}
     </div>
   );
 }

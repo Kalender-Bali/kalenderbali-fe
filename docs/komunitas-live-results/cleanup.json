@@ -1,0 +1,39 @@
+{
+  "at": "2026-11-17T17:00:14.745Z",
+  "backend": "http://127.0.0.1:8080/api/v1",
+  "mode": "cleanup-dummy-profiles",
+  "checks": [],
+  "created": [],
+  "cleanup": [
+    {
+      "id": 480,
+      "deleted": true
+    },
+    {
+      "id": 476,
+      "deleted": true
+    },
+    {
+      "sessionLogout": false
+    },
+    {
+      "sessionLogout": false
+    },
+    {
+      "sessionLogout": false
+    }
+  ],
+  "error": null,
+  "marker": "AUDIT-KOMUNITAS-1794934814745",
+  "totals": {
+    "pass": 0,
+    "fail": 0,
+    "remainingProfiles": 0
+  },
+  "accounts_cleanup": {
+    "deleted": 3,
+    "sessions_removed": true,
+    "temporary_credentials_removed": true
+  },
+  "cleanup_note": "Cleanup profil berhasil; sesi dan file kredensial kemudian dibersihkan helper database. Logout HTTP 204 diverifikasi pada matriks final CRUD."
+}

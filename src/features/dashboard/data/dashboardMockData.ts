@@ -32,9 +32,9 @@ import type {
  * 3. Amerta Dadi (MELUKAT)
  */
 export const DEFAULT_DEWASA_AYU: DewasaAyuDashboard = {
-  status: 'BAIK',
-  statusLabel: 'BAIK',
-  headline: 'Baik untuk memulai ilmu, menyucikan diri, dan kegiatan rohani.',
+  tanggalISO: '2026-09-20',
+  total: 3,
+  headline: 'Terdapat 3 padewasan aktif hari ini. Berikut ringkasan anjuran dan pantangan yang tercatat.',
   items: [
     {
       id: 'da-1',
@@ -55,7 +55,6 @@ export const DEFAULT_DEWASA_AYU: DewasaAyuDashboard = {
       tag: 'MELUKAT',
     },
   ],
-  topActivities: ['BELAJAR', 'MELUKAT', 'SEMBAHYANG'],
   actionUrl: '/ala-ayuning-dewasa',
 };
 

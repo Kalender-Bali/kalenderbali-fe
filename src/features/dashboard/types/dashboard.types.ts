@@ -1,5 +1,3 @@
-import type { DewasaActivityGuidance } from '@/features/ala-ayuning-dewasa/types/alaAyuning.types';
-
 /**
  * ============================================================================
  * TIPE DATA & KONTRAK MODEL: DASHBOARD KALENDER BALI
@@ -56,6 +54,9 @@ export interface DashboardHeroData {
 
   /** Kutipan / ringkasan petunjuk hari baik ringkas hari ini */
   quoteHariIni: string;
+
+  /** Tahun Saka kalender Bali (contoh: 1948) */
+  tahunSaka?: number | null;
 }
 
 import type { HariRayaItem } from '@/features/kalender/types/kalender.types';
@@ -146,23 +147,19 @@ export interface DewasaAyuItem {
  * Didesain modular agar dapat langsung dihubungkan ke endpoint Backend Go saat siap.
  */
 export interface DewasaAyuDashboard {
-  /** Kategori status hari: "BAIK" | "KURANG_BAIK" */
-  status: 'BAIK' | 'KURANG_BAIK' | 'NETRAL';
+  /** Tanggal ringkasan hari ini dalam zona WITA. */
+  tanggalISO: string;
 
-  /** Label status yang ditampilkan pada pill badge: "BAIK" */
-  statusLabel: string;
+  /** Jumlah seluruh padewasan aktif, bukan hanya pratinjau. */
+  total: number;
 
   /** Narasi inspirasi / petunjuk utama dewasa ayu hari ini */
   headline: string;
 
   /**
-   * Menampilkan 3 rekomendasi padewasan / hari baik teratas hari ini.
+   * Pratinjau maksimal 3 padewasan aktif beserta anjuran dan pantangannya.
    */
   items: DewasaAyuItem[];
-  activityGuidance?: DewasaActivityGuidance[];
-
-  /** Menampilkan maksimal 3 rekomendasi aktivitas teratas (opsional untuk backward compatibility) */
-  topActivities?: string[];
 
   /** Tautan tujuan tombol "Lihat selengkapnya →" (/ala-ayuning-dewasa) */
   actionUrl: string;

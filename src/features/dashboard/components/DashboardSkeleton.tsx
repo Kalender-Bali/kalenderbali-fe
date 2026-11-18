@@ -21,35 +21,73 @@ export const DashboardSkeleton: React.FC = () => {
   return (
     <div className="space-y-6 animate-pulse" aria-label="Memuat data dashboard...">
       {/* =================================================================== */}
-      {/* 1. SKELETON BARIS 1: HERO BANNER "HARI INI"                         */}
+      {/* 1. SKELETON BARIS 1: HERO "HARI INI" & PENGINGAT TERDEKAT (7 : 5)   */}
       {/* =================================================================== */}
-      <div className="bg-[#eaf7f5]/50 border border-[#cbebe5]/60 rounded-2xl p-6 sm:p-7">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          {/* Sisi Kiri: Eyebrow, Tanggal Besar, Wewaran, & Pill Rekomendasi */}
-          <div className="space-y-3 flex-1 min-w-0">
-            <div className="h-3 w-20 bg-teal-200/60 rounded-full" />
-            <div className="h-9 w-64 sm:w-80 max-w-full bg-slate-200/80 rounded-xl" />
-            <div className="h-4 w-52 sm:w-64 max-w-full bg-slate-200/60 rounded-lg" />
-            <div className="pt-2">
-              <div className="h-7 w-72 max-w-full bg-white/80 rounded-full border border-teal-100" />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Kolom Kiri: Skeleton Informasi Hari Ini (lg:col-span-7) */}
+        <div className="lg:col-span-7 flex flex-col">
+          <div className="bg-[#eaf7f5]/50 border border-[#cbebe5]/60 rounded-2xl p-6 sm:p-7 flex flex-col justify-between space-y-4 h-full">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-24 bg-teal-200/60 rounded-full" />
+                <div className="h-4 w-24 bg-white/80 rounded-full" />
+              </div>
+
+              <div className="space-y-2">
+                <div className="h-8 w-64 sm:w-80 max-w-full bg-slate-200/80 rounded-xl" />
+                <div className="h-3.5 w-52 sm:w-64 max-w-full bg-slate-200/60 rounded-lg" />
+              </div>
+
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-xl border border-slate-200/60 p-3 sm:p-3.5 space-y-2 shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="h-2.5 w-12 bg-slate-200 rounded-full" />
+                      <div className="w-3.5 h-3.5 bg-teal-100 rounded-full" />
+                    </div>
+                    <div className="h-5 w-16 bg-slate-200/80 rounded-lg" />
+                    <div className="h-2.5 w-14 bg-slate-100 rounded-full" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-teal-200/50">
+              <div className="h-3 w-48 bg-slate-200/60 rounded-full" />
+              <div className="h-3 w-24 bg-teal-200/60 rounded-full" />
             </div>
           </div>
+        </div>
 
-          {/* Sisi Kanan: 3 Kotak Metrik Stat Box (Sasih, Pawukon, Urip) */}
-          <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 shrink-0">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="min-w-0 bg-white rounded-xl border border-slate-200/60 p-2 sm:p-4 sm:min-w-[115px] space-y-2 shadow-2xs"
-              >
-                <div className="h-2.5 w-12 max-w-full bg-slate-200 rounded-full" />
-                <div className="h-6 w-16 max-w-full bg-slate-200/80 rounded-lg" />
-                <div className="h-2.5 w-14 max-w-full bg-slate-100 rounded-full" />
+        {/* Kolom Kanan: Skeleton Pengingat Terdekat (lg:col-span-5) */}
+        <div className="lg:col-span-5 flex flex-col">
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 flex flex-col justify-between space-y-4 h-full shadow-xs">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-36 bg-teal-100 rounded-full" />
+                <div className="h-5 w-12 bg-slate-100 rounded-full" />
               </div>
-            ))}
+
+              <div className="bg-[#f8fafc] rounded-xl border border-slate-200/70 p-4 sm:p-5 space-y-3 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-16 bg-slate-200 rounded-full" />
+                  <div className="h-4 w-20 bg-slate-200 rounded-full" />
+                </div>
+                <div className="h-6 w-3/4 bg-slate-200/80 rounded-lg" />
+                <div className="h-3.5 w-1/2 bg-slate-100 rounded-md" />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div className="h-3 w-28 bg-slate-200/60 rounded-full" />
+              <div className="h-3 w-24 bg-teal-200/60 rounded-full" />
+            </div>
           </div>
         </div>
-      </div>
+    </div>
 
       {/* =================================================================== */}
       {/* 2. SKELETON BARIS 2: MINI KALENDER & HARI RAYA BERIKUTNYA           */}

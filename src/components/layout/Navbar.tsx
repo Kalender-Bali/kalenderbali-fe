@@ -8,10 +8,6 @@ import {
   Sparkles,
   ChevronDown,
   WifiOff,
-  Calendar,
-  X,
-  Info,
-  ChevronRight,
   LogIn,
   LogOut,
   User as UserIcon,
@@ -22,27 +18,8 @@ import { useSidebarStore } from '@/stores/useSidebarStore';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { getUserTier, authService } from '@/features/auth/services/authService';
-import { useKalenderTahun } from '@/features/kalender/hooks/useKalender';
-import {
-  getTodayWITA,
-  formatFullIndoDate,
-  getHariRayaBadgeStyle,
-} from '@/features/kalender/utils/calendarUtils';
-import { HariRayaDetailModal } from '@/features/kalender/components/HariRayaDetailModal';
-import type { HariRayaItem } from '@/features/kalender/types/kalender.types';
-
-/**
- * Tipe data untuk item agenda notifikasi yang diekstrak dari backend Go
- */
-interface UpcomingNotificationEvent {
-  date: string;
-  formattedDate: string;
-  diffDays: number;
-  diffLabel: string;
-  holiday: HariRayaItem;
-  wewaranText: string;
-  sasihText: string;
-}
+import { usePengingatNotifications } from '@/features/pengingat/hooks/usePengingat';
+import { PengingatNotificationList } from '@/features/pengingat/components/PengingatNotificationList';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -74,12 +51,12 @@ export default function Navbar() {
   // State untuk melacak status koneksi internet (fe_strategy.md Bagian 8.4: Graceful Offline)
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
-  // State untuk popover notifikasi rahina terdekat
+  // State untuk popover notifikasi pengingat pribadi
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  // State untuk modal penjelasan detail filosofi hari raya jika diklik
-  const [selectedHoliday, setSelectedHoliday] = useState<HariRayaItem | null>(null);
+  const notifications = usePengingatNotifications();
+  const unreadNotifications = notifications.data?.unread ?? 0;
 
   /**
    * Helper untuk mengambil 1-2 huruf inisial dari nama pengguna jika avatar belum tersedia
@@ -92,73 +69,6 @@ export default function Navbar() {
     }
     return name.slice(0, 2).toUpperCase();
   };
-
-  // -------------------------------------------------------------------------
-  // 1. Integrasi Data Riil Backend Go via TanStack Query (fe_strategy.md)
-  // -------------------------------------------------------------------------
-  // Ambil tanggal hari ini dalam zona WITA (UTC+8 / Asia/Makassar)
-  const todayStr = useMemo(() => getTodayWITA(), []);
-
-  // Ambil tahun Masehi aktif untuk chunking 1 tahun penuh
-  const currentYear = useMemo(() => {
-    const y = parseInt(todayStr.split('-')[0], 10);
-    return isNaN(y) ? new Date().getFullYear() : y;
-  }, [todayStr]);
-
-  // Hook useKalenderTahun mengonsumsi cache TanStack Query dari endpoint GET /api/v1/kalender
-  // Berbagi cache memori yang sama persis dengan modul Kalender tanpa request ganda (0ms overhead)
-  const { kalenderData, isLoading } = useKalenderTahun(currentYear);
-
-  // -------------------------------------------------------------------------
-  // 2. Ekstraksi Agenda Rahina & Hari Raya Terdekat dari Data Riil
-  // -------------------------------------------------------------------------
-  const upcomingEvents = useMemo<UpcomingNotificationEvent[]>(() => {
-    if (!kalenderData || kalenderData.length === 0) return [];
-
-    // Filter tanggal mulai dari hari ini yang memiliki hari raya
-    const futureDays = kalenderData.filter(
-      (day) => day.tanggal >= todayStr && day.hari_raya && day.hari_raya.length > 0
-    );
-
-    const events: UpcomingNotificationEvent[] = [];
-    const todayDateObj = new Date(todayStr + 'T00:00:00');
-
-    for (const day of futureDays) {
-      const dayDateObj = new Date(day.tanggal + 'T00:00:00');
-      const diffTime = dayDateObj.getTime() - todayDateObj.getTime();
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-      let diffLabel = `${diffDays} hari lagi`;
-      if (diffDays === 0) {
-        diffLabel = 'Hari Ini';
-      } else if (diffDays === 1) {
-        diffLabel = 'Besok';
-      }
-
-      const wewaranText = `${day.wewaran.saptawara.nama} ${day.wewaran.pancawara.nama} · Wuku ${day.wewaran.wuku.nama}`;
-      const sasihText = `Sasih ${day.sasih.nama_sasih}`;
-
-      for (const hr of day.hari_raya) {
-        events.push({
-          date: day.tanggal,
-          formattedDate: formatFullIndoDate(day.tanggal),
-          diffDays,
-          diffLabel,
-          holiday: hr,
-          wewaranText,
-          sasihText,
-        });
-      }
-
-      // Ambil 5 agenda terdekat agar notifikasi tetap ringkas
-      if (events.length >= 5) break;
-    }
-
-    return events.slice(0, 5);
-  }, [kalenderData, todayStr]);
-
-  // Menentukan apakah ada rahina yang jatuh tepat pada hari ini
-  const hasHolidayToday = upcomingEvents.some((ev) => ev.diffDays === 0);
 
   /**
    * Listener event online/offline browser untuk menampilkan indikator mode offline
@@ -229,14 +139,6 @@ export default function Navbar() {
     }
   };
 
-  /**
-   * Navigasi langsung ke tanggal kalender yang dipilih dari notifikasi
-   */
-  const handleSelectEventDate = (dateString: string) => {
-    setShowNotifications(false);
-    navigate(`/kalender?date=${dateString}`);
-  };
-
   return (
     <>
       {/* ========================================================= */}
@@ -292,31 +194,23 @@ export default function Navbar() {
           <ThemeSelector />
 
           {/* ======================================================= */}
-          {/* TOMBOL LONCENG NOTIFIKASI RAHINA DENGAN DATA REAL GO    */}
+          {/* TOMBOL LONCENG NOTIFIKASI PENGINGAT PRIBADI    */}
           {/* ======================================================= */}
           <div className="relative" ref={notificationRef}>
             <button
               type="button"
               onClick={() => setShowNotifications((prev) => !prev)}
               className="min-w-11 min-h-11 flex items-center justify-center p-2 text-slate-600 dark:text-slate-300 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800 active:scale-95 rounded-xl transition-all cursor-pointer relative [touch-action:manipulation]"
-              title="Pemberitahuan Rahina & Hari Raya Terdekat"
-              aria-label="Lihat Notifikasi"
+              title="Notifikasi pengingat pribadi"
+              aria-label={unreadNotifications ? `Lihat ${unreadNotifications} notifikasi belum dibaca` : 'Lihat notifikasi pengingat'}
+              aria-expanded={showNotifications}
             >
               <Bell size={18} />
 
-              {/* Titik Indikator Notifikasi:
-                  - Merah (bg-rose-500) jika ada rahina hari ini
-                  - Kuning/Amber (bg-amber-500) jika ada agenda mendatang */}
-              {upcomingEvents.length > 0 && (
-                <span
-                  className={`absolute top-2.5 right-2.5 w-2 h-2 rounded-full ring-2 ring-white ${
-                    hasHolidayToday ? 'bg-rose-500' : 'bg-amber-500'
-                  }`}
-                />
-              )}
+              {unreadNotifications > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-rose-600 text-white text-[9px] font-bold tabular-nums inline-flex items-center justify-center ring-2 ring-white dark:ring-slate-900">{unreadNotifications > 99 ? '99+' : unreadNotifications}</span>}
             </button>
 
-            {/* POPOVER DAFTAR RAHINA TERDEKAT (AGENTS.md Bagian 5.2: w-80 sm:w-96) */}
+            {/* POPOVER NOTIFIKASI PENGINGAT (AGENTS.md Bagian 5.2: w-80 sm:w-96) */}
             <AnimatePresence>
               {showNotifications && (
                 <motion.div
@@ -327,135 +221,7 @@ export default function Navbar() {
                   exit="exit"
                   className="fixed top-20 left-4 w-[calc(100vw-2rem)] max-h-[calc(100dvh-5.5rem)] overflow-y-auto sm:absolute sm:top-full sm:left-auto sm:right-0 sm:mt-2 sm:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200/90 dark:border-slate-800 z-50 select-none"
                 >
-                  {/* Header Popover dengan nuansa gradient halus & eyebrow */}
-                <div className="p-4 bg-gradient-to-r from-teal-50/60 via-slate-50/40 to-emerald-50/30 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3">
-                  <div>
-                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0d9488] block">
-                      Agenda Notifikasi
-                    </span>
-                    <h4 className="font-extrabold text-[#0f172a] dark:text-slate-100 text-sm tracking-tight mt-0.5">
-                      Rahina & Hari Raya Terdekat
-                    </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                      Sinkronisasi otomatis dengan Kalender Bali{' '}
-                      <span className="tabular-nums font-semibold">{currentYear}</span>
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowNotifications(false)}
-                    className="min-w-8 min-h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all cursor-pointer [touch-action:manipulation] shrink-0"
-                    aria-label="Tutup notifikasi"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-
-                {/* Konten Daftar Rahina (Scrollable) */}
-                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-80 overflow-y-auto">
-                  {/* Status Loading Skeleton (AGENTS.md Bagian 4.8) */}
-                  {isLoading && (
-                    <div className="p-4 space-y-3">
-                      <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse w-3/4" />
-                      <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse w-1/2" />
-                      <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded-lg animate-pulse w-4/5" />
-                    </div>
-                  )}
-
-                  {/* Status Jika Tidak Ada Rahina Mendatang */}
-                  {!isLoading && upcomingEvents.length === 0 && (
-                    <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400 space-y-1">
-                      <p className="font-medium text-slate-700 dark:text-slate-300">
-                        Tidak ada perayaan terdekat dalam waktu dekat.
-                      </p>
-                      <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                        Perayaan berikutnya akan segera muncul pada pergantian siklus wuku.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Render Data Riil Hari Raya (AGENTS.md Palet Semantik & Tabular Nums) */}
-                  {!isLoading &&
-                    upcomingEvents.map((item, idx) => {
-                      const badgeStyle = getHariRayaBadgeStyle(item.holiday.nama);
-
-                      return (
-                        <div
-                          key={`${item.date}-${item.holiday.id || idx}`}
-                          className="p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/80 transition-colors flex items-start justify-between gap-3 group"
-                        >
-                          {/* Sisi Kiri: Klik untuk Buka di Kalender */}
-                          <div
-                            onClick={() => handleSelectEventDate(item.date)}
-                            className="flex-1 cursor-pointer"
-                          >
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-bold text-xs text-[#0f172a] dark:text-slate-100 group-hover:text-primary transition-colors">
-                                {item.holiday.nama}
-                              </span>
-                            </div>
-
-                            {/* Konteks Wewaran & Sasih */}
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                              {item.wewaranText} · {item.sasihText}
-                            </div>
-
-                            {/* Tanggal Terformat Lengkap dengan Tabular Nums */}
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200/80 dark:border-slate-700/80 tabular-nums">
-                                {item.formattedDate}
-                              </span>
-                              <span className="text-[10px] text-primary font-bold inline-flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span>Buka Kalender</span>
-                                <ChevronRight size={11} />
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Sisi Kanan: Badge Jarak Waktu & Tombol Info Filosofi */}
-                          <div className="flex flex-col items-end gap-1.5 shrink-0">
-                            {/* Badge Jarak Hari dengan Warna Semantik Tradisi Bali & Tabular Nums */}
-                            <span
-                              className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-2xs tabular-nums ${badgeStyle.bg} ${badgeStyle.text} ${badgeStyle.border}`}
-                            >
-                              <span
-                                className={`w-1.5 h-1.5 rounded-full ${badgeStyle.dot}`}
-                              />
-                              <span className="tabular-nums">{item.diffLabel}</span>
-                            </span>
-
-                            {/* Tombol Buka Modal Detail Filosofi Hari Raya */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedHoliday(item.holiday);
-                              }}
-                              className="min-w-7 min-h-7 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary-subtle dark:hover:bg-slate-800 active:scale-95 rounded-lg transition-all cursor-pointer [touch-action:manipulation]"
-                              title="Baca Makna & Filosofi Hari Raya Ini"
-                            >
-                              <Info size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-
-                {/* Footer Popover: Link ke Kalender Lengkap */}
-                <div className="py-2.5 px-4 bg-slate-50/70 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800 text-center">
-                  <NavLink
-                    to="/kalender"
-                    onClick={() => setShowNotifications(false)}
-                    className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary-hover transition-colors py-1"
-                  >
-                    <Calendar size={13} />
-                    <span>
-                      Lihat Kalender Lengkap{' '}
-                      <span className="tabular-nums font-semibold">{currentYear}</span>
-                    </span>
-                  </NavLink>
-                </div>
+                  <PengingatNotificationList onClose={() => setShowNotifications(false)} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -612,17 +378,6 @@ export default function Navbar() {
       </div>
       </header>
 
-      {/* ========================================================= */}
-      {/* 3. MODAL DETAIL FILOSOFI HARI RAYA DARI NOTIFIKASI       */}
-      {/* ========================================================= */}
-      {selectedHoliday && (
-        <HariRayaDetailModal
-          isOpen={Boolean(selectedHoliday)}
-          onClose={() => setSelectedHoliday(null)}
-          holidayId={selectedHoliday.id}
-          holidayName={selectedHoliday.nama}
-        />
-      )}
     </>
   );
 }

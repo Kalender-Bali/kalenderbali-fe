@@ -124,16 +124,17 @@ export async function fetchPadewasanRentang(
 // BLOK 3: PENCARIAN TANGGAL JATUH BERDASARKAN NAMA PADEWASAN (PARITAS LARAVEL)
 // ----------------------------------------------------------------------------
 /**
- * searchPadewasanByName mencari seluruh tanggal dalam satu bulan di mana kriteria
+ * searchPadewasanByName mencari seluruh tanggal dalam satu bulan atau tahun di mana kriteria
  * padewasan tertentu aktif (sesuai Gambar 1 & 2 dari sistem Laravel lama).
+ * Jika `req.bulan` tidak diset (atau 0), pencarian mencakup rentang 1 tahun penuh.
  *
  * Endpoint Backend:
  *   GET /api/v1/search/ala-ayuning-dewasa/by-name?nama=...&bulan=...&tahun=...
  *
  * Contoh penggunaan:
- *   Mencari kapan saja "Agni Agung Doyan Basmi" aktif pada Oktober 2026.
+ *   Mencari kapan saja "Agni Agung Doyan Basmi" aktif pada Oktober 2026 atau sepanjang 2026.
  *
- * @param req Parameter nama padewasan, angka bulan (1..12), dan tahun (YYYY)
+ * @param req Parameter nama padewasan, angka bulan (1..12, opsional), dan tahun (YYYY)
  * @returns Promise berisi CariByNamaResponse lengkap (deskripsi, severity, & daftar tanggal jatuh)
  */
 export async function searchPadewasanByName(
@@ -144,15 +145,19 @@ export async function searchPadewasanByName(
   }
 
   try {
+    const params: Record<string, string | number> = {
+      nama: req.nama.trim(),
+      tahun: req.tahun,
+    };
+
+    // Parameter bulan bersifat opsional; sertakan hanya jika bernilai 1..12
+    if (req.bulan && req.bulan >= 1 && req.bulan <= 12) {
+      params.bulan = req.bulan;
+    }
+
     const response = await apiClient.get<AlaAyuningAPIEnvelope<CariByNamaResponse>>(
       '/search/ala-ayuning-dewasa/by-name',
-      {
-        params: {
-          nama: req.nama.trim(),
-          bulan: req.bulan,
-          tahun: req.tahun,
-        },
-      }
+      { params }
     );
 
     if (!response.data || !response.data.data) {

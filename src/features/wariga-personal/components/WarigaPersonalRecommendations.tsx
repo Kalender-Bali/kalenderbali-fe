@@ -40,21 +40,21 @@ export const WarigaPersonalRecommendations: React.FC<
   // -------------------------------------------------------------------------
   if (isLimited) {
     return (
-      <div className="bg-gradient-to-r from-amber-50/70 via-teal-50/40 to-slate-50 rounded-2xl border border-amber-200/70 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-amber-50/70 via-teal-50/40 to-slate-50 dark:from-amber-950/40 dark:via-slate-900/90 dark:to-slate-900 rounded-2xl border border-amber-200/70 dark:border-amber-800/60 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3.5 max-w-2xl">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 border border-amber-200 text-amber-800 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/70 text-amber-800 dark:text-amber-400 flex items-center justify-center shrink-0">
             <Lock className="w-5 h-5" />
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-extrabold text-[#0f172a] tracking-tight">
+              <h3 className="text-sm sm:text-base font-extrabold text-[#0f172a] dark:text-white tracking-tight">
                 Rekomendasi Otomatis Hari Terbaik
               </h3>
-              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+              <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60 text-[10px] font-bold">
                 Khusus Premium
               </span>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               {upgradeMessage ||
                 'Aktifkan langganan Premium untuk membuka rekomendasi tanggal terbaik bulan ini.'}
             </p>
@@ -75,9 +75,9 @@ export const WarigaPersonalRecommendations: React.FC<
 
   if (recommendations.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs">
-        <h3 className="text-base font-extrabold text-[#0f172a]">Rekomendasi Hari Terbaik</h3>
-        <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs">
+        <h3 className="text-base font-extrabold text-[#0f172a] dark:text-white">Rekomendasi Hari Terbaik</h3>
+        <p className="mt-2 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
           Tidak ada rekomendasi tanggal terbaik pada periode ini. Akses rekomendasi Anda tetap terbuka.
         </p>
       </div>
@@ -88,15 +88,15 @@ export const WarigaPersonalRecommendations: React.FC<
   // KASUS B: PENGGUNA MEMBER / ADMIN (REKOMENDASI TERBUKA PENUH)
   // -------------------------------------------------------------------------
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-3.5">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-3.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-          <h3 className="text-sm sm:text-base font-extrabold text-[#0f172a] tracking-tight">
+          <h3 className="text-sm sm:text-base font-extrabold text-[#0f172a] dark:text-white tracking-tight">
             Rekomendasi Hari Terbaik Bulan Ini
           </h3>
         </div>
-        <span className="text-[11px] font-extrabold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-200/60">
+        <span className="text-[11px] font-extrabold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 rounded-full border border-teal-200/60 dark:border-teal-800/60">
           {recommendations.length} Tanggal Pilihan
         </span>
       </div>
@@ -105,15 +105,15 @@ export const WarigaPersonalRecommendations: React.FC<
         {recommendations.slice(0, 3).map((item) => {
           const isGuru = item.wariga === 'Guru';
           const badgeClass = isGuru
-            ? 'bg-sky-50 text-sky-800 border-sky-200/80'
-            : 'bg-emerald-50 text-emerald-800 border-emerald-200/80';
+            ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-800 dark:text-sky-300 border-sky-200/80 dark:border-sky-800/60'
+            : 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800/60';
           const dotClass = isGuru ? 'bg-sky-500' : 'bg-emerald-500';
 
           return (
             <div
               key={item.tanggal}
               onClick={() => onSelectDate(item.tanggal)}
-              className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-teal-500/40 hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-2 [touch-action:manipulation]"
+              className="p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-800 hover:border-teal-500/40 dark:hover:border-teal-500/40 hover:shadow-xs transition-all cursor-pointer group flex flex-col justify-between space-y-2 [touch-action:manipulation]"
             >
               <div className="flex items-center justify-between">
                 <span
@@ -122,14 +122,14 @@ export const WarigaPersonalRecommendations: React.FC<
                   <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
                   {item.wariga} (Hari Baik)
                 </span>
-                <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-teal-600 transition-colors" />
+                <ArrowRight className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
               </div>
 
               <div>
-                <div className="text-xs sm:text-sm font-extrabold text-[#0f172a] tabular-nums">
+                <div className="text-xs sm:text-sm font-extrabold text-[#0f172a] dark:text-white tabular-nums">
                   {formatFullIndoDate(item.tanggal)}
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed mt-1 line-clamp-2">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mt-1 line-clamp-2">
                   {item.keterangan}
                 </p>
               </div>

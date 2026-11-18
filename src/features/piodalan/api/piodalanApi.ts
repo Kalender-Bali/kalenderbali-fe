@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/axios';
 import { apiArray, apiObject } from '@/lib/apiResponse';
+import { isCommunityType, onlyPuras } from '@/lib/puraScope';
 import { toApiError } from '@/lib/apiError';
 import type { KalenderHarian } from '@/features/kalender/types/kalender.types';
 import type {
@@ -48,7 +49,8 @@ export async function fetchPuraList(searchQuery?: string): Promise<PuraBackendIt
   const response = await apiClient.get('/puras', { params });
   const items = response.data?.data;
 
-  return apiArray<PuraBackendItem>(items);
+  // Daftar master berbagi cache dengan Kelola Pura; komunitas tidak memiliki piodalan.
+  return onlyPuras(apiArray<PuraBackendItem>(items));
 }
 
 /**
@@ -60,7 +62,9 @@ export async function fetchPuraList(searchQuery?: string): Promise<PuraBackendIt
  */
 export async function fetchPuraDetail(id: number | string): Promise<PuraBackendItem | null> {
   const response = await apiClient.get(`/puras/${id}`);
-  return apiObject<PuraBackendItem>(response.data?.data);
+  const profile = apiObject<PuraBackendItem>(response.data?.data);
+  if (isCommunityType(profile.type || '')) throw new Error('Profil Suka Duka tersedia pada menu Komunitas.');
+  return profile;
 }
 
 // ==============================================================================

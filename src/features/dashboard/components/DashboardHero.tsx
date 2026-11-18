@@ -1,18 +1,18 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Moon, Layers, Compass, ArrowRight } from 'lucide-react';
 import type { DashboardHeroData } from '../types/dashboard.types';
 
 /**
  * ============================================================================
- * KOMPONEN: DashboardHero (Baris 1 — Banner Hero HARI INI)
+ * KOMPONEN: DashboardHero (Baris 1 Kiri — Banner Hero Penanggalan HARI INI)
  * ============================================================================
- * Menampilkan ringkasan komprehensif hari ini yang meliputi:
- *  - Sisi Kiri:
- *    1. Kicker / Eyebrow "HARI INI"
- *    2. Tanggal Masehi besar (tabular-nums)
- *    3. Baris wewaran: Hari Masehi · Saptawara Pancawara · Wuku
- *    4. Pill rekomendasi: "Hari baik untuk belajar dan sembahyang"
- *  - Sisi Kanan:
- *    3 Kotak Metrik Stat Box (Sasih, Pawukon, Urip & Arah)
+ * Menampilkan ringkasan komprehensif penanggalan Bali hari ini:
+ *  1. Header atas: Eyebrow "HARI INI" dengan ikon kalender & badge Tahun Saka.
+ *  2. Judul tanggal Masehi besar (tabular-nums) & baris wewaran lengkap.
+ *  3. 3 Kotak statistik terstruktur rapi dengan ikon tematik (Sasih, Pawukon, Urip).
+ *  4. Footer bawah selaras dengan card pengingat: ringkasan status padewasan &
+ *     tombol navigasi cepat ke /kalender-bali.
  *
  * Mengikuti Aturan Desain AGENTS.md:
  *  - Latar mint lembut: bg-[#eaf7f5] dengan border border-[#cbebe5]
@@ -25,81 +25,126 @@ interface DashboardHeroProps {
 }
 
 export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="bg-[#eaf7f5] dark:bg-slate-900 border border-[#cbebe5] dark:border-teal-500/20 rounded-2xl p-6 sm:p-7 shadow-xs">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    <div className="bg-[#eaf7f5] dark:bg-slate-900 border border-[#cbebe5] dark:border-teal-500/20 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col justify-between h-full transition-all">
+      <div className="space-y-4">
         {/* ================================================================= */}
-        {/* BLOK 1: SISI KIRI — IDENTITAS TANGGAL & WEWARAN HARI INI          */}
+        {/* 1. HEADER ATAS: EYEBROW & BADGE TAHUN SAKA / STATUS               */}
         {/* ================================================================= */}
-        <div className="space-y-2">
-          {/* 1A. Kicker / Eyebrow Modul */}
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0e9f90] dark:text-teal-400 block">
-            HARI INI
-          </span>
-
-          {/* 1B. Tanggal Masehi Besar (Ukuran H1 Standar AGENTS.md) */}
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0f172a] dark:text-white tabular-nums tracking-tight">
-            {heroData.tanggalFormatted}
-          </h1>
-
-          {/* 1C. Subtitle Wewaran Lengkap (Hari Masehi · Saptawara Pancawara · Wuku) */}
-          <p className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300">
-            {heroData.hariMasehi} · {heroData.saptawara} {heroData.pancawara} · Wuku {heroData.wuku}
-          </p>
-
-          {/* 1D. Pill Highlight Petunjuk / Rekomendasi Hari Baik */}
-          <div className="pt-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 dark:bg-slate-800/90 border border-teal-200/70 dark:border-teal-500/30 shadow-2xs text-xs font-semibold text-slate-700 dark:text-slate-200">
-              {/* Dot indikator hijau emerald berdenyut halus */}
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-              <span>{heroData.quoteHariIni}</span>
-            </div>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-lg bg-teal-100 dark:bg-teal-900/60 text-[#0e9f90] dark:text-teal-400 flex items-center justify-center shrink-0">
+              <Calendar className="w-3.5 h-3.5" />
+            </span>
+            <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#0e9f90] dark:text-teal-400">
+              HARI INI
+            </span>
           </div>
+
+          {heroData.tahunSaka ? (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/90 dark:bg-slate-800 text-teal-800 dark:text-teal-300 border border-teal-200/70 dark:border-teal-700/60 shadow-2xs tabular-nums">
+              Tahun Saka {heroData.tahunSaka}
+            </span>
+          ) : (
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/90 dark:bg-slate-800 text-teal-800 dark:text-teal-300 border border-teal-200/70 dark:border-teal-700/60 shadow-2xs">
+              WITA (UTC+8)
+            </span>
+          )}
         </div>
 
         {/* ================================================================= */}
-        {/* BLOK 2: SISI KANAN — 3 KOTAK METRIK STAT (SASIH, PAWUKON, URIP)  */}
+        {/* 2. IDENTITAS TANGGAL & WEWARAN HARI INI                           */}
         {/* ================================================================= */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5 shrink-0">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] dark:text-white tabular-nums tracking-tight">
+            {heroData.tanggalFormatted}
+          </h1>
+          <p className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 mt-1">
+            {heroData.hariMasehi} · {heroData.saptawara} {heroData.pancawara} · Wuku {heroData.wuku}
+          </p>
+        </div>
+
+        {/* ================================================================= */}
+        {/* 3. STATISTIK TANGGAL: SASIH, PAWUKON, URIP                        */}
+        {/* ================================================================= */}
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
           {/* KOTAK 1: SASIH & PENGLANTAKA */}
-          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
-            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
-              SASIH
-            </span>
-            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] dark:text-white tracking-tight block my-0.5 truncate">
-              {heroData.sasih}
-            </span>
-            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate">
-              {heroData.pengalantaka}
-            </span>
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
+            <div className="flex items-center justify-between gap-1 mb-1.5">
+              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest truncate">
+                SASIH
+              </span>
+              <Moon className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
+            </div>
+            <div>
+              <span className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight block truncate">
+                {heroData.sasih}
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate mt-0.5">
+                {heroData.pengalantaka}
+              </span>
+            </div>
           </div>
 
           {/* KOTAK 2: PAWUKON & DINA KE- */}
-          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
-            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
-              PAWUKON
-            </span>
-            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] dark:text-white tracking-tight block my-0.5 truncate">
-              {heroData.wuku}
-            </span>
-            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate">
-              Dina ka-{heroData.dinaKa ?? '-'}
-            </span>
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
+            <div className="flex items-center justify-between gap-1 mb-1.5">
+              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest truncate">
+                PAWUKON
+              </span>
+              <Layers className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
+            </div>
+            <div>
+              <span className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight block truncate">
+                {heroData.wuku}
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate mt-0.5">
+                Dina ka-{heroData.dinaKa ?? '-'}
+              </span>
+            </div>
           </div>
 
           {/* KOTAK 3: URIP & ARAH PENGIDER-IDER */}
-          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-4 min-w-[95px] sm:min-w-[115px] shadow-2xs">
-            <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest block">
-              URIP
-            </span>
-            <span className="text-base sm:text-lg lg:text-xl font-extrabold text-[#0f172a] dark:text-white tabular-nums tracking-tight block my-0.5">
-              {heroData.urip ?? '-'}
-            </span>
-            <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate capitalize">
-              {heroData.arah}
-            </span>
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
+            <div className="flex items-center justify-between gap-1 mb-1.5">
+              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest truncate">
+                URIP
+              </span>
+              <Compass className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
+            </div>
+            <div>
+              <span className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tabular-nums tracking-tight block">
+                {heroData.urip ?? '-'}
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate capitalize mt-0.5">
+                {heroData.arah}
+              </span>
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* =================================================================== */}
+      {/* 4. FOOTER BAWAH: STATUS PADEWASAN & TAUTAN KALENDER LENGKAP        */}
+      {/* =================================================================== */}
+      <div className="flex items-center justify-between gap-3 pt-3 mt-3 border-t border-teal-200/50 dark:border-teal-900/40">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+          <span className="text-xs text-slate-600 dark:text-slate-300 font-medium truncate">
+            {heroData.quoteHariIni || 'Informasi kalender & wewaran Bali'}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate('/kalender-bali')}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0d9488] dark:text-teal-400 hover:text-[#0c8a7d] transition-colors cursor-pointer shrink-0 [touch-action:manipulation] py-1"
+        >
+          <span>Buka kalender</span>
+          <ArrowRight size={13} />
+        </button>
       </div>
     </div>
   );

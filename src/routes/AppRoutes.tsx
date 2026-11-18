@@ -26,6 +26,17 @@ import KelolaPuraPage from '@/features/kelola-pura/pages/KelolaPuraPage';
 import WartaPage from '@/features/warta/pages/WartaPage';
 import WartaDetailPage from '@/features/warta/pages/WartaDetailPage';
 
+const PengingatPage = lazy(() => import('@/features/pengingat/pages/PengingatPage'));
+import { PengingatSkeleton } from '@/features/pengingat/components/PengingatSkeleton';
+
+// Direktori dan kas komunitas dapat dibaca publik; aksi privat diperiksa pada halaman dan BE.
+const KomunitasPage = lazy(() => import('@/features/komunitas/pages/KomunitasPage'));
+import { KomunitasSkeleton } from '@/features/komunitas/components/KomunitasSkeleton';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
+
+// Editor publik ini dimuat ketika pengguna membuka Kartu Ucapan.
+const KartuUcapanPage = lazy(() => import('@/features/kartu-ucapan/pages/KartuUcapanPage'));
+
 // Import komponen halaman Info Kontak dengan Route-Level Code Splitting (fe_strategy.md 8.12)
 const KontakPage = lazy(() => import('@/features/kontak/pages/KontakPage'));
 import { KontakSkeleton } from '@/features/kontak/components/KontakSkeleton';
@@ -124,6 +135,23 @@ export default function AppRoutes() {
 
           {/* Halaman Jadwal Hari Raya & Rahina Hindu Bali */}
           <Route path="hari-raya" element={<HariRayaPage />} />
+
+          <Route
+            path="kartu-ucapan"
+            element={
+              <Suspense fallback={
+                <div className="space-y-6 pb-12">
+                  <div aria-hidden="true" className="h-24 w-full rounded-xl bg-slate-100 dark:bg-slate-800" />
+                  <div className="grid gap-6 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)]">
+                    <DataSkeleton label="Memuat Kartu Ucapan" className="order-2 h-96 lg:order-1" />
+                    <div aria-hidden="true" className="order-1 h-[28rem] rounded-2xl border border-slate-200/90 bg-white lg:order-2 lg:h-[34rem] dark:border-slate-800 dark:bg-slate-900" />
+                  </div>
+                </div>
+              }>
+                <KartuUcapanPage />
+              </Suspense>
+            }
+          />
 
           {/* ==================================================================== */}
           {/* HALAMAN WARIGA PERSONAL (EVALUASI KECOCOKAN HARI WETON KELAHIRAN)    */}
@@ -235,7 +263,10 @@ export default function AppRoutes() {
           {/* RUTE TERLINDUNGI LOGIN (MEMBER, GUEST TERDAFTAR, & ADMIN)            */}
           {/* Mengalihkan pengguna non-login ke /login dengan state { from: loc }  */}
           {/* ==================================================================== */}
+          <Route path="komunitas" element={<Suspense fallback={<KomunitasSkeleton />}><KomunitasPage /></Suspense>} />
+          <Route path="layanan/komunitas" element={<Navigate to="/komunitas" replace />} />
           <Route element={<ProtectedRoute />}>
+            <Route path="pengingat" element={<Suspense fallback={<PengingatSkeleton />}><PengingatPage /></Suspense>} />
             {/* Halaman Utama Katalog & Kelola Pura Bali */}
             <Route path="kelola-pura" element={<KelolaPuraPage />} />
             <Route path="layanan/kelola-pura" element={<Navigate to="/kelola-pura" replace />} />
@@ -248,6 +279,7 @@ export default function AppRoutes() {
           <Route path="warta" element={<WartaPage />} />
           {/* Halaman baca artikel warta penuh (dedicated reading page) */}
           <Route path="warta/:id" element={<WartaDetailPage />} />
+
 
           {/* Rute kompatibilitas pengalihan /info-kita ke /warta */}
           <Route path="info-kita" element={<Navigate to="/warta" replace />} />

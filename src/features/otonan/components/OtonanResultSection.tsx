@@ -1,11 +1,11 @@
 import React from 'react';
-import { CalendarPlus, Info } from 'lucide-react';
+import { BellPlus, Info } from 'lucide-react';
 import type { OtonanResponseData, OtonanHasilItem } from '../types/otonan.types';
 import {
   formatIndoDate,
   getCountdownDays,
-  downloadOtonanICS,
   getIndoDayName,
+  getTodayWITA,
 } from '../utils/otonanUtils';
 
 /**
@@ -15,7 +15,7 @@ import {
  * Komponen ini menyajikan hasil perhitungan otonan secara memanjang (full-width)
  * dan menampilkan 2 kartu detail otonan (misal: otonan pertama dan kedua):
  *  - Setiap kartu memuat tanggal Masehi besar, countdown hari, nomor siklus otonan,
- *    4 elemen wewaran (Saptawara, Pancawara, Wuku, Sasih), tombol tambah kalender (.ics),
+ *    4 elemen wewaran (Saptawara, Pancawara, Wuku, Sasih), tombol tambah pengingat,
  *    dan tombol "Detail" pembuka modal rincian Wariga.
  * ============================================================================
  */
@@ -26,32 +26,18 @@ interface OtonanResultSectionProps {
 
   /** Callback untuk membuka modal dialog detail wariga dengan tanggal spesifik */
   onOpenDetailModal: (dateStr: string) => void;
+  onAddReminder: (dateStr: string) => void;
 }
 
 export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
   data,
   onOpenDetailModal,
+  onAddReminder,
 }) => {
   const normalized = data.input_dinormalisasi;
   const birthElements = normalized?.elemen;
   const otonanList: OtonanHasilItem[] = data.hasil || [];
-
-  /** Menangani unduhan berkas .ics untuk jadwal otonan spesifik */
-  const handleAddToCalendar = (item: OtonanHasilItem) => {
-    const saptawara = item.detail_elemen?.saptawara || birthElements?.saptawara || 'Redite';
-    const pancawara = item.detail_elemen?.pancawara || birthElements?.pancawara || 'Umanis';
-    const wuku = item.detail_elemen?.wuku || birthElements?.wuku || 'Sinta';
-    const sasih = item.detail_elemen?.sasih || 'Kalima';
-
-    downloadOtonanICS({
-      tanggal: item.tanggal,
-      perayaanKe: normalized?.tipe_pencarian === 'tanggal_lahir' ? item.perayaan_ke : null,
-      saptawara,
-      pancawara,
-      wuku,
-      sasih,
-    });
-  };
+  const today = getTodayWITA();
 
   return (
     <div className="space-y-6 w-full">
@@ -161,14 +147,17 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
 
             {/* Baris Bawah: Tombol Aksi (Sesuai AGENTS.md Bab 4.4) */}
             <div className="border-t border-slate-100 dark:border-slate-800 pt-5 mt-6 flex flex-wrap items-center gap-3">
-              {/* Tombol 1: Tambahkan ke Kalender (.ics) */}
+              {/* Tombol 1: Pengingat untuk tanggal hasil yang dipilih */}
               <button
                 type="button"
-                onClick={() => handleAddToCalendar(item)}
-                className="h-11 px-5 rounded-xl bg-[#1e293b] hover:bg-[#0f172a] dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 [touch-action:manipulation]"
+                onClick={() => onAddReminder(item.tanggal)}
+                disabled={item.tanggal < today}
+                aria-label={`Tambah pengingat Otonan ${formattedDate}`}
+                title={item.tanggal < today ? 'Tanggal ini sudah terlewat. Pilih hasil otonan hari ini atau mendatang.' : 'Atur pengingat untuk tanggal otonan ini'}
+                className="h-11 px-5 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed [touch-action:manipulation]"
               >
-                <CalendarPlus className="w-4 h-4" />
-                <span>Tambahkan ke kalender</span>
+                <BellPlus className="w-4 h-4" aria-hidden="true" />
+                <span>Tambah pengingat</span>
               </button>
 
               {/* Tombol 2: Detail Wariga (Secondary Button Standar) */}
@@ -181,6 +170,7 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
                 <span>Detail</span>
               </button>
             </div>
+            {item.tanggal < today && <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">Pengingat tersedia untuk tanggal otonan hari ini atau mendatang.</p>}
           </div>
         );
       })}

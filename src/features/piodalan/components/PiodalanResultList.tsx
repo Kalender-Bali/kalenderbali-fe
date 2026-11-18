@@ -53,7 +53,7 @@ const LOAD_MORE_STEP = 6;
  *    - Aksen Brand Resmi: Teal Tirta Bali (#0e9f90) & Mint Subtle (#e6f7f5)
  *    - Watermark arsitektur siluet Candi Bentar di pojok kanan bawah
  *    - Angka dan penanggalan menggunakan tabular-nums
- * 3. Dua tombol aksi baku:
+ * 3. Aksi pada tanggal hasil pencarian:
  *    - 'List Pura (X Pura)': Tombol Utama Teal (#0e9f90) -> Membuka Level 2 (Modal Daftar Pura)
  *    - 'Detail Tanggal': Tombol Sekunder Outline -> Membuka Rincian Wariga 15 Dimensi
  * ==============================================================================
@@ -256,7 +256,7 @@ export const PiodalanResultList: React.FC<PiodalanResultListProps> = ({
                 </div>
               </div>
 
-              {/* Baris Bawah: Dua Tombol Aksi Baku (List Pura & Detail Tanggal) */}
+              {/* Aksi daftar pura dan rincian tanggal */}
               <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap pt-1">
                 {/* Tombol 1: List Pura (Membuka Level 2 - Primary Button AGENTS.md 4.4) */}
                 <button
