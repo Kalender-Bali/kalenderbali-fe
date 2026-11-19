@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { ChangeEvent, ReactNode } from 'react';
 import { Check, ChevronDown, ImagePlus, RotateCcw } from 'lucide-react';
-import { backgroundPresets, backgroundUrl } from '../utils/kartuUcapanDraft';
-import type { CardBackground, CardStyle } from '../utils/kartuUcapanDraft';
+import { backgroundPresets, backgroundUrl } from '../utils/shareCardDraft';
+import type { CardBackground, CardStyle } from '../utils/shareCardDraft';
 
 const colorFields = [
   { key: 'topColor', label: 'Gradasi atas' },
@@ -19,7 +19,9 @@ interface Props {
   onPhotoPending: (pending: boolean) => void;
 }
 
-export function KartuUcapanStylePanel({ style, onChange, onReset, onPhotoPending }: Props) {
+export function ShareCardStylePanel({ style, onChange, onReset, onPhotoPending }: Props) {
+  const layoutId = useId();
+  const backgroundsId = useId();
   const fileInput = useRef<HTMLInputElement>(null);
   const photoRequest = useRef(0);
   const [isReadingPhoto, setIsReadingPhoto] = useState(false);
@@ -75,7 +77,7 @@ export function KartuUcapanStylePanel({ style, onChange, onReset, onPhotoPending
   }
 
   return (
-    <details className="group rounded-2xl border border-slate-200/90 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+    <details className="@container group rounded-2xl border border-slate-200/90 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 rounded-2xl px-5 py-4 text-lg font-extrabold text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 sm:px-7 dark:text-slate-100 [&::-webkit-details-marker]:hidden [touch-action:manipulation]">
         Gaya Kartu
         <ChevronDown aria-hidden="true" className="size-5 shrink-0 text-teal-700 group-open:rotate-180 dark:text-teal-300" />
@@ -83,9 +85,9 @@ export function KartuUcapanStylePanel({ style, onChange, onReset, onPhotoPending
       <div className="space-y-5 border-t border-slate-100 p-5 sm:p-7 dark:border-slate-800">
         {/* Kontrol gaya mengirim perubahan ke draft yang dikelola halaman. */}
         <div>
-          <label htmlFor="kartu-layout" className="mb-1.5 block text-[11px] font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-400">Tata letak</label>
+          <label htmlFor={layoutId} className="mb-1.5 block text-[11px] font-extrabold uppercase tracking-widest text-slate-600 dark:text-slate-400">Tata letak</label>
           <div className="relative">
-            <select id="kartu-layout" value={style.layout}
+            <select id={layoutId} value={style.layout}
               onChange={(event) => onChange({ layout: event.target.value === 'standar' ? 'standar' : 'ucapan' })}
               className="h-11 w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 pr-10 text-sm font-semibold text-slate-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
               <option value="ucapan">Ucapan</option>
@@ -105,8 +107,8 @@ export function KartuUcapanStylePanel({ style, onChange, onReset, onPhotoPending
           ))}
         </div>
         <div>
-          <h3 id="kartu-latar-title" className="mb-2 text-sm font-bold text-slate-900 dark:text-slate-100">Latar belakang</h3>
-          <div role="group" aria-labelledby="kartu-latar-title" className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+          <h3 id={backgroundsId} className="mb-2 text-sm font-bold text-slate-900 dark:text-slate-100">Latar belakang</h3>
+          <div role="group" aria-labelledby={backgroundsId} className="grid grid-cols-3 gap-2 @min-[24rem]:grid-cols-4">
             {backgroundChoices.map(({ id, label }) => {
               const selected = id === null ? style.background.kind === 'none'
                 : style.background.kind === 'preset' && style.background.id === id;

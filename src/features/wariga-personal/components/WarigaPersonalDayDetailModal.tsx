@@ -1,11 +1,16 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { lazy, Suspense, useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calculator, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { X, Calculator, CheckCircle2, AlertTriangle, Share2 } from 'lucide-react';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import type {
   WarigaPersonalItem,
   IdentitasKelahiran,
 } from '../types/warigaPersonal.types';
-import { formatFullIndoDate } from '@/features/kalender/utils/calendarUtils';
+import { formatFullIndoDate, isValidISODate } from '@/features/kalender/utils/calendarUtils';
+import { buildWarigaPersonalShareCard } from '../utils/warigaPersonalShareCard';
+
+const ShareCardDialog = lazy(() => import('@/features/share-card/components/ShareCardDialog'));
 
 /**
  * ============================================================================
@@ -38,23 +43,27 @@ export const WarigaPersonalDayDetailModal: React.FC<
   // -------------------------------------------------------------------------
   // BLOK 1: AKSESIBILITAS: LISTENER TOMBOL ESCAPE & KUNCI OVERFLOW BODY
   // -------------------------------------------------------------------------
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose]
-  );
+  const [share, setShare] = useState<{ item: WarigaPersonalItem; identitas: IdentitasKelahiran; trigger: HTMLButtonElement } | null>(null);
+  // Draf terikat pada hasil dan identitas yang dipilih, termasuk saat tanggalnya sama.
+  const activeShare = isOpen && share?.item === item && share?.identitas === identitas ? share : null;
+  if (share && !activeShare) setShare(null);
+  const card = useMemo(() => activeShare ? buildWarigaPersonalShareCard(activeShare.item, activeShare.identitas.total_urip_kelahiran) : null, [activeShare]);
+  const closeShare = () => setShare(null);
+  const dismissDetail = useEffectEvent(() => onClose());
 
+  // Editor mengambil alih Escape dan scroll ketika dialog berbagi terbuka.
+  const detailActive = isOpen && !!item && !activeShare;
   useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
+    if (!detailActive) return;
+    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape' && !event.defaultPrevented) dismissDetail(); };
+    const overflow = document.body.style.overflow;
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = overflow;
     };
-  }, [isOpen, handleKeyDown]);
+  }, [detailActive]);
 
   if (!isOpen || !item) return null;
 
@@ -78,9 +87,10 @@ export const WarigaPersonalDayDetailModal: React.FC<
     dotColor = 'bg-amber-500';
   }
 
-  return createPortal(
+  const detail = createPortal(
     <div
-      className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-150"
+      role="dialog" aria-modal="true" aria-label="Detail Wariga Personal"
+      className={activeShare ? 'hidden' : 'fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 z-[100] animate-in fade-in duration-150'}
       onClick={onClose}
     >
       <div
@@ -127,7 +137,7 @@ export const WarigaPersonalDayDetailModal: React.FC<
         {/* =============================================================== */}
         {/* BODY MODAL SCROLLABLE                                           */}
         {/* =============================================================== */}
-        <div className="overflow-y-auto p-5 sm:p-6 space-y-4">
+        <div className="min-h-0 overflow-y-auto p-5 sm:p-6 space-y-4">
           {/* Card Status Hari */}
           <div
             className={`p-3.5 rounded-xl border flex items-start gap-3 ${
@@ -199,7 +209,14 @@ export const WarigaPersonalDayDetailModal: React.FC<
         {/* =============================================================== */}
         {/* FOOTER MODAL                                                    */}
         {/* =============================================================== */}
-        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <div className="shrink-0 p-4 bg-slate-50 border-t border-slate-100 flex flex-wrap justify-end gap-2">
+          {/* Bagikan hanya tanggal yang memiliki hasil Go yang valid. */}
+          {isValidISODate(item.tanggal) && (
+            <button type="button" aria-haspopup="dialog" onClick={(event) => setShare({ item, identitas, trigger: event.currentTarget })}
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 cursor-pointer [touch-action:manipulation]">
+              <Share2 aria-hidden="true" className="size-4" /> Bagikan Kartu
+            </button>
+          )}
           <button
             type="button"
             onClick={onClose}
@@ -212,5 +229,17 @@ export const WarigaPersonalDayDetailModal: React.FC<
     </div>,
     document.body
   );
+  const description = card ? card.content.context : '';
+  return <>
+    {detail}
+    {activeShare && card && (
+      <Suspense fallback={<AppDialog title="Bagikan Wariga Personal" description={description} returnFocus={activeShare.trigger} onClose={closeShare}>
+        <DataSkeleton label="Memuat kartu Wariga Personal" className="h-72" />
+      </AppDialog>}>
+        <ShareCardDialog title="Bagikan Wariga Personal" description={description} trigger={activeShare.trigger} onClose={closeShare}
+          content={card.content} initialStyle={card.initialStyle} fileName={card.fileName} />
+      </Suspense>
+    )}
+  </>;
 };
 

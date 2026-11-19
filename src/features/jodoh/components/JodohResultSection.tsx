@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useMemo, useState } from 'react';
 import {
   Heart,
   Share2,
@@ -6,7 +6,14 @@ import {
   ArrowUpRight,
   Info,
 } from 'lucide-react';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import type { JodohData, PetenunganItem, JodohStatusCode } from '../types/jodoh.types';
+import { buildJodohShareCard, jodohShareStyle } from '../utils/jodohShareCard';
+
+const ShareCardDialog = lazy(() => import('@/features/share-card/components/ShareCardDialog'));
+const shareTitle = 'Bagikan Tenung Tripramana';
+const shareDescription = 'Bagikan hasil Tenung Tripramana pasangan Anda.';
 
 /**
  * ============================================================================
@@ -106,6 +113,7 @@ function getPilarTenungLabel(namaTenung: string): string {
  *  2. Grid 4 Metode Tenung:
  *     - Grid 2x2 desktop untuk Jatukarma, Urip Catur, Urip Panca, dan Tripramana.
  *     - Nama arketipe hasil, nilai numerik (0–100), progress bar, dan tafsir makna.
+ *     - Aksi bagikan kartu pada hasil Tenung Tripramana.
  *  3. Catatan Budaya Wariga:
  *     - Pesan etika kebijaksanaan tradisional dari server Go.
  * ============================================================================
@@ -115,6 +123,13 @@ export const JodohResultSection: React.FC<JodohResultSectionProps> = ({
   onModifySearch,
 }) => {
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [share, setShare] = useState<{ result: JodohData; trigger: HTMLButtonElement } | null>(null);
+
+  // Draf berlaku untuk hasil yang dibuka, termasuk ketika hasil sebelumnya tampil kembali.
+  if (share && share.result !== result) setShare(null);
+  const activeShare = share?.result === result ? share : null;
+  const shareContent = useMemo(() => activeShare ? buildJodohShareCard(activeShare.result) : null, [activeShare]);
+  const closeShare = () => setShare(null);
 
   const theme = getStatusTheme(result.status_code, result.skor_akhir);
 
@@ -401,6 +416,16 @@ Cek selengkapnya di: ${window.location.href}`;
                     />
                   </div>
                 </div>
+
+                {/* Daftar bisa berubah urutan. Identitas kartu berbagi mengikuti hasil Tripramana dari API. */}
+                {item.nama_tenung === result.tripramana.nama_tenung && result.tripramana.keterangan?.trim() && (
+                  <button type="button" aria-haspopup="dialog"
+                    aria-label="Bagikan Kartu Tenung Tripramana"
+                    onClick={(event) => setShare({ result, trigger: event.currentTarget })}
+                    className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 active:bg-slate-100 sm:text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 [touch-action:manipulation]">
+                    <Share2 aria-hidden="true" className="size-4" /> Bagikan Kartu
+                  </button>
+                )}
               </div>
             );
           })}
@@ -425,6 +450,18 @@ Cek selengkapnya di: ${window.location.href}`;
             {result.meta?.waktu_pergantian_hari || '06:00 WITA'})
           </p>
         </div>
+      )}
+
+      {/* Editor bersama dimuat setelah pengguna membuka kartu dari hasil yang aktif. */}
+      {activeShare && shareContent && (
+        <Suspense fallback={
+          <AppDialog title={shareTitle} description={shareDescription} returnFocus={activeShare.trigger} onClose={closeShare}>
+            <DataSkeleton label="Memuat kartu Tenung Tripramana" className="h-72" />
+          </AppDialog>
+        }>
+          <ShareCardDialog title={shareTitle} description={shareDescription} content={shareContent}
+            initialStyle={jodohShareStyle} fileName="tenung-tripramana.png" trigger={activeShare.trigger} onClose={closeShare} />
+        </Suspense>
       )}
     </div>
   );

@@ -288,6 +288,10 @@ export function extractHariRayaCards(
         monthShort,
         categoryTag: tag,
         badgeVariant: variant,
+        // Salin rincian Go pada tanggal perayaan untuk detail dan kartu berbagi.
+        saptawara: capitalize(day.wewaran?.saptawara?.nama) || undefined,
+        triwara: capitalize(day.wewaran?.triwara?.nama) || undefined,
+        pancawara: capitalize(day.wewaran?.pancawara?.nama) || undefined,
         wuku: day.wewaran?.wuku?.nama ? capitalize(day.wewaran.wuku.nama) : undefined,
         sasih: day.sasih?.nama_sasih ? capitalize(day.sasih.nama_sasih) : undefined,
         tahunSaka: day.sasih?.tahun_saka,

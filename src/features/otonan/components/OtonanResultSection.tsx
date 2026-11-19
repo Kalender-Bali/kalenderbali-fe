@@ -1,5 +1,5 @@
 import React from 'react';
-import { BellPlus, Info } from 'lucide-react';
+import { BellPlus, Info, Share2 } from 'lucide-react';
 import type { OtonanResponseData, OtonanHasilItem } from '../types/otonan.types';
 import {
   formatIndoDate,
@@ -16,7 +16,7 @@ import {
  * dan menampilkan 2 kartu detail otonan (misal: otonan pertama dan kedua):
  *  - Setiap kartu memuat tanggal Masehi besar, countdown hari, nomor siklus otonan,
  *    4 elemen wewaran (Saptawara, Pancawara, Wuku, Sasih), tombol tambah pengingat,
- *    dan tombol "Detail" pembuka modal rincian Wariga.
+ *    tombol Detail, dan tombol Bagikan Kartu untuk tanggal tersebut.
  * ============================================================================
  */
 
@@ -27,12 +27,14 @@ interface OtonanResultSectionProps {
   /** Callback untuk membuka modal dialog detail wariga dengan tanggal spesifik */
   onOpenDetailModal: (dateStr: string) => void;
   onAddReminder: (dateStr: string) => void;
+  onShareCard: (item: OtonanHasilItem, trigger: HTMLButtonElement) => void;
 }
 
 export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
   data,
   onOpenDetailModal,
   onAddReminder,
+  onShareCard,
 }) => {
   const normalized = data.input_dinormalisasi;
   const birthElements = normalized?.elemen;
@@ -168,6 +170,17 @@ export const OtonanResultSection: React.FC<OtonanResultSectionProps> = ({
               >
                 <Info className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 <span>Detail</span>
+              </button>
+
+              {/* Teruskan baris yang dipilih, termasuk ketika tanggalnya sudah lewat. */}
+              <button
+                type="button"
+                onClick={(event) => onShareCard(item, event.currentTarget)}
+                aria-label={`Bagikan Kartu Otonan ${formattedDate}`}
+                className="h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 active:bg-slate-100 text-slate-700 dark:text-slate-200 font-bold text-xs sm:text-sm transition-all cursor-pointer inline-flex items-center justify-center gap-2 shadow-2xs active:scale-98 [touch-action:manipulation]"
+              >
+                <Share2 aria-hidden="true" className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                <span>Bagikan Kartu</span>
               </button>
             </div>
             {item.tanggal < today && <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">Pengingat tersedia untuk tanggal otonan hari ini atau mendatang.</p>}

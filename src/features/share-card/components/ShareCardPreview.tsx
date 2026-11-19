@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
-import { backgroundUrl, characters } from '../utils/kartuUcapanDraft';
-import type { CardDraft } from '../utils/kartuUcapanDraft';
+import { backgroundUrl, cardBrand, cardSenderLine, characters } from '../utils/shareCardDraft';
+import type { CardDraft, StructuredCardContent } from '../utils/shareCardDraft';
 
 const width = 360;
 const height = 450;
@@ -18,11 +18,14 @@ interface Props {
   onRendered: (draft: CardDraft) => void;
 }
 
-export function KartuUcapanPreview({ canvasRef, draft, renderedDraft, onRendered }: Props) {
+export function ShareCardPreview({ canvasRef, draft, renderedDraft, onRendered }: Props) {
   const images = useRef(new Map<string, Promise<HTMLImageElement>>());
   const [attempt, setAttempt] = useState(0);
   const [failure, setFailure] = useState<{ draft: CardDraft; attempt: number } | null>(null);
   const failed = failure?.draft === draft && failure.attempt === attempt;
+  const label = draft.content.kind === 'structured'
+    ? `Gambar pratinjau ${draft.content.source ?? `${draft.content.title}, ${draft.content.context}`}`
+    : 'Gambar pratinjau Kartu Ucapan';
 
   // Hanya draft terbaru boleh menggambar setelah pemuatan gambar selesai.
   useEffect(() => {
@@ -48,7 +51,7 @@ export function KartuUcapanPreview({ canvasRef, draft, renderedDraft, onRendered
     <div>
       <div className="relative mx-auto aspect-[4/5] w-full max-w-72 bg-slate-100 sm:max-w-[22rem] dark:bg-slate-800">
         <canvas ref={canvasRef} width={width * scale} height={height * scale} role="img"
-          aria-label="Gambar pratinjau Kartu Ucapan" className="block size-full" />
+          aria-label={label} className="block size-full" />
         {!renderedDraft && !failed && (
           <div role="status" className="absolute inset-0 grid place-items-center px-4 text-center text-sm font-medium text-slate-600 dark:text-slate-300">
             Menyiapkan pratinjau…
@@ -91,7 +94,7 @@ function drawCard(canvas: HTMLCanvasElement, draft: CardDraft, logo: HTMLImageEl
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Kanvas tidak tersedia.');
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
-  const { style } = draft;
+  const { content, style } = draft;
   const centered = style.layout === 'ucapan';
 
   // Lapisan kartu mengikuti contoh Android: gradasi, motif, aksen, lalu isi.
@@ -109,37 +112,42 @@ function drawCard(canvas: HTMLCanvasElement, draft: CardDraft, logo: HTMLImageEl
     ctx.drawImage(image, (width - imageWidth) / 2, (height - imageHeight) / 2, imageWidth, imageHeight);
     ctx.globalAlpha = 1;
   }
-  ctx.fillStyle = '#ed7f21';
+  ctx.fillStyle = content.kind === 'structured' ? content.accent : '#ed7f21';
   ctx.fillRect(0, 0, width, 6);
   ctx.fillStyle = style.textColor;
   ctx.textBaseline = 'middle';
   ctx.textAlign = centered ? 'center' : 'left';
   const x = centered ? width / 2 : inset;
 
-  // Ruang pesan, pengirim, dan merek dicadangkan sebelum ucapan dipenggal.
+  // Cadangkan ruang untuk fakta, pesan, dan rujukan sebelum memenggal terjemahan.
+  const source = content.kind === 'structured' ? content.source : undefined;
   const details = [
+    ...(content.kind === 'structured'
+      ? content.facts.map((text) => ({ text, size: 13, weight: 400, lineHeight: 17, maxLines: 1 }))
+      : []),
     { text: draft.message.trim(), size: 14, weight: 400, lineHeight: 18, maxLines: 5 },
-    { text: draft.sender.trim() ? `Dari: ${draft.sender.trim()}` : '', size: 14, weight: 600, lineHeight: 18, maxLines: 2 },
+    { text: cardSenderLine(draft.sender), size: 14, weight: 600, lineHeight: 18, maxLines: 2 },
+    ...(source ? [{ text: source, size: 13, weight: 600, lineHeight: 17, maxLines: 2 }] : []),
   ].filter(({ text }) => text).map((detail) => {
     ctx.font = cardFont(detail.size, detail.weight);
     return { ...detail, lines: fitText(ctx, detail.text, detail.maxLines).lines };
   });
-  const detailsGap = 7;
+  const detailsGap = content.kind === 'structured' ? 4 : 7;
   const detailsHeight = details.reduce((total, detail, index) =>
     total + detail.lines.length * detail.lineHeight + (index ? detailsGap : 0), 0);
   const brandY = height - 33;
   let detailY = brandY - 21 - detailsHeight;
-  const textTop = 24;
+  const textTop = content.kind === 'structured' ? paintHeading(ctx, content, x, centered) : 24;
   const textBottom = detailY - (details.length ? 12 : 0);
-  const greeting = draft.greeting.trim() || placeholder;
-  const isShort = greeting.length <= 160 && characters(greeting).length <= 80;
+  const result = content.kind === 'structured' ? content.result : content.text.trim() || placeholder;
+  const isShort = result.length <= 160 && characters(result).length <= 80;
   const size = isShort ? 24 : 18;
   const lineHeight = isShort ? 31 : 24;
   const excerptHeight = 18;
   ctx.font = cardFont(size, isShort ? 600 : 400);
-  const fitting = fitText(ctx, greeting, Math.floor((textBottom - textTop) / lineHeight));
+  const fitting = fitText(ctx, result, Math.floor((textBottom - textTop) / lineHeight));
   const lines = fitting.excerpt
-    ? fitText(ctx, greeting, Math.floor((textBottom - textTop - excerptHeight) / lineHeight)).lines
+    ? fitText(ctx, result, Math.floor((textBottom - textTop - excerptHeight) / lineHeight)).lines
     : fitting.lines;
   const greetingHeight = lines.length * lineHeight + (fitting.excerpt ? excerptHeight : 0);
   const greetingY = textTop + (textBottom - textTop - greetingHeight) / 2;
@@ -157,7 +165,43 @@ function drawCard(canvas: HTMLCanvasElement, draft: CardDraft, logo: HTMLImageEl
   ctx.textAlign = 'left';
   ctx.font = cardFont(11, 600);
   ctx.drawImage(logo, inset, brandY - 9, 18, 18);
-  ctx.fillText('Kalender Bali Lengkap', inset + 25, brandY);
+  ctx.fillText(cardBrand, inset + 25, brandY);
+}
+
+// Identitas layanan dan konteks (misalnya tanggal atau judul) berada di atas isi utama.
+function paintHeading(ctx: CanvasRenderingContext2D, content: StructuredCardContent, x: number, centered: boolean): number {
+  const iconSize = 34;
+  const top = 26;
+  const gap = content.iconPath ? iconSize + 8 : 0;
+  ctx.font = cardFont(16, 700);
+  const start = centered ? (width - gap - ctx.measureText(content.title).width) / 2 : inset;
+
+  ctx.save();
+  ctx.textAlign = 'left';
+  if (content.iconPath) {
+    ctx.fillStyle = content.accent;
+    ctx.globalAlpha = 0.12;
+    ctx.beginPath();
+    ctx.roundRect(start, top, iconSize, iconSize, 9);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.translate(start + 5, top + 5);
+    ctx.strokeStyle = content.accent;
+    ctx.lineWidth = 1.8;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke(new Path2D(content.iconPath));
+  }
+  ctx.restore();
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.fillText(content.title, start + gap, top + iconSize / 2, textWidth - gap);
+  ctx.restore();
+
+  ctx.font = cardFont(19, 700);
+  const contextLines = fitText(ctx, content.context, 2).lines;
+  paintLines(ctx, contextLines, x, 69, 24);
+  return 77 + contextLines.length * 24;
 }
 
 function cardFont(size: number, weight: number) {

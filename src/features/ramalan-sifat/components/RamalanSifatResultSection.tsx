@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import {
   Compass,
   Sparkles,
@@ -7,9 +7,14 @@ import {
   Clock,
   ShieldCheck,
   Star,
+  Share2,
 } from 'lucide-react';
+import { AppDialog } from '@/components/ui/AppDialog';
 import type { RamalanSifatData, KarakterElemen } from '../types/ramalanSifat.types';
 import { buildRingkasanSintesis } from '../utils/ramalanSifatUtils';
+import { ramalanSifatOptions, type RamalanSifatOption } from '../utils/ramalanSifatShareCard';
+
+const RamalanSifatShareCardDialog = lazy(() => import('./RamalanSifatShareCardDialog'));
 
 /**
  * ============================================================================
@@ -172,9 +177,18 @@ export const RamalanSifatResultSection: React.FC<RamalanSifatResultSectionProps>
   data,
 }) => {
   const { identitas_kelahiran, karakter } = data;
+  const [share, setShare] = useState<{ data: RamalanSifatData; options: RamalanSifatOption[]; trigger: HTMLButtonElement } | null>(null);
+  // Sesi kartu hanya berlaku untuk respons yang membukanya.
+  const activeShare = share?.data === data ? share : null;
+  if (share && !activeShare) setShare(null);
+  const shareOptions = ramalanSifatOptions(karakter);
 
   return (
     <div className="space-y-6">
+      {activeShare && <Suspense fallback={<AppDialog title="Bagikan Ramalan Sifat" description="Memuat kartu."
+        returnFocus={activeShare.trigger} onClose={() => setShare(null)}><p>Memuat kartu…</p></AppDialog>}>
+        <RamalanSifatShareCardDialog options={activeShare.options} trigger={activeShare.trigger} onClose={() => setShare(null)} />
+      </Suspense>}
       {/* ===================================================================== */}
       {/* BLOK 1: FULL-WIDTH BANNER IDENTITAS WETON & KESIMPULAN 4 PILAR        */}
       {/* Sisi Kiri: Identitas Kelahiran | Sisi Kanan: Kesimpulan Ringkas       */}
@@ -248,13 +262,18 @@ export const RamalanSifatResultSection: React.FC<RamalanSifatResultSectionProps>
       {/* Menampilkan isi mendalam dan sastra tradisional dari basis data        */}
       {/* ===================================================================== */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-base sm:text-lg font-bold text-[#0f172a] dark:text-white tracking-tight">
             Penjelasan Detail 4 Pilar Karakter
           </h3>
-          <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
-            Sumber: Sastra Wariga & Astrologi
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-xs font-medium text-slate-400 dark:text-slate-500">Sumber: Sastra Wariga & Astrologi</span>
+            {shareOptions.length > 0 && <button type="button" aria-haspopup="dialog"
+              onClick={(event) => setShare({ data, options: shareOptions, trigger: event.currentTarget })}
+              className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 [touch-action:manipulation]">
+              <Share2 aria-hidden="true" className="size-4" /> Bagikan Kartu
+            </button>}
+          </div>
         </div>
 
         {/* Matriks 4 Kartu Pilar */}

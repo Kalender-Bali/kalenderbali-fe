@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import {
   TrendingUp,
   Calendar,
@@ -10,6 +12,8 @@ import {
   Check,
 } from 'lucide-react';
 import type { GarisHidupProfileResult } from '../types/garisHidup.types';
+
+const GarisHidupShareCardDialog = lazy(() => import('./GarisHidupShareCardDialog'));
 
 /**
  * ============================================================================
@@ -107,6 +111,10 @@ export const GarisHidupResultSection: React.FC<GarisHidupResultSectionProps> = (
 
   // Titik periode aktif yang sedang di-hover pada grafik SVG
   const [hoveredCycleIndex, setHoveredCycleIndex] = useState<number | null>(null);
+  const [share, setShare] = useState<{ results: GarisHidupProfileResult[]; index: number; trigger: HTMLButtonElement } | null>(null);
+  // Sesi mengikuti hasil dan indeks peserta, termasuk nama profil yang sama.
+  const activeShare = share?.results === results && share.index === activeParticipantIndex ? share : null;
+  if (share && !activeShare) setShare(null);
 
   // Validasi keamanan batas data hasil
   if (!results || results.length === 0) return null;
@@ -118,7 +126,7 @@ export const GarisHidupResultSection: React.FC<GarisHidupResultSectionProps> = (
   // HANDLER SALIN RINGKASAN
   // -------------------------------------------------------------------------
   const handleShare = async () => {
-    const summary = `Garis Hidup Pal Sri Sedana · Kalender Bali\nNama: ${currentResult.nama} (${currentResult.umur} Tahun)\nWeton: ${currentResult.saptawara} ${currentResult.pancawara} (Urip: ${currentResult.urip})\nFase Saat Ini (${currentResult.periode_saat_ini.min_umur}–${currentResult.periode_saat_ini.max_umur} Thn): Nilai ${currentResult.periode_saat_ini.nilai} - ${currentResult.periode_saat_ini.keterangan.toUpperCase()}\n\nLihat selengkapnya di: ${window.location.href}`;
+    const summary = `Garis Hidup Pal Sri Sedana · Kalender Bali\nNama: ${currentResult.nama} (${currentResult.umur} Tahun)\nWeton: ${currentResult.saptawara} ${currentResult.pancawara} (Urip: ${currentResult.urip})\nFase Saat Ini (${currentResult.periode_saat_ini.min_umur}–${currentResult.periode_saat_ini.max_umur} Thn): Nilai ${currentResult.periode_saat_ini.nilai} - ${currentResult.periode_saat_ini.keterangan.toUpperCase()}\n\nLihat selengkapnya di: ${window.location.origin}${window.location.pathname}`;
 
     try {
       if (navigator.clipboard) {
@@ -170,6 +178,11 @@ export const GarisHidupResultSection: React.FC<GarisHidupResultSectionProps> = (
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Editor dimuat setelah profil dipilih dan aksi berbagi ditekan. */}
+      {activeShare && <Suspense fallback={<AppDialog title="Bagikan Garis Hidup" description="Memuat kartu profil pilihan."
+        returnFocus={activeShare.trigger} onClose={() => setShare(null)}><DataSkeleton label="Memuat kartu Garis Hidup" className="h-72" /></AppDialog>}>
+        <GarisHidupShareCardDialog profile={currentResult} trigger={activeShare.trigger} onClose={() => setShare(null)} />
+      </Suspense>}
       {/* ===================================================================== */}
       {/* BLOK 1: TAB PEMILIH PROFIL PESERTA (JIKA MULTI-PESERTA)               */}
       {/* ===================================================================== */}
@@ -265,7 +278,12 @@ export const GarisHidupResultSection: React.FC<GarisHidupResultSectionProps> = (
           </div>
 
           {/* Tombol Aksi (Salin & Ubah) */}
-          <div className="flex items-center gap-2 shrink-0 self-start">
+          <div className="flex flex-wrap items-center gap-2 shrink-0 self-start">
+            {currentResult.seluruh_periode.length > 0 && <button type="button" aria-haspopup="dialog"
+              onClick={event => setShare({ results, index: activeParticipantIndex, trigger: event.currentTarget })}
+              className="min-h-11 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer [touch-action:manipulation]">
+              <Share2 aria-hidden="true" className="w-4 h-4" /> Bagikan Kartu
+            </button>}
             <button
               type="button"
               onClick={handleShare}
@@ -280,7 +298,7 @@ export const GarisHidupResultSection: React.FC<GarisHidupResultSectionProps> = (
               ) : (
                 <>
                   <Share2 className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Bagikan</span>
+                  <span>Salin Ringkasan</span>
                 </>
               )}
             </button>

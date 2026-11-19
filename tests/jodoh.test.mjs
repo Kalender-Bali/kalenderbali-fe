@@ -37,6 +37,8 @@ const { JodohHero } = await server.ssrLoadModule('/src/features/jodoh/components
 const { JodohFormSection } = await server.ssrLoadModule('/src/features/jodoh/components/JodohFormSection.tsx');
 const { JodohResultSection } = await server.ssrLoadModule('/src/features/jodoh/components/JodohResultSection.tsx');
 const { JodohResultSectionSkeleton, JodohSkeleton } = await server.ssrLoadModule('/src/features/jodoh/components/JodohSkeleton.tsx');
+const { buildJodohShareCard, jodohShareStyle } = await server.ssrLoadModule('/src/features/jodoh/utils/jodohShareCard.ts');
+const { formatCardText } = await server.ssrLoadModule('/src/features/share-card/utils/shareCardDraft.ts');
 
 // ----------------------------------------------------------------------------
 // BLOK 2: DATA MOCK RESMI SESUAI KONTRAK BACKEND GO & CONTOH PANDUAN
@@ -64,6 +66,7 @@ const mockJodohData = {
   },
   jatukarma: {
     nama_tenung: 'Tenung Jatukarma',
+    siklus: 5,
     sisa: 3,
     nama_hasil: 'Peta',
     keterangan: 'Sering bertengkar',
@@ -71,6 +74,7 @@ const mockJodohData = {
   },
   urip_catur: {
     nama_tenung: 'Tenung Urip Catur',
+    siklus: 4,
     sisa: 4,
     nama_hasil: 'Punggel',
     keterangan: 'Kehilangan rejeki atau mati salah satu',
@@ -78,6 +82,7 @@ const mockJodohData = {
   },
   urip_panca: {
     nama_tenung: 'Tenung Urip Panca',
+    siklus: 5,
     sisa: 3,
     nama_hasil: 'Lara',
     keterangan: 'Anggota rumah tangga dalam kesusahan atau kesulitan',
@@ -85,6 +90,7 @@ const mockJodohData = {
   },
   tripramana: {
     nama_tenung: 'Tenung Tripramana',
+    siklus: 16,
     sisa: 12,
     nama_hasil: 'Sedana Nulus',
     keterangan: 'Sedana nulus, rezeki lancar/gampang',
@@ -93,6 +99,7 @@ const mockJodohData = {
   daftar_tenung: [
     {
       nama_tenung: 'Tenung Jatukarma',
+      siklus: 5,
       sisa: 3,
       nama_hasil: 'Peta',
       keterangan: 'Sering bertengkar',
@@ -100,6 +107,7 @@ const mockJodohData = {
     },
     {
       nama_tenung: 'Tenung Urip Catur',
+      siklus: 4,
       sisa: 4,
       nama_hasil: 'Punggel',
       keterangan: 'Kehilangan rejeki atau mati salah satu',
@@ -107,6 +115,7 @@ const mockJodohData = {
     },
     {
       nama_tenung: 'Tenung Urip Panca',
+      siklus: 5,
       sisa: 3,
       nama_hasil: 'Lara',
       keterangan: 'Anggota rumah tangga dalam kesusahan atau kesulitan',
@@ -114,6 +123,7 @@ const mockJodohData = {
     },
     {
       nama_tenung: 'Tenung Tripramana',
+      siklus: 16,
       sisa: 12,
       nama_hasil: 'Sedana Nulus',
       keterangan: 'Sedana nulus, rezeki lancar/gampang',
@@ -262,5 +272,61 @@ test('JodohSkeleton: merender atribut aksesibilitas aria-busy untuk mencegah CLS
 
   const htmlFull = renderToString(React.createElement(JodohSkeleton));
   assert.ok(htmlFull.includes('aria-busy="true"'), 'Full page skeleton harus memiliki aria-busy');
+});
+
+// Uji lokasi aksi dan data kartu tanpa menjalankan ulang perhitungan Jodoh.
+test('JodohResultSection: tombol berbagi hanya ada di Tripramana meski urutan daftar berubah', () => {
+  const result = { ...mockJodohData, daftar_tenung: [...mockJodohData.daftar_tenung].reverse() };
+  const html = renderToString(React.createElement(JodohResultSection, { result }));
+  const button = 'aria-label="Bagikan Kartu Tenung Tripramana"';
+
+  assert.equal(html.split(button).length - 1, 1);
+  assert.ok(html.indexOf('Tenung Tripramana</h3>') < html.indexOf(button));
+  assert.ok(html.indexOf(button) < html.indexOf('Tenung Urip Panca</h3>'));
+  assert.ok(html.includes('Salin Ringkasan'));
+  assert.ok(!html.includes('Bagikan Tenung Tripramana'));
+});
+
+test('Jodoh share card: nama, keterangan, dan sisa mengikuti respons Go', () => {
+  const result = {
+    ...mockJodohData,
+    pasangan: { ...mockJodohData.pasangan, neptu: 13, urip_sadwara: 9 },
+  };
+  const content = buildJodohShareCard(result);
+
+  assert.equal(content.title, result.tripramana.nama_tenung);
+  assert.equal(content.context, 'I Made Wijaya & Ni Luh Putu Ayu');
+  assert.equal(content.result, result.tripramana.keterangan);
+  assert.deepEqual(content.facts, [
+    'Neptu + Sadwara: (14 + 8) + (13 + 9)',
+    'Sisa pembagian 16: 12',
+  ]);
+});
+
+test('Jodoh share card: nilai siklus penuh dan rincian yang kosong ditangani saat pemetaan', () => {
+  const content = buildJodohShareCard({
+    ...mockJodohData,
+    diri: { ...mockJodohData.diri, nama: 'Anda', weton: '', neptu: undefined, sadwara: '', urip_sadwara: undefined },
+    pasangan: { ...mockJodohData.pasangan, nama: 'Pasangan' },
+    tripramana: { ...mockJodohData.tripramana, sisa: 16 },
+  });
+
+  assert.equal(content.context, 'Anda & Pasangan');
+  assert.deepEqual(content.facts, ['Sisa 0 → kondisi 16']);
+  assert.deepEqual(content.textDetails, ['Pasangan: Saniscara Umanis; Neptu 14; Sadwara Paniron (8)']);
+});
+
+test('Jodoh share card: teks memuat rincian kedua pihak dan pesan, tanpa tanggal lahir', () => {
+  const result = {
+    ...mockJodohData,
+    pasangan: { ...mockJodohData.pasangan, tanggal_lahir: '1998-08-17' },
+  };
+  const content = buildJodohShareCard(result);
+  const text = formatCardText({ content, style: jodohShareStyle, message: 'Semoga bahagia', sender: 'Made' });
+
+  assert.match(text, /I Made Wijaya: Saniscara Umanis; Neptu 14; Sadwara Paniron \(8\)/);
+  assert.match(text, /Ni Luh Putu Ayu: Saniscara Umanis; Neptu 14; Sadwara Paniron \(8\)/);
+  assert.match(text, /Semoga bahagia\n\nDari: Made\n\nKalender Bali Lengkap/);
+  assert.doesNotMatch(text, /2000-01-01|1998-08-17|Januari|Agustus|Tanggal lahir/);
 });
 

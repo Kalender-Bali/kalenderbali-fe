@@ -276,6 +276,10 @@ export async function fetchDayPawukon(tanggal: string): Promise<PawukonHarianInf
     pancawara: pancawaraNama,
     saptawara: saptawaraNama,
     urip: totalUrip,
+    // Teruskan fase bulan dari respons Kalender untuk kartu tanggal yang sama.
+    pengalantaka: dayData.pengalantaka?.pengalantaka,
+    penanggal1: dayData.pengalantaka?.penanggal_1,
+    penanggal2: dayData.pengalantaka?.penanggal_2,
   };
 }
 

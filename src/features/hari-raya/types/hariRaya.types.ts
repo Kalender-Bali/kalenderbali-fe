@@ -128,6 +128,9 @@ export interface HariRayaCardItem {
   monthShort: string; // Contoh: "SEP", "OKT"
   categoryTag: HariRayaCategoryTag;
   badgeVariant: HariRayaBadgeVariant;
+  saptawara?: string;
+  triwara?: string;
+  pancawara?: string;
   wuku?: string;
   sasih?: string;
   tahunSaka?: number;

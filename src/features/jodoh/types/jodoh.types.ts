@@ -119,6 +119,9 @@ export interface PetenunganItem {
   /** Nama metode petenungan (contoh: "Tenung Jatukarma") */
   nama_tenung: string;
 
+  /** Pembagi siklus petenungan yang dikirim server (16 untuk Tripramana). */
+  siklus: number;
+
   /**
    * Sisa hasil pembagian modulo matematis (sisa 0 dibaca sebagai angka pembagi penuh).
    * Contoh: sisa 0 pada pembagi 5 dibaca 5.

@@ -123,6 +123,7 @@ export default function RamalanSifatPage() {
       {/* Skenario C: Data Berhasil Dimuat (100% Real Data Dari Go Backend) */}
       {data && !isLoading && (
         <RamalanSifatResultSection
+          key={`${activeParams?.tanggal_lahir ?? ''}-${activeParams?.sebelum_jam_6 ?? false}`}
           data={data}
           onModifySearch={handleModifySearch}
         />

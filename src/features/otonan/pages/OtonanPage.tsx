@@ -1,7 +1,7 @@
-import { useMemo, useState, useEffect } from 'react';
+import { lazy, Suspense, useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import type { OtonanResponseData, OtonanSearchParams, OtonanSearchType } from '../types/otonan.types';
+import type { OtonanHasilItem, OtonanResponseData, OtonanSearchParams, OtonanSearchType } from '../types/otonan.types';
 import { useOtonanSearch } from '../hooks/useOtonan';
 import { formatIndoDate, getTodayWITA } from '../utils/otonanUtils';
 import { OtonanHero } from '../components/OtonanHero';
@@ -9,6 +9,11 @@ import { OtonanFormSection } from '../components/OtonanFormSection';
 import { OtonanResultSection } from '../components/OtonanResultSection';
 import { OtonanDetailModal } from '../components/OtonanDetailModal';
 import { PengingatOtonanResultDialog } from '@/features/pengingat/components/PengingatOtonanResultDialog';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
+
+const OtonanShareCardDialog = lazy(() => import('../components/OtonanShareCardDialog')
+  .then(({ OtonanShareCardDialog }) => ({ default: OtonanShareCardDialog })));
 
 /**
  * ============================================================================
@@ -37,6 +42,15 @@ export default function OtonanPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
   const [selectedOtonanDate, setSelectedOtonanDate] = useState<string | null>(null);
   const [reminder, setReminder] = useState<{ request: OtonanSearchParams; response: OtonanResponseData; date: string } | null>(null);
+  const [shareSelection, setShareSelection] = useState<{
+    item: OtonanHasilItem;
+    input: OtonanResponseData['input_dinormalisasi'];
+    trigger: HTMLButtonElement;
+    search: URLSearchParams;
+  } | null>(null);
+  // Tutup pilihan lama jika riwayat browser berpindah ke pencarian lain.
+  const selectedShare = shareSelection?.search === searchParams ? shareSelection : null;
+  const closeShare = () => setShareSelection(null);
 
   const handleOpenDetailModal = (dateStr: string) => {
     setSelectedOtonanDate(dateStr);
@@ -232,6 +246,9 @@ export default function OtonanPage() {
           onAddReminder={date => {
             if (activeParams) setReminder({ request: structuredClone(activeParams), response: structuredClone(otonanData), date });
           }}
+          onShareCard={(item, trigger) => {
+            setShareSelection({ item, trigger, input: otonanData.input_dinormalisasi, search: searchParams });
+          }}
         />
       )}
 
@@ -245,6 +262,17 @@ export default function OtonanPage() {
         data={otonanData}
       />
       {reminder && <PengingatOtonanResultDialog request={reminder.request} response={reminder.response} date={reminder.date} onClose={() => setReminder(null)} />}
+      {selectedShare && (
+        <Suspense fallback={
+          <AppDialog title="Bagikan Otonan" description="Bagikan tanggal perayaan Otonan yang dipilih."
+            returnFocus={selectedShare.trigger} onClose={closeShare}>
+            <DataSkeleton label="Memuat kartu Otonan" className="h-72" />
+          </AppDialog>
+        }>
+          <OtonanShareCardDialog item={selectedShare.item} input={selectedShare.input}
+            trigger={selectedShare.trigger} onClose={closeShare} />
+        </Suspense>
+      )}
     </div>
   );
 }

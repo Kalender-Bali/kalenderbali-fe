@@ -1,12 +1,17 @@
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BellPlus, X } from 'lucide-react';
-import { formatFullIndoDate, getIndoDayName } from '@/features/kalender/utils/calendarUtils';
+import { BellPlus, Share2, X } from 'lucide-react';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { formatFullIndoDate, getIndoDayName, isValidISODate } from '@/features/kalender/utils/calendarUtils';
 import type { DewasaCriteriaField, DewasaDateResult, DewasaMatchedReason } from '../types/mengaturDewasa.types';
+import { buildMengaturDewasaShareCard } from '../utils/mengaturDewasaShareCard';
+
+const ShareCardDialog = lazy(() => import('@/features/share-card/components/ShareCardDialog'));
 
 interface Props {
   result: DewasaDateResult;
   fields: DewasaCriteriaField[];
+  activityName?: string;
   onClose: () => void;
   onAddReminder?: () => void;
 }
@@ -27,15 +32,22 @@ function ReasonList({ title, reasons, fields }: { title: string; reasons: Dewasa
 }
 
 // Portal mengelola fokus, Escape dan body scroll agar dialog dapat digunakan keyboard.
-export function MengaturDewasaDetailModal({ result, fields, onClose, onAddReminder }: Props) {
+export function MengaturDewasaDetailModal({ result, fields, onClose, onAddReminder, activityName = 'Kriteria Sendiri' }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [share, setShare] = useState<{ result: DewasaDateResult; activity: string; trigger: HTMLButtonElement } | null>(null);
+  const activeShare = share?.result === result && share.activity === activityName ? share : null;
+  if (share && !activeShare) setShare(null);
+  const isSharing = useEffectEvent(() => Boolean(activeShare));
+  const card = activeShare ? buildMengaturDewasaShareCard(activeShare.result, activeShare.activity) : null;
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     closeRef.current?.focus();
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Editor berbagi mengambil alih fokus dan Escape selama terbuka.
+      if (isSharing()) return;
       if (event.key === 'Escape') { event.preventDefault(); onClose(); return; }
       if (event.key !== 'Tab' || !dialogRef.current) return;
       const elements = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'));
@@ -65,7 +77,7 @@ export function MengaturDewasaDetailModal({ result, fields, onClose, onAddRemind
     ['Wuku', wewaran.wuku?.nama], ['Neptu', wewaran.neptu],
   ].filter(([, value]) => value !== undefined && value !== null && value !== '') : [];
 
-  return createPortal(
+  const detail = createPortal(
     <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="dewasa-detail-title" className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-xl sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="p-6 sm:p-7 bg-gradient-to-r from-teal-50/60 via-slate-50/40 to-emerald-50/30 border-b border-slate-100 flex items-start justify-between gap-4">
@@ -76,6 +88,12 @@ export function MengaturDewasaDetailModal({ result, fields, onClose, onAddRemind
           <ReasonList title="Kriteria mendukung yang cocok" reasons={result.matched_recommended} fields={fields} />
           <ReasonList title="Kriteria dihindari yang cocok" reasons={result.matched_avoid} fields={fields} />
           {calendar ? <section className="rounded-xl bg-[#f8fafc] border border-slate-200/70 p-4"><h3 className="text-sm font-bold text-[#0f172a]">Kalender Bali</h3><dl className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">{elements.map(([label, value]) => <div key={label}><dt className="text-[11px] font-semibold text-slate-500">{label}</dt><dd className="text-sm font-bold text-slate-700 tabular-nums">{value}</dd></div>)}{calendar.sasih && <><div><dt className="text-[11px] font-semibold text-slate-500">Sasih</dt><dd className="text-sm font-bold text-slate-700">{calendar.sasih.nama_sasih}</dd></div><div><dt className="text-[11px] font-semibold text-slate-500">Tahun Saka</dt><dd className="text-sm font-bold text-slate-700 tabular-nums">{calendar.sasih.tahun_saka}</dd></div></>}{calendar.pengalantaka && <><div><dt className="text-[11px] font-semibold text-slate-500">Pengalantaka</dt><dd className="text-sm font-bold text-slate-700">{calendar.pengalantaka.pengalantaka}</dd></div><div><dt className="text-[11px] font-semibold text-slate-500">Hari lunar</dt><dd className="text-sm font-bold text-slate-700 tabular-nums">{calendar.pengalantaka.penanggal_1}{calendar.pengalantaka.penanggal_2 > 0 && ` / ${calendar.pengalantaka.penanggal_2}`}</dd></div><div><dt className="text-[11px] font-semibold text-slate-500">Purnama / Tilem</dt><dd className="text-sm font-bold text-slate-700">{calendar.pengalantaka.purnama_tilem}</dd></div></>}</dl></section> : <p className="text-sm text-slate-500">Data kalender untuk tanggal ini tidak tersedia.</p>}
+          {result.status === 'eligible' && isValidISODate(result.tanggal) && (
+            <button type="button" aria-haspopup="dialog" onClick={(event) => setShare({ result, activity: activityName, trigger: event.currentTarget })}
+              className="mr-2 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 [touch-action:manipulation]">
+              <Share2 aria-hidden="true" className="size-4" /> Bagikan Kartu
+            </button>
+          )}
           {onAddReminder && (
             <button
               type="button"
@@ -90,4 +108,9 @@ export function MengaturDewasaDetailModal({ result, fields, onClose, onAddRemind
       </div>
     </div>, document.body,
   );
+  return <>{detail}{activeShare && card && <Suspense fallback={<AppDialog title="Bagikan Mengatur Dewasa" description="Memuat kartu."
+    returnFocus={activeShare.trigger} onClose={() => setShare(null)}><p>Memuat kartu…</p></AppDialog>}>
+    <ShareCardDialog title="Bagikan Mengatur Dewasa" description={card.content.context} trigger={activeShare.trigger}
+      onClose={() => setShare(null)} content={card.content} initialStyle={card.initialStyle} fileName={card.fileName} />
+  </Suspense>}</>;
 }

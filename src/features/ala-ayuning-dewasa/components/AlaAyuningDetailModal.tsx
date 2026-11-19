@@ -1,10 +1,16 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { lazy, Suspense, useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
-import { X, ShieldCheck, AlertOctagon, CheckCircle2, Info } from 'lucide-react';
-import type { PadewasanItem } from '../types/alaAyuning.types';
+import { X, ShieldCheck, AlertOctagon, CheckCircle2, Info, Share2 } from 'lucide-react';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
+import { isValidISODate } from '@/features/kalender/utils/calendarUtils';
+import type { DewasaActivityGuidance, PadewasanItem, PawukonHarianInfo } from '../types/alaAyuning.types';
+import { buildAlaAyuningShareCard } from '../utils/alaAyuningShareCard';
 import { getAlahingDewasaMeta } from '../types/alaAyuning.types';
 import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
+
+const ShareCardDialog = lazy(() => import('@/features/share-card/components/ShareCardDialog'));
 
 /**
  * ============================================================================
@@ -34,37 +40,41 @@ interface AlaAyuningDetailModalProps {
 
   /** Data kriteria padewasan yang sedang ditampilkan */
   item: PadewasanItem | null;
+  tanggal: string;
+  pawukon: PawukonHarianInfo | null;
+  guidance: DewasaActivityGuidance[];
 }
 
 export const AlaAyuningDetailModal: React.FC<AlaAyuningDetailModalProps> = ({
   isOpen,
   onClose,
   item,
+  tanggal,
+  pawukon,
+  guidance,
 }) => {
-  // Listener tombol Escape untuk menutup dialog secara aksesibel
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    },
-    [onClose]
-  );
+  const [share, setShare] = useState<{ id: string; tanggal: string; trigger: HTMLButtonElement } | null>(null);
+  // Sesi berbagi berakhir ketika unsur atau tanggal berubah.
+  const activeShare = isOpen && share?.id === item?.id && share?.tanggal === tanggal ? share : null;
+  if (share && !activeShare) setShare(null);
+  const card = useMemo(() => activeShare && item ? buildAlaAyuningShareCard(item, tanggal, pawukon, guidance) : null,
+    [activeShare, item, tanggal, pawukon, guidance]);
+  const closeShare = () => setShare(null);
+  const dismissDetail = useEffectEvent(() => onClose());
+  const detailActive = isOpen && !!item && !activeShare;
 
-  // Mengunci scrollbar halaman utama ketika dialog sedang aktif
+  // Hanya dialog aktif yang menangani Escape dan mengunci scroll halaman.
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = '';
-    }
-
+    if (!detailActive) return;
+    const overflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape' && !event.defaultPrevented) dismissDetail(); };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = overflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, handleKeyDown]);
+  }, [detailActive]);
 
   if (!isOpen || !item) return null;
 
@@ -73,9 +83,9 @@ export const AlaAyuningDetailModal: React.FC<AlaAyuningDetailModalProps> = ({
     item.keterangan?.toLowerCase().includes('tidak baik') ||
     item.keterangan?.toLowerCase().includes('hindari');
 
-  return createPortal(
+  const detail = createPortal(
     <div
-      className="fixed inset-0 flex items-center justify-center p-4 z-[100] select-none"
+      className={activeShare ? 'hidden' : 'fixed inset-0 flex items-center justify-center p-4 z-[100] select-none'}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-padewasan-title"
@@ -152,7 +162,7 @@ export const AlaAyuningDetailModal: React.FC<AlaAyuningDetailModalProps> = ({
         {/* =================================================================== */}
         {/* BLOK 3: SCROLLABLE BODY & DESKRIPSI SASTRA LONTAR                   */}
         {/* =================================================================== */}
-        <div className="overflow-y-auto p-6 space-y-4">
+        <div className="min-h-0 overflow-y-auto p-6 space-y-4">
           {/* Uraian Makna Budaya */}
           <div className="bg-[#f8fafc] dark:bg-slate-800/60 rounded-xl border border-slate-200/70 dark:border-slate-800 p-4 sm:p-5 space-y-2">
             <div className="flex items-center gap-2">
@@ -188,11 +198,17 @@ export const AlaAyuningDetailModal: React.FC<AlaAyuningDetailModalProps> = ({
         {/* =================================================================== */}
         {/* BLOK 4: FOOTER DIALOG MODAL DENGAN TOMBOL TUTUP                     */}
         {/* =================================================================== */}
-        <div className="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end">
+        <div className="shrink-0 p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-end gap-2">
+          {isValidISODate(tanggal) && item.nama.trim() && (
+            <button type="button" aria-haspopup="dialog" onClick={(event) => setShare({ id: item.id, tanggal, trigger: event.currentTarget })}
+              className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 [touch-action:manipulation]">
+              <Share2 aria-hidden="true" className="size-4" /> Bagikan Kartu
+            </button>
+          )}
           <button
             type="button"
             onClick={onClose}
-            className="h-10 px-5 rounded-xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white font-bold text-xs shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center gap-2 [touch-action:manipulation]"
+            className="min-h-11 px-5 rounded-xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white font-bold text-xs shadow-xs transition-all active:scale-98 cursor-pointer inline-flex items-center gap-2 [touch-action:manipulation]"
           >
             <span>Tutup</span>
           </button>
@@ -201,4 +217,15 @@ export const AlaAyuningDetailModal: React.FC<AlaAyuningDetailModalProps> = ({
     </div>,
     document.body
   );
+  const title = 'Bagikan Ala Ayuning Dewasa';
+  const description = card ? `${card.content.result} · ${card.content.context}` : '';
+  return <>
+    {detail}
+    {activeShare && card && <Suspense fallback={<AppDialog title={title} description={description} returnFocus={activeShare.trigger} onClose={closeShare}>
+      <DataSkeleton label="Memuat kartu Ala Ayuning Dewasa" className="h-72" />
+    </AppDialog>}>
+      <ShareCardDialog title={title} description={description} content={card.content} initialStyle={card.initialStyle}
+        fileName={card.fileName} trigger={activeShare.trigger} onClose={closeShare} />
+    </Suspense>}
+  </>;
 };

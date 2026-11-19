@@ -194,6 +194,9 @@ export interface PawukonHarianInfo {
   pancawara: string;
   saptawara: string;
   urip: number;
+  pengalantaka?: string;
+  penanggal1?: number;
+  penanggal2?: number;
 }
 
 /**

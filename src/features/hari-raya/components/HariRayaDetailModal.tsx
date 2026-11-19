@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Calendar,
@@ -9,7 +9,11 @@ import {
   Bell,
   BellRing,
   Check,
+  Share2,
 } from 'lucide-react';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { DataSkeleton } from '@/components/ui/DataSkeleton';
+import { formatFullIndoDate, isValidISODate } from '@/features/kalender/utils/calendarUtils';
 import type {
   HariRayaCardItem,
   HariRayaMasterItem,
@@ -19,8 +23,11 @@ import { HariRayaReminderModal } from './HariRayaReminderModal';
 import {
   capitalize,
   getCategoryPillStyles,
-  NAMA_BULAN_INDO,
 } from '../utils/hariRayaUtils';
+import { buildHariRayaShareCard } from '../utils/hariRayaShareCard';
+
+const ShareCardDialog = lazy(() => import('@/features/share-card/components/ShareCardDialog'));
+const shareTitle = 'Bagikan Hari Raya';
 
 /**
  * ============================================================================
@@ -62,6 +69,14 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
     }
   });
   const [notificationFeedback, setNotificationFeedback] = useState<string | null>(null);
+  const [shareSelection, setShareSelection] = useState<{ id: string; trigger: HTMLButtonElement } | null>(null);
+
+  // Draf mengikuti satu kejadian; menutup detail atau berpindah kejadian mengakhiri sesi berbagi.
+  const activeShare = isOpen && shareSelection?.id === cardItem?.id ? shareSelection : null;
+  if (shareSelection && !activeShare) setShareSelection(null);
+  const cardToShare = useMemo(() => activeShare && cardItem ? buildHariRayaShareCard(cardItem, masterItem) : null,
+    [activeShare, cardItem, masterItem]);
+  const closeShare = () => setShareSelection(null);
 
   // Sinkronkan status aktif saat cardItem berganti
   const [prevCardId, setPrevCardId] = useState<string | number | undefined>(cardItem?.id);
@@ -77,15 +92,17 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
     setNotificationFeedback(null);
   }
 
-  // Listener tombol keyboard "Escape" dan kunci scroll latar belakang body
-  useEffect(() => {
-    if (!isOpen) return;
+  const handleDetailEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || event.defaultPrevented || isReminderModalOpen) return;
+    event.preventDefault();
+    onClose();
+  });
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
+  // Editor mengambil alih Escape dan penguncian scroll selama dialog berbagi aktif.
+  const isDetailActive = isOpen && !!cardItem && !activeShare;
+  useEffect(() => {
+    if (!isDetailActive) return;
+    const handleKeyDown = (event: KeyboardEvent) => handleDetailEscape(event);
 
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -95,7 +112,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
       document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isDetailActive]);
 
   if (!isOpen || !cardItem) return null;
 
@@ -145,29 +162,22 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
     masterItem?.keterangan ||
     'Hari suci ini dirayakan oleh umat Hindu di Bali untuk memohon kerahayuan, penyucian lahir dan batin, serta keharmonisan jagat raya sekala dan niskala.';
 
-  // Format tanggal Masehi lengkap
-  const formattedDate = (() => {
-    if (!cardItem.tanggal) return '-';
-    const parts = cardItem.tanggal.split('-').map(Number);
-    if (parts.length !== 3) return cardItem.tanggal;
-    return `${parts[2]} ${NAMA_BULAN_INDO[parts[1] - 1]} ${parts[0]}`;
-  })();
-
+  const formattedDate = cardItem.tanggal ? formatFullIndoDate(cardItem.tanggal) : '-';
   const categoryPillStyles = getCategoryPillStyles(cardItem.categoryTag);
+  const canShare = Boolean(cardItem.nama.trim()) && isValidISODate(cardItem.tanggal);
+  const shareDescription = cardToShare ? `${cardToShare.content.context} · ${cardToShare.content.result}` : '';
 
-  return createPortal(
+  // Detail tetap terpasang supaya tombol pembuka dan posisi gulir tersedia saat editor ditutup.
+  const detailDialog = createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-hari-raya-title"
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in"
-      onClick={onClose}
+      className={activeShare ? 'hidden' : 'fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fade-in'}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
       {/* Wadah Utama Dialog Modal */}
-      <div
-        className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-xl sm:max-w-2xl max-h-[90vh] flex flex-col overflow-hidden relative"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-xl sm:max-w-2xl max-h-[90dvh] flex flex-col overflow-hidden relative">
         {/* =============================================================== */}
         {/* BLOK 1: Header Dialog dengan Latar Gradien Lembut               */}
         {/* =============================================================== */}
@@ -211,7 +221,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
         {/* =============================================================== */}
         {/* BLOK 2: Body Modal Scrollable                                   */}
         {/* =============================================================== */}
-        <div className="overflow-y-auto p-6 sm:p-7 space-y-5">
+        <div className="min-h-0 overflow-y-auto p-6 sm:p-7 space-y-5">
           {/* Baris Rincian Penanggalan (Tanggal Masehi, Wuku, Sasih) */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Kotak Tanggal Masehi */}
@@ -262,7 +272,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
         {/* =============================================================== */}
         {/* BLOK 3: Footer Dialog                                           */}
         {/* =============================================================== */}
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="shrink-0 p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* Feedback Notifikasi Banner */}
           {notificationFeedback ? (
             <div className="text-xs text-teal-800 font-semibold flex items-center gap-1.5 animate-in fade-in">
@@ -273,12 +283,19 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
             <div />
           )}
 
-          <div className="flex items-center justify-end gap-2.5">
-            {/* Tombol "Unduh pengingat kalender" di samping kiri tombol "Tutup" (Warna Teal Utama #0e9f90) */}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {canShare && (
+              <button type="button" aria-haspopup="dialog"
+                onClick={(event) => setShareSelection({ id: cardItem.id, trigger: event.currentTarget })}
+                className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-teal-600 active:bg-slate-100 sm:text-sm [touch-action:manipulation]">
+                <Share2 aria-hidden="true" className="size-4" /> Bagikan Kartu
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsReminderModalOpen(true)}
-              className="h-10 px-4 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-2 active:scale-98 [touch-action:manipulation]"
+              className="min-h-11 px-4 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer inline-flex items-center gap-2 active:scale-98 [touch-action:manipulation]"
               title={`Atur pengingat untuk ${namaHariRaya}`}
             >
               {isReminderActive ? (
@@ -298,7 +315,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="h-10 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-2xs active:scale-98 [touch-action:manipulation]"
+              className="min-h-11 px-5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-2xs active:scale-98 [touch-action:manipulation]"
             >
               Tutup
             </button>
@@ -317,5 +334,21 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
       </div>
     </div>,
     document.body
+  );
+
+  return (
+    <>
+      {detailDialog}
+      {activeShare && cardToShare && (
+        <Suspense fallback={
+          <AppDialog title={shareTitle} description={shareDescription} returnFocus={activeShare.trigger} onClose={closeShare}>
+            <DataSkeleton label="Memuat kartu Hari Raya" className="h-72" />
+          </AppDialog>
+        }>
+          <ShareCardDialog title={shareTitle} description={shareDescription} trigger={activeShare.trigger} onClose={closeShare}
+            content={cardToShare.content} initialStyle={cardToShare.initialStyle} fileName={cardToShare.fileName} />
+        </Suspense>
+      )}
+    </>
   );
 };

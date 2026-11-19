@@ -25,21 +25,24 @@ export interface CardStyle {
   background: CardBackground;
 }
 
+export interface StructuredCardContent {
+  kind: 'structured';
+  title: string;
+  accent: string;
+  iconPath?: string;
+  context: string;
+  result: string;
+  source?: string;
+  facts: readonly string[];
+  textDetails?: readonly string[];
+}
+
 export interface CardDraft {
-  greeting: string;
+  content: StructuredCardContent | { kind: 'greeting'; text: string };
   message: string;
   sender: string;
   style: CardStyle;
 }
-
-// Nilai bawaan mengikuti kartu Ucapan Android dan dipakai kembali saat reset.
-export const defaultStyle: CardStyle = {
-  layout: 'ucapan',
-  topColor: '#3f82f6',
-  bottomColor: '#08978d',
-  textColor: '#ffffff',
-  background: { kind: 'preset', id: backgroundPresets[0].id },
-};
 
 // Thumbnail dan gambar ekspor menggunakan potongan foto yang sama.
 export function backgroundUrl(id: PresetId, thumbnail = false): string {
@@ -48,6 +51,20 @@ export function backgroundUrl(id: PresetId, thumbnail = false): string {
 
 export const messageLimit = 120;
 export const senderLimit = 40;
+export const cardBrand = 'Kalender Bali Lengkap';
+
+// Pesan dan pengirim punya format yang sama untuk kanvas dan teks berbagi.
+export function cardSenderLine(sender: string): string {
+  const name = sender.trim();
+  return name ? `Dari: ${name}` : '';
+}
+
+export function formatCardText({ content, message, sender }: CardDraft): string {
+  const lines = content.kind === 'structured'
+    ? [content.title, content.context, content.result, content.source, ...content.facts, ...(content.textDetails ?? [])]
+    : [content.text];
+  return [...lines, message.trim(), cardSenderLine(sender), cardBrand].filter(Boolean).join('\n\n');
+}
 
 const segmenter = typeof Intl.Segmenter === 'function'
   ? new Intl.Segmenter('id', { granularity: 'grapheme' })

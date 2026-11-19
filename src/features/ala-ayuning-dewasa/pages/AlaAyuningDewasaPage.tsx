@@ -231,6 +231,9 @@ export default function AlaAyuningDewasaPage() {
         isOpen={isDetailModalOpen}
         onClose={closeDetailModal}
         item={selectedPadewasan}
+        tanggal={activeDate}
+        pawukon={pawukonInfo?.tanggal === activeDate ? pawukonInfo : null}
+        guidance={activityGuidance}
       />
     </div>
   );

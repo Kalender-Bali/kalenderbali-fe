@@ -178,6 +178,9 @@ export default function MengaturDewasaPage() {
 
     setValidationError(null);
     setSessionNotice(null);
+    // Pencarian baru tidak boleh menyisakan detail atau kartu hasil sebelumnya.
+    setSelectedResult(null);
+    setReminderOpen(false);
     setSubmittedCriteria(summarizeSearchCriteria(request, activity, fields.data ?? [], valuesByField));
     search.mutate(request);
   }
@@ -224,7 +227,9 @@ export default function MengaturDewasaPage() {
         <PengingatDewasaResultDialog candidate={reminderCandidate} onClose={closeReminder} />
       ) : (
         <MengaturDewasaDetailModal
+          key={`${search.data?.data.mode ?? ''}-${search.data?.data.activity?.id ?? ''}-${selectedResult.tanggal}`}
           result={selectedResult}
+          activityName={search.data?.data.activity?.name ?? 'Kriteria Sendiri'}
           fields={fields.data ?? []}
           onClose={closeDetail}
           onAddReminder={reminderCandidate ? () => setReminderOpen(true) : undefined}

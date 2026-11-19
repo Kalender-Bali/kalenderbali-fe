@@ -81,7 +81,10 @@ export function useAlaAyuning() {
   const hasSearched = activeMode === 'date' ? isDateValid : Boolean(queryName);
 
   // State lokal untuk pop-up modal detail uraian sastra padewasan yang dipilih
-  const [selectedPadewasan, setSelectedPadewasan] = useState<PadewasanItem | null>(null);
+  const [selection, setSelection] = useState<{ item: PadewasanItem; date: string } | null>(null);
+  // Detail hanya berlaku selama tanggal dan mode asal masih aktif.
+  const selectedPadewasan = activeMode === 'date' && selection?.date === activeDate ? selection.item : null;
+  if (selection && !selectedPadewasan) setSelection(null);
 
   // -------------------------------------------------------------------------
   // BLOK 2: QUERY 1 - MASTER DATA 220 PADEWASAN (KATALOG DROPDOWN)
@@ -232,11 +235,11 @@ export function useAlaAyuning() {
    * Kontrol buka/tutup modal dialog detail sastra padewasan
    */
   const openDetailModal = useCallback((item: PadewasanItem) => {
-    setSelectedPadewasan(item);
-  }, []);
+    setSelection({ item, date: activeDate });
+  }, [activeDate]);
 
   const closeDetailModal = useCallback(() => {
-    setSelectedPadewasan(null);
+    setSelection(null);
   }, []);
 
   // -------------------------------------------------------------------------
