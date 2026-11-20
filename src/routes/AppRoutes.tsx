@@ -82,6 +82,8 @@ import { PremiumSkeleton } from '@/features/premium/components/PremiumSkeleton';
 import AdminUserPage from '@/features/admin/pages/AdminUserPage';
 import AdminTransactionPage from '@/features/admin/pages/AdminTransactionPage';
 import AdminContributionPage from '@/features/admin/pages/AdminContributionPage';
+const ChatbotPage = lazy(() => import('@/features/chatbot/pages/ChatbotPage'));
+const AdminChatPage = lazy(() => import('@/features/admin/pages/AdminChatPage'));
 
 /**
  * ==============================================================================
@@ -124,6 +126,9 @@ export default function AppRoutes() {
 
           {/* Halaman Rincian Kategori Keterangan (Contoh: /keterangan/hari_raya) */}
           <Route path="keterangan/:typeCode" element={<KeteranganDetailPage />} />
+
+          {/* Asisten menampilkan ajakan login sendiri dan memeriksa hak akses di backend. */}
+          <Route path="chatbot" element={<Suspense fallback={<DataSkeleton label="Memuat asisten" />}><ChatbotPage /></Suspense>} />
 
           {/* Fallback jika ada yang mengakses rute dengan prefix layanan */}
           <Route path="layanan/keterangan" element={<Navigate to="/keterangan" replace />} />
@@ -332,6 +337,7 @@ export default function AppRoutes() {
           {/* Role 'member' atau 'guest' akan diblokir dengan tampilan 403       */}
           {/* ==================================================================== */}
           <Route element={<AdminRoute />}>
+			<Route path="admin/chatbot" element={<Suspense fallback={<DataSkeleton label="Memuat pengaturan chatbot" />}><AdminChatPage /></Suspense>} />
             {/* Manajemen Anggota / User (Data User, Ubah Role, Verifikasi Kontributor) */}
             <Route path="admin/users" element={<AdminUserPage />} />
             <Route path="admin/manajemen-user" element={<Navigate to="/admin/users" replace />} />

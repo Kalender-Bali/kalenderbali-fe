@@ -7,6 +7,7 @@ import {
   Landmark,
   Newspaper,
   BellRing,
+	Bot,
   Users,
   ChevronDown,
   ChevronRight,
@@ -49,6 +50,7 @@ const routePrefetchers: Record<string, () => void> = {
   '/jodoh': () => { import('@/features/jodoh/pages/JodohPage'); },
   '/bhagawadgita': () => { import('@/features/bhagawad-gita/pages/BhagawadGitaPage'); },
   '/pengingat': () => { import('@/features/pengingat/pages/PengingatPage'); },
+	'/chatbot': () => { import('@/features/chatbot/pages/ChatbotPage'); },
 };
 
 const handlePrefetch = (to: string) => {
@@ -105,6 +107,7 @@ export default function Sidebar() {
    * Menggantikan nama menu lama 'Info Kita' menjadi 'Warta Budaya'
    */
   const secondaryNavItems: NavItem[] = [
+	{ to: '/chatbot', label: 'Asisten Kalender Bali', icon: Bot },
     { to: '/keterangan', label: 'Keterangan', icon: FileText },
     { to: '/kelola-pura', label: 'Kelola Pura', icon: Landmark },
     // Komunitas memiliki direktori dan buku kas tersendiri meskipun memakai API Pura.
@@ -124,6 +127,7 @@ export default function Sidebar() {
       { to: '/admin/users', label: 'Manajemen User' },
       { to: '/admin/transaksi', label: 'Transaksi User' },
       { to: '/admin/kontribusi', label: 'Pengajuan Kontribusi' },
+	  { to: '/admin/chatbot', label: 'Pengelolaan Chatbot' },
     ],
   };
 

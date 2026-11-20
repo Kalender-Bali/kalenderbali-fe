@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   AlertCircle,
   ArrowLeft,
@@ -49,9 +49,14 @@ const ITEMS_PER_PAGE = 10;
 export default function KeteranganDetailPage() {
   const { typeCode } = useParams<{ typeCode: string }>();
   const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const linkedQuery = searchParams.get('q') || '';
 
   // State lokal untuk filter pencarian instan nama elemen di halaman ini
-  const [searchTerm, setSearchTerm] = useState('');
+  // Tautan chatbot membuka filter sesuai kategori dan nama pada URL.
+  const [searchState, setSearchState] = useState({ typeCode, linkedQuery, value: linkedQuery });
+  const searchTerm = searchState.typeCode === typeCode && searchState.linkedQuery === linkedQuery ? searchState.value : linkedQuery;
+  const setSearchTerm = (value: string) => setSearchState({ typeCode, linkedQuery, value });
 
   // ---------------------------------------------------------------------------
   // 1. RESOLUSI METADATA KATEGORI DARI REGISTRI & CACHE BACKEND
