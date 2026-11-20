@@ -42,6 +42,7 @@ interface NavGroup {
 const routePrefetchers: Record<string, () => void> = {
   '/ala-ayuning-dewasa': () => { import('@/features/ala-ayuning-dewasa/pages/AlaAyuningDewasaPage'); },
   '/mengatur-dewasa': () => { import('@/features/mengatur-dewasa/pages/MengaturDewasaPage'); },
+  '/rubrik-dewasa': () => { import('@/features/rubrik-dewasa/pages/RubrikDewasaPage'); },
   '/wariga-personal': () => { import('@/features/wariga-personal/pages/WarigaPersonalPage'); },
   '/ramalan-sifat': () => { import('@/features/ramalan-sifat/pages/RamalanSifatPage'); },
   '/garis-hidup': () => { import('@/features/garis-hidup/pages/GarisHidupPage'); },
@@ -86,6 +87,7 @@ export default function Sidebar() {
     children: [
       { to: '/ala-ayuning-dewasa', label: 'Ala Ayuning Dewasa' },
       { to: '/mengatur-dewasa', label: 'Mengatur Dewasa' },
+      { to: '/rubrik-dewasa', label: 'Rubrik Dewasa Ayu' },
       { to: '/otonan', label: 'Cari Otonan' },
       { to: '/piodalan', label: 'Piodalan' },
       { to: '/hari-raya', label: 'Hari Raya' },

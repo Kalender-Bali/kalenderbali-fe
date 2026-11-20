@@ -70,15 +70,41 @@ test('inspektur kalender menyediakan tombol untuk membuka rincian hari',()=>{
   qc.clear();
 });
 
-test('dashboard memakai ringkasan API, bukan tiga rekomendasi tetap',()=>{
-  const qc=client();const year=Number(day.tanggal.slice(0,4));
-  qc.setQueryData(['kalender',year],[day]);qc.setQueryData(['kalender',year+1],[]);
-  qc.setQueryData(['piodalan','puras','all'],[]);
-  qc.setQueryData(['ala-ayuning-dewasa','today',day.tanggal],{tanggal:day.tanggal,status_label:'NETRAL',headline:'Ringkasan API riil',items:[{id:'1',nama:'Data API',keterangan:'Uraian API'}]});
-  function Snapshot(){const data=useDashboardData();return React.createElement('pre',null,JSON.stringify({hero:data.heroData,dewasa:data.dewasaAyu}));}
-  const html=renderToStaticMarkup(React.createElement(QueryClientProvider,{client:qc},React.createElement(Snapshot)));
-  assert.match(html,/Ringkasan API riil/);assert.match(html,/Data API/);assert.doesNotMatch(html,/Dewa Ngelayang|Subacara|Amerta Dadi/);
-  qc.clear();
+test('dashboard memakai total dan pratinjau padewasan dari API', (t) => {
+  const qc = client();
+  t.after(() => qc.clear());
+  const year = Number(day.tanggal.slice(0, 4));
+  qc.setQueryData(['kalender', year], [day]);
+  qc.setQueryData(['kalender', year + 1], []);
+  qc.setQueryData(['piodalan', 'puras', 'all'], []);
+  qc.setQueryData(['ala-ayuning-dewasa', 'today', day.tanggal], {
+    tanggal: day.tanggal,
+    status_label: 'PER KEGIATAN',
+    headline: 'Pilih kegiatan dan periksa rinciannya.',
+    total: 5,
+    activity_guidance: [],
+    items: [
+      { id: '1', nama: 'Data API', keterangan: 'Uraian API' },
+      { id: '2', nama: 'Unsur kedua dari API', keterangan: 'Uraian kedua' },
+      { id: '3', nama: 'Unsur ketiga dari API', keterangan: 'Uraian ketiga' },
+    ],
+  });
+
+  let dashboard;
+  function Snapshot() {
+    dashboard = useDashboardData();
+    return null;
+  }
+  renderToStaticMarkup(React.createElement(QueryClientProvider, { client: qc }, React.createElement(Snapshot)));
+
+  // Go mengirim total lengkap dan daftar pratinjau secara terpisah.
+  assert.equal(dashboard.dewasaAyu.total, 5);
+  assert.match(dashboard.dewasaAyu.headline, /5 padewasan aktif hari ini/);
+  assert.equal(dashboard.heroData.quoteHariIni, dashboard.dewasaAyu.headline);
+  assert.deepEqual(dashboard.dewasaAyu.items.map((item) => item.nama), [
+    'Data API', 'Unsur kedua dari API', 'Unsur ketiga dari API',
+  ]);
+  assert.equal(dashboard.dewasaAyu.items[0].keterangan, 'Uraian API');
 });
 
 test('form tanggal dapat dirender dengan nilai awal setelah sinkronisasi state diperbaiki',()=>{

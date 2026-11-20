@@ -1,0 +1,5 @@
+export const rubrikPanel = 'rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs sm:p-7 dark:border-slate-800 dark:bg-slate-900';
+export const rubrikInput = 'w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 focus:border-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-600/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white';
+export const rubrikPrimary = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#0e9f90] px-4 text-sm font-bold text-white hover:bg-[#0c8a7d] active:bg-[#0a756a] disabled:opacity-50 [touch-action:manipulation]';
+export const rubrikSecondary = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 [touch-action:manipulation]';
+export const rubrikLabel = 'mb-1.5 block text-xs font-bold text-slate-600 dark:text-slate-300';

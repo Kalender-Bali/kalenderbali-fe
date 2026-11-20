@@ -12,6 +12,7 @@ interface Props {
   result: DewasaDateResult;
   fields: DewasaCriteriaField[];
   activityName?: string;
+  shareContext?: 'rubrik';
   onClose: () => void;
   onAddReminder?: () => void;
 }
@@ -32,14 +33,15 @@ function ReasonList({ title, reasons, fields }: { title: string; reasons: Dewasa
 }
 
 // Portal mengelola fokus, Escape dan body scroll agar dialog dapat digunakan keyboard.
-export function MengaturDewasaDetailModal({ result, fields, onClose, onAddReminder, activityName = 'Kriteria Sendiri' }: Props) {
+export function MengaturDewasaDetailModal({ result, fields, onClose, onAddReminder, activityName = 'Kriteria Sendiri', shareContext }: Props) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const [share, setShare] = useState<{ result: DewasaDateResult; activity: string; trigger: HTMLButtonElement } | null>(null);
   const activeShare = share?.result === result && share.activity === activityName ? share : null;
   if (share && !activeShare) setShare(null);
   const isSharing = useEffectEvent(() => Boolean(activeShare));
-  const card = activeShare ? buildMengaturDewasaShareCard(activeShare.result, activeShare.activity) : null;
+  const card = activeShare ? buildMengaturDewasaShareCard(activeShare.result, activeShare.activity, shareContext) : null;
+  const shareTitle = shareContext === 'rubrik' ? 'Bagikan Rubrik Dewasa Ayu' : 'Bagikan Mengatur Dewasa';
   useEffect(() => {
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
@@ -108,9 +110,9 @@ export function MengaturDewasaDetailModal({ result, fields, onClose, onAddRemind
       </div>
     </div>, document.body,
   );
-  return <>{detail}{activeShare && card && <Suspense fallback={<AppDialog title="Bagikan Mengatur Dewasa" description="Memuat kartu."
+  return <>{detail}{activeShare && card && <Suspense fallback={<AppDialog title={shareTitle} description="Memuat kartu."
     returnFocus={activeShare.trigger} onClose={() => setShare(null)}><p>Memuat kartu…</p></AppDialog>}>
-    <ShareCardDialog title="Bagikan Mengatur Dewasa" description={card.content.context} trigger={activeShare.trigger}
+    <ShareCardDialog title={shareTitle} description={card.content.context} trigger={activeShare.trigger}
       onClose={() => setShare(null)} content={card.content} initialStyle={card.initialStyle} fileName={card.fileName} />
   </Suspense>}</>;
 }

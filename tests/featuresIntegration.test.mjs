@@ -36,22 +36,23 @@ test('Kontak: render KontakHero, KontakDeveloperCard, dan KontakFormCard', async
   assert.ok(htmlForm.includes('Nama Lengkap'));
 });
 
-test('Dashboard: DashboardDewasaAyu merender status BAIK dan daftar padewasan', async () => {
+test('Dashboard: DashboardDewasaAyu merender tanggal WITA dan daftar padewasan', async () => {
   const { DashboardDewasaAyu } = await server.ssrLoadModule('/src/features/dashboard/components/DashboardDewasaAyu.tsx');
   const fixture = {
-    status: 'BAIK',
-    statusLabel: 'BAIK',
-    headline: 'Hari ini memiliki pengaruh padewasan yang baik.',
+    tanggalISO: '2026-11-18',
+    total: 2,
+    headline: 'Terdapat 2 padewasan aktif hari ini.',
     items: [
       { id: '1', nama: 'Amerta Dewa', keterangan: 'Baik untuk upacara', tag: 'PADEWASAN' },
       { id: '2', nama: 'Amerta Gati', keterangan: 'Baik untuk usaha', tag: 'PADEWASAN' },
     ],
-    actionUrl: '/ala-ayuning-dewasa',
+    actionUrl: '/ala-ayuning-dewasa?mode=date&date=2026-11-18',
   };
 
   const html = renderToStaticMarkup(wrapRouter(React.createElement(DashboardDewasaAyu, { data: fixture })));
   assert.ok(html.includes('DEWASA AYU HARI INI'));
-  assert.ok(html.includes('BAIK'));
+  assert.match(html, /<time dateTime="2026-11-18"[^>]*>18 November 2026<\/time>/);
+  assert.match(html, /Terdapat 2 padewasan aktif hari ini/);
   assert.ok(html.includes('Amerta Dewa'));
   assert.ok(html.includes('Amerta Gati'));
 });

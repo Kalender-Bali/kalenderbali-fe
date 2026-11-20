@@ -33,3 +33,11 @@ test('hasil tanpa kalender dan alasan tetap dapat dibagikan', () => {
   assert.deepEqual(card.content.facts, ['Kegiatan: Kriteria Sendiri']);
   assert.deepEqual(card.content.textDetails, []);
 });
+
+test('kartu rubrik menampilkan nama rubrik dan tanggal hasil terpilih', () => {
+  const card = buildMengaturDewasaShareCard(result, 'Rubrik A', 'rubrik');
+  assert.equal(card.content.title, 'Rubrik Dewasa Ayu');
+  assert.ok(card.content.facts.includes('Rubrik: Rubrik A'));
+  assert.equal(card.fileName, 'rubrik-dewasa-2026-11-18.png');
+  assert.match(card.content.context, /18 November 2026/);
+});

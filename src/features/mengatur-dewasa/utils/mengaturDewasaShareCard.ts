@@ -3,7 +3,7 @@ import type { CardStyle, StructuredCardContent } from '@/features/share-card/uti
 import type { DewasaDateResult } from '../types/mengaturDewasa.types';
 
 // Seluruh nilai kalender dan kecocokan berasal dari hasil pencarian Go.
-export function buildMengaturDewasaShareCard(result: DewasaDateResult, activity: string): {
+export function buildMengaturDewasaShareCard(result: DewasaDateResult, activity: string, shareContext?: 'rubrik'): {
   content: StructuredCardContent; initialStyle: CardStyle; fileName: string;
 } {
   const calendar = result.calendar;
@@ -20,16 +20,16 @@ export function buildMengaturDewasaShareCard(result: DewasaDateResult, activity:
   ];
   return {
     content: {
-      kind: 'structured', title: 'Mengatur Dewasa', accent: '#b45309',
+      kind: 'structured', title: shareContext === 'rubrik' ? 'Rubrik Dewasa Ayu' : 'Mengatur Dewasa', accent: '#b45309',
       context: `${getIndoDayName(result.tanggal)}, ${formatFullIndoDate(result.tanggal)}`,
       result: [wewaran?.saptawara?.nama, wewaran?.pancawara?.nama, wewaran?.wuku?.nama].filter(Boolean).join(' ') || 'Memenuhi kriteria',
-      facts: [`Kegiatan: ${activity}`, ...facts],
+      facts: [`${shareContext === 'rubrik' ? 'Rubrik' : 'Kegiatan'}: ${activity}`, ...facts],
       textDetails: [
         ...(reasons.length ? [`Kriteria mendukung: ${reasons.join(', ')}`] : []),
         ...(padewasan.length ? [`Ala Ayuning Dewasa: ${padewasan.join(', ')}`] : []),
       ],
     },
     initialStyle: { layout: 'standar', topColor: '#ffffff', bottomColor: '#fffbeb', textColor: '#0f172a', background: { kind: 'none' } },
-    fileName: `mengatur-dewasa-${result.tanggal}.png`,
+    fileName: `${shareContext === 'rubrik' ? 'rubrik-dewasa' : 'mengatur-dewasa'}-${result.tanggal}.png`,
   };
 }

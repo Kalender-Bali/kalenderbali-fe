@@ -7,6 +7,7 @@ interface Props {
   response: DewasaSearchResponse;
   fields: DewasaCriteriaField[];
   onSelect: (result: DewasaDateResult) => void;
+  eligibleOnly?: boolean;
 }
 
 const statusInfo: Record<DewasaDateStatus, { label: string; badge: string }> = {
@@ -39,19 +40,19 @@ function ResultRow({ result, fields, onSelect }: { result: DewasaDateResult; fie
 }
 
 // Filter hanya menyaring hasil backend; urutan tanggal dan status tidak dihitung ulang.
-export function MengaturDewasaResults({ response, fields, onSelect }: Props) {
+export function MengaturDewasaResults({ response, fields, onSelect, eligibleOnly = false }: Props) {
   const [filter, setFilter] = useState<DewasaDateStatus>('eligible');
   const results = response.data.results;
   const visible = results.filter((item) => item.status === filter);
   return (
     <div className="mt-5 space-y-4">
-      <div role="group" aria-label="Filter status tanggal" className="flex flex-wrap gap-2">
+      {!eligibleOnly && <div role="group" aria-label="Filter status tanggal" className="flex flex-wrap gap-2">
         {(Object.keys(statusInfo) as DewasaDateStatus[]).map((status) => (
           <button key={status} type="button" aria-pressed={filter === status} onClick={() => setFilter(status)} className={`min-h-11 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-colors cursor-pointer [touch-action:manipulation] ${filter === status ? 'bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border-teal-200/60 dark:border-teal-800/60' : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
             {statusInfo[status].label} <span className="tabular-nums">({results.filter((item) => item.status === status).length})</span>
           </button>
         ))}
-      </div>
+      </div>}
       {visible.length ? <ul className="space-y-3">{visible.map((item) => <ResultRow key={item.tanggal} result={item} fields={fields} onSelect={onSelect} />)}</ul> : <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-850 border border-slate-200/70 dark:border-slate-800 p-5 flex items-start gap-3"><CalendarSearch className="w-5 h-5 text-teal-700 dark:text-teal-400 shrink-0" /><p className="text-sm text-slate-600 dark:text-slate-300">Tidak ada tanggal dengan status ini pada periode yang dipilih.</p></div>}
     </div>
   );

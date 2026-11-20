@@ -55,6 +55,9 @@ import { AlaAyuningSkeleton } from '@/features/ala-ayuning-dewasa/components/Ala
 
 // Pemuatan halaman Mengatur Dewasa dilakukan saat rute dibuka.
 const MengaturDewasaPage = lazy(() => import('@/features/mengatur-dewasa/pages/MengaturDewasaPage'));
+const RubrikDewasaPage = lazy(() => import('@/features/rubrik-dewasa/pages/RubrikDewasaPage'));
+const RubrikDewasaDetailPage = lazy(() => import('@/features/rubrik-dewasa/pages/RubrikDewasaDetailPage'));
+const RubrikDewasaFormPage = lazy(() => import('@/features/rubrik-dewasa/pages/RubrikDewasaFormPage'));
 import { MengaturDewasaSkeleton } from '@/features/mengatur-dewasa/components/MengaturDewasaSkeleton';
 
 // Import komponen halaman Ramalan Jodoh dengan Route-Level Code Splitting (fe_strategy.md 8.12)
@@ -225,6 +228,8 @@ export default function AppRoutes() {
 
           {/* Katalog dapat dilihat publik; backend meminta login saat pencarian. */}
           <Route path="mengatur-dewasa" element={<Suspense fallback={<MengaturDewasaSkeleton />}><MengaturDewasaPage /></Suspense>} />
+          <Route path="rubrik-dewasa" element={<Suspense fallback={<DataSkeleton label="Memuat rubrik" />}><RubrikDewasaPage /></Suspense>} />
+          <Route path="rubrik-dewasa/:id" element={<Suspense fallback={<DataSkeleton label="Memuat rubrik" />}><RubrikDewasaDetailPage /></Suspense>} />
           <Route path="layanan/mengatur-dewasa" element={<Navigate to="/mengatur-dewasa" replace />} />
 
           {/* ==================================================================== */}
@@ -266,6 +271,9 @@ export default function AppRoutes() {
           <Route path="komunitas" element={<Suspense fallback={<KomunitasSkeleton />}><KomunitasPage /></Suspense>} />
           <Route path="layanan/komunitas" element={<Navigate to="/komunitas" replace />} />
           <Route element={<ProtectedRoute />}>
+            <Route path="rubrik-dewasa/saya" element={<Suspense fallback={<DataSkeleton label="Memuat rubrik" />}><RubrikDewasaPage mine /></Suspense>} />
+            <Route path="rubrik-dewasa/buat" element={<Suspense fallback={<DataSkeleton label="Memuat form rubrik" />}><RubrikDewasaFormPage /></Suspense>} />
+            <Route path="rubrik-dewasa/:id/ubah" element={<Suspense fallback={<DataSkeleton label="Memuat form rubrik" />}><RubrikDewasaFormPage /></Suspense>} />
             <Route path="pengingat" element={<Suspense fallback={<PengingatSkeleton />}><PengingatPage /></Suspense>} />
             {/* Halaman Utama Katalog & Kelola Pura Bali */}
             <Route path="kelola-pura" element={<KelolaPuraPage />} />
