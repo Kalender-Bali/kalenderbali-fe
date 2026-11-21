@@ -1,4 +1,15 @@
 import type { OtonanTimelineNode } from '../types/otonan.types';
+import { isValidISODate } from '@/features/kalender/utils/calendarUtils';
+
+export const MIN_BIRTH_YEAR = 1970;
+export const INVALID_BIRTH_DATE = 'Masukkan tanggal lahir yang valid dalam format dd/mm/yyyy.';
+
+export function validateBirthDate(date: string, today: string): string | null {
+  if (!isValidISODate(date)) return INVALID_BIRTH_DATE;
+  if (date < `${MIN_BIRTH_YEAR}-01-01`) return `Tanggal lahir paling awal adalah 1 Januari ${MIN_BIRTH_YEAR}.`;
+  if (date > today) return 'Tanggal lahir tidak boleh melewati hari ini (WITA).';
+  return null;
+}
 
 /**
  * ============================================================================

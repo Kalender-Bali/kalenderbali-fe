@@ -134,7 +134,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
               key={dateString}
               ref={isSelected ? onSelectedDateMount : undefined}
               type="button"
-              aria-label={formatFullIndoDate(dateString)}
+              aria-label={[formatFullIndoDate(dateString), ...hariRayaList.map(holiday => holiday.nama)].join(', ')}
               aria-pressed={isSelected}
               aria-current={isToday ? 'date' : undefined}
               onClick={event => onSelectDate(dateString, !isCurrentMonth && event.detail === 0)}
@@ -185,10 +185,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                     <span
                       key={hr.id || hr.nama}
                       title={hr.nama}
-                      className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold truncate ${style.bg} ${style.text}`}
+                      className={`flex items-center justify-center sm:justify-start gap-1.5 min-h-6 px-1 sm:px-2 py-1 rounded-md text-[11px] font-semibold truncate ${style.bg} ${style.text}`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${style.dot}`} />
-                      <span className="truncate">{hr.nama}</span>
+                      <span className="hidden sm:block truncate">{hr.nama}</span>
                     </span>
                   );
                 })}

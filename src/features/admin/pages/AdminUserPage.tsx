@@ -1,5 +1,8 @@
 import { toApiError } from '@/lib/apiError';
-import { useState, useEffect, useMemo } from 'react';
+import { useReadQuery } from '@/lib/useReadQuery';
+import { authQueryScope, useAuthQueryScope, useAuthStore } from '@/stores/useAuthStore';
+import { useQueryClient } from '@tanstack/react-query';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Users,
   Search,
@@ -14,68 +17,59 @@ import {
 import { adminService } from '../services/adminService';
 import type { AdminMemberItem } from '../types/admin.types';
 
+const USERS_PER_PAGE = 25;
+const EMPTY_MEMBERS: AdminMemberItem[] = [];
+
 export default function AdminUserPage() {
-  const [members, setMembers] = useState<AdminMemberItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRoleFilter, setSelectedRoleFilter] = useState<'all' | 'Admin' | 'Member' | 'Guest'>('all');
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [updatingIds, setUpdatingIds] = useState<ReadonlySet<string>>(new Set());
+  const [hasHorizontalOverflow, setHasHorizontalOverflow] = useState(false);
+  const tableScroller = useRef<HTMLDivElement>(null);
 
-  // Ambil daftar pengguna dari backend Go
-  const fetchMembers = async () => {
-    setIsLoading(true);
-    setErrorMsg(null);
-    try {
-      const data = await adminService.getAllMembers();
-      setMembers(data);
-      setErrorMsg(null);
-    } catch (caught) {
-    const err = toApiError(caught);
-      setErrorMsg(err.message || 'Gagal memuat daftar pengguna.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    let active = true;
-    void adminService.getAllMembers().then((data) => {
-      if (active) { setMembers(data); setErrorMsg(null); }
-    }).catch((error: unknown) => {
-      if (active) setErrorMsg(toApiError(error).message || 'Gagal memuat daftar pengguna.');
-    }).finally(() => {
-      if (active) setIsLoading(false);
-    });
-    return () => { active = false; };
-  }, []);
+  const queryClient = useQueryClient();
+  const scope = useAuthQueryScope();
+  const queryKey = ['admin', 'members', scope] as const;
+  const { data: members = EMPTY_MEMBERS, isLoading, isError, error, refetch } = useReadQuery({
+    queryKey,
+    // Keep the in-flight read through a StrictMode remount; the service owns retry.
+    queryFn: () => adminService.getAllMembers(),
+    meta: { authScoped: true },
+    staleTime: 0,
+    retry: false,
+  });
+  const errorMsg = isError ? toApiError(error).message || 'Gagal memuat daftar pengguna.' : null;
+  const reloadMembers = () => void refetch({ cancelRefetch: false });
 
   // Filter daftar pengguna berdasarkan input pencarian dan tab role
+  const search = searchQuery.trim().toLowerCase();
   const filteredMembers = useMemo(() => {
-    return members.filter((m) => {
-      const matchRole =
-        selectedRoleFilter === 'all' ||
-        (m.role || '').toLowerCase() === selectedRoleFilter.toLowerCase();
+    const role = selectedRoleFilter.toLowerCase();
+    if (role === 'all' && !search) return members;
 
-      const q = searchQuery.toLowerCase().trim();
-      const matchSearch =
-        !q ||
-        m.name.toLowerCase().includes(q) ||
-        m.email.toLowerCase().includes(q) ||
-        (m.phone && m.phone.toLowerCase().includes(q));
+    return members.filter((member) => (
+      (role === 'all' || member.role?.toLowerCase() === role) &&
+      (!search || member.name.toLowerCase().includes(search) || member.email.toLowerCase().includes(search) ||
+        member.phone?.toLowerCase().includes(search))
+    ));
+  }, [members, selectedRoleFilter, search]);
+  const adminCount = useMemo(() => members.filter((member) => member.role?.toLowerCase() === 'admin').length, [members]);
+  const totalPages = Math.max(1, Math.ceil(filteredMembers.length / USERS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * USERS_PER_PAGE;
+  const pageMembers = filteredMembers.slice(startIndex, startIndex + USERS_PER_PAGE);
+  const showTable = !isLoading && !errorMsg && pageMembers.length > 0;
 
-      return matchRole && matchSearch;
-    });
-  }, [members, selectedRoleFilter, searchQuery]);
-
-  // Statistik ringkas pengguna
-  const stats = useMemo(() => {
-    const total = members.length;
-    const admins = members.filter((m) => (m.role || '').toLowerCase() === 'admin').length;
-    const verified = members.filter((m) => m.is_verified).length;
-    const pendingContrib = members.filter((m) => m.contribution_status === 'pending').length;
-    return { total, admins, verified, pendingContrib };
-  }, [members]);
+  useEffect(() => {
+    const scroller = tableScroller.current;
+    const table = scroller?.firstElementChild;
+    if (!showTable || !scroller || !table) return;
+    const observer = new ResizeObserver(() => setHasHorizontalOverflow(scroller.scrollWidth > scroller.clientWidth));
+    observer.observe(scroller);
+    observer.observe(table);
+    return () => observer.disconnect();
+  }, [showTable]);
 
   // Handler ubah peran hak akses
   const handleToggleRole = async (member: AdminMemberItem) => {
@@ -83,18 +77,35 @@ export default function AdminUserPage() {
     const confirmText = `Ubah peran "${member.name}" menjadi "${targetRole}"?`;
     if (!window.confirm(confirmText)) return;
 
-    setUpdatingId(member.id);
+    const { token } = useAuthStore.getState();
+    const isCurrentSession = () => {
+      const session = useAuthStore.getState();
+      return session.token === token && authQueryScope(session) === scope;
+    };
+    if (!token || !isCurrentSession()) return;
+
+    setUpdatingIds((ids) => new Set(ids).add(member.id));
     try {
       await adminService.updateMemberRole(member.id, targetRole);
-      // Perbarui state lokal secara instan
-      setMembers((prev) =>
-        prev.map((item) => (item.id === member.id ? { ...item, role: targetRole } : item))
+      if (!isCurrentSession()) return;
+
+      // Discard a refresh that may have read the old role, then repeat it after the write.
+      const queryFilter = { queryKey, exact: true };
+      const wasRefreshing = queryClient.isFetching(queryFilter) > 0;
+      await queryClient.cancelQueries(queryFilter);
+      if (!isCurrentSession()) return;
+      queryClient.setQueryData<AdminMemberItem[]>(queryKey, (previous) =>
+        previous?.map((item) => item.id === member.id ? { ...item, role: targetRole } : item)
       );
+      if (wasRefreshing) reloadMembers();
     } catch (caught) {
-    const err = toApiError(caught);
-      alert(err.message || 'Gagal memperbarui peran pengguna.');
+      if (isCurrentSession()) alert(toApiError(caught).message || 'Gagal memperbarui peran pengguna.');
     } finally {
-      setUpdatingId(null);
+      setUpdatingIds((ids) => {
+        const next = new Set(ids);
+        next.delete(member.id);
+        return next;
+      });
     }
   };
 
@@ -124,7 +135,7 @@ export default function AdminUserPage() {
                 TOTAL USER
               </span>
               <span className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] tabular-nums tracking-tight block my-0.5">
-                {stats.total}
+                {members.length}
               </span>
               <span className="text-[10px] text-teal-700 font-bold block">
                 Terdaftar
@@ -136,7 +147,7 @@ export default function AdminUserPage() {
                 ADMIN
               </span>
               <span className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] tabular-nums tracking-tight block my-0.5">
-                {stats.admins}
+                {adminCount}
               </span>
               <span className="text-[10px] text-slate-500 font-medium block">
                 Pengelola
@@ -149,28 +160,30 @@ export default function AdminUserPage() {
       {/* ========================================================= */}
       {/* 2. FILTER & PENCARIAN                                     */}
       {/* ========================================================= */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-xs flex flex-wrap items-center justify-between gap-4">
         {/* Kolom Pencarian */}
-        <div className="relative w-full md:w-80">
+        <div className="relative min-w-0 w-full md:w-80">
           <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
             type="text"
+            aria-label="Cari pengguna berdasarkan nama, email, atau nomor HP"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
             placeholder="Cari nama, email, nomor HP..."
-            className="w-full h-10 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
+            className="w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-[#0f172a] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all"
           />
         </div>
 
         {/* Tab Switcher Role Filter (AGENTS.md Bagian 4.6) */}
-        <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-          <div className="p-1 bg-slate-100 rounded-xl flex gap-1 text-xs">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <div className="p-1 bg-slate-100 rounded-xl flex flex-wrap gap-1 text-xs">
             {(['all', 'Admin', 'Member', 'Guest'] as const).map((role) => (
               <button
                 key={role}
                 type="button"
-                onClick={() => setSelectedRoleFilter(role)}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer [touch-action:manipulation] ${
+                onClick={() => { setSelectedRoleFilter(role); setPage(1); }}
+                aria-pressed={selectedRoleFilter === role}
+                className={`px-2 sm:px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer [touch-action:manipulation] ${
                   selectedRoleFilter === role
                     ? 'bg-white text-slate-900 shadow-2xs'
                     : 'text-slate-500 hover:text-slate-900'
@@ -183,9 +196,9 @@ export default function AdminUserPage() {
 
           <button
             type="button"
-            onClick={fetchMembers}
+            onClick={reloadMembers}
             disabled={isLoading}
-            className="min-w-10 min-h-10 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-all cursor-pointer [touch-action:manipulation] shrink-0"
+            className="ml-auto min-w-11 min-h-11 flex items-center justify-center rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-all cursor-pointer [touch-action:manipulation] shrink-0"
             title="Muat Ulang Data"
           >
             <RefreshCw size={15} className={isLoading ? 'animate-spin text-teal-600' : ''} />
@@ -203,7 +216,7 @@ export default function AdminUserPage() {
             <AlertCircle size={32} className="text-rose-500 mx-auto" />
             <p className="text-sm font-bold text-slate-800">{errorMsg}</p>
             <button
-              onClick={fetchMembers}
+              onClick={reloadMembers}
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-xs font-bold rounded-lg cursor-pointer"
             >
               Coba Lagi
@@ -236,9 +249,50 @@ export default function AdminUserPage() {
           </div>
         )}
 
+        {showTable && (
+          <nav aria-label="Navigasi halaman pengguna" className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 px-4 py-2 sm:px-6">
+            <p aria-live="polite" className="text-xs font-semibold text-slate-600 tabular-nums">
+              Menampilkan {startIndex + 1}–{startIndex + pageMembers.length} dari {filteredMembers.length} pengguna
+            </p>
+            {totalPages > 1 && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="h-11 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="h-11 px-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 cursor-pointer hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Berikutnya
+                </button>
+              </div>
+            )}
+          </nav>
+        )}
+
+        {showTable && hasHorizontalOverflow && (
+          <p id="admin-users-scroll-hint" className="px-4 py-2 text-xs text-slate-500 sm:px-6">
+            Geser tabel atau gunakan tombol panah kiri dan kanan untuk melihat kolom lain.
+          </p>
+        )}
+
         {/* Tabel Data */}
-        {!isLoading && !errorMsg && filteredMembers.length > 0 && (
-          <div className="overflow-x-auto">
+        {showTable && (
+          <div
+            ref={tableScroller}
+            role="region"
+            aria-label="Tabel pengguna"
+            tabIndex={0}
+            aria-describedby={hasHorizontalOverflow ? 'admin-users-scroll-hint' : undefined}
+            className="overflow-x-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-teal-600"
+          >
             <table className="w-full text-left text-xs">
               <thead className="bg-[#f8fafc] border-b border-slate-200/80 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
                 <tr>
@@ -250,9 +304,9 @@ export default function AdminUserPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredMembers.map((member) => {
+                {pageMembers.map((member) => {
                   const isAdminRole = (member.role || '').toLowerCase() === 'admin';
-                  const isUpdating = updatingId === member.id;
+                  const isUpdating = updatingIds.has(member.id);
 
                   return (
                     <tr key={member.id} className="hover:bg-slate-50/70 transition-colors">

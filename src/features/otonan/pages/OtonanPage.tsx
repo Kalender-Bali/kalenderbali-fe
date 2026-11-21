@@ -1,6 +1,7 @@
 import { lazy, Suspense, useMemo, useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
+import { isValidISODate } from '@/features/kalender/utils/calendarUtils';
 import type { OtonanHasilItem, OtonanResponseData, OtonanSearchParams, OtonanSearchType } from '../types/otonan.types';
 import { useOtonanSearch } from '../hooks/useOtonan';
 import { formatIndoDate, getTodayWITA } from '../utils/otonanUtils';
@@ -78,7 +79,7 @@ export default function OtonanPage() {
     const targetYear = targetYearParam ? parseInt(targetYearParam, 10) : currentYear;
 
     // Skenario A: Mode Tanggal Lahir (Masehi)
-    if (birthDate) {
+    if (birthDate !== null) {
       return {
         tipe_pencarian: 'tanggal_lahir',
         tanggal_lahir: birthDate,
@@ -101,6 +102,9 @@ export default function OtonanPage() {
     // Default: Belum ada pencarian aktif (GAMBAR 2)
     return null;
   }, [searchParams, todayWITA]);
+  const invalidLinkedBirthDate = activeParams?.tipe_pencarian === 'tanggal_lahir' &&
+    !isValidISODate(activeParams.tanggal_lahir ?? '');
+  const submittedParams = invalidLinkedBirthDate ? null : activeParams;
 
   // -------------------------------------------------------------------------
   // 2. QUERY BACKEND DENGAN TANSTACK QUERY (LAPIS 3 CACHE)
@@ -111,7 +115,7 @@ export default function OtonanPage() {
     isError,
     error,
     refetch,
-  } = useOtonanSearch(activeParams, Boolean(activeParams));
+  } = useOtonanSearch(submittedParams, Boolean(submittedParams));
 
   // -------------------------------------------------------------------------
   // 3. DYNAMIC DOCUMENT TITLE (fe_strategy.md Bab 8.13)
@@ -173,33 +177,10 @@ export default function OtonanPage() {
       />
 
       {/* =================================================================== */}
-      {/* 3. PENANGANAN KESALAHAN INPUT (ERROR ALERT DARI GO BACKEND)         */}
+      {/* 3. PENANGANAN KEGAGALAN PERHITUNGAN DARI GO BACKEND                  */}
       {/* =================================================================== */}
       {isError && (
-        <div className="bg-white rounded-2xl border border-rose-200/90 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-in fade-in">
-          <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
-              <AlertCircle className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm sm:text-base font-bold text-[#0f172a]">
-                Gagal Melakukan Perhitungan
-              </h4>
-              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                {error?.message || 'Terjadi kesalahan saat menghubungi server perhitungan otonan.'}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="h-10 px-4 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs sm:text-sm transition-all active:scale-98 cursor-pointer inline-flex items-center justify-center gap-2 shrink-0 [touch-action:manipulation]"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Coba Lagi</span>
-          </button>
-        </div>
+        <QueryErrorState title="Gagal melakukan perhitungan" error={error} onRetry={() => { void refetch(); }} />
       )}
 
       {/* =================================================================== */}

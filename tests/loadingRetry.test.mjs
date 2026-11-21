@@ -16,6 +16,7 @@ const { adminService } = await server.ssrLoadModule('/src/features/admin/service
 const { default: GitaPage } = await server.ssrLoadModule('/src/features/bhagawad-gita/pages/BhagawadGitaPage.tsx');
 const { useAuthStore, authQueryScope } = await server.ssrLoadModule('/src/stores/useAuthStore.ts');
 const { DashboardDewasaAyu } = await server.ssrLoadModule('/src/features/dashboard/components/DashboardDewasaAyu.tsx');
+const { DashboardPengingat } = await server.ssrLoadModule('/src/features/dashboard/components/DashboardPengingat.tsx');
 const { default: CalendarPage } = await server.ssrLoadModule('/src/features/kalender/pages/CalendarPage.tsx');
 const { useMengaturDewasaSearch } = await server.ssrLoadModule('/src/features/mengatur-dewasa/hooks/useMengaturDewasaQueries.ts');
 const failure = status => Object.assign(new Error('Layanan sementara gagal'), { status });
@@ -178,4 +179,23 @@ test('dashboard Dewasa Ayu dan kalender tidak menampilkan data kosong ketika loa
     assert.match(calendar, /aria-label="Memuat kalender\.\.\."/);
     assert.doesNotMatch(calendar, /Tidak ada agenda|0 Lokasi|Coba Lagi|Detail tanggal/);
   } finally { client.clear(); }
+});
+
+test('dashboard pengingat menampilkan error awal dan mempertahankan kartu selama polling', () => {
+  const initial = useAuthStore.getInitialState();
+  const original = { ...initial };
+  Object.assign(initial, { isAuthenticated: true, user: { id: 'uji' }, token: 'uji' });
+  const client = new QueryClient({ defaultOptions: { queries: { retryOnMount: false } } });
+  const queryKey = ['reminders', authQueryScope(initial)];
+  const render = () => renderToStaticMarkup(React.createElement(QueryClientProvider, { client },
+    React.createElement(MemoryRouter, null, React.createElement(DashboardPengingat, { todayDateISO: '2026-11-21' }))));
+  try {
+    const query = client.getQueryCache().build(client, { queryKey });
+    query.setState({ status: 'error', error: failure(503), fetchStatus: 'idle' });
+    assert.match(render(), /Gagal memuat pengingat/);
+    assert.doesNotMatch(render(), /Tidak ada pengingat dalam 7 hari/);
+    client.setQueryData(queryKey, [{ id: '1', kind: 'otonan', title: 'Pengingat yang sudah tampil', nextDate: '2026-11-22', condition: {} }]);
+    query.setState({ fetchStatus: 'fetching' });
+    assert.match(render(), /Pengingat yang sudah tampil/);
+  } finally { Object.assign(initial, original); client.clear(); }
 });

@@ -31,8 +31,6 @@ import {
 import type {
   DashboardHeroData,
   DashboardMiniCalendarDay,
-  PiodalanDashboardItem,
-  UpcomingHariRayaItem,
 } from '../types/dashboard.types';
 import {
   buildDashboardDewasaAyu,
@@ -40,6 +38,9 @@ import {
   extractTopUpcomingPiodalan,
   generateMiniCalendarGrid,
 } from '../utils/dashboardUtils';
+
+const HOLIDAY_LIMIT = 7;
+const PIODALAN_LIMIT = 4;
 
 export function useDashboardData() {
   // ---------------------------------------------------------------------------
@@ -65,29 +66,20 @@ export function useDashboardData() {
   // useKalenderTahun mengembalikan { kalenderData, daysMap, isLoading, ... }
   // Mengambil data 365 hari lengkap yang tersimpan di cache memori RAM (Zero-Loading).
   const {
-    kalenderData: rawCalendarDays = [],
+    kalenderData: rawCalendarDays,
     daysMap,
     isLoading,
     isError,
     error,
     refetch,
-  } = useKalenderTahun(calendarYear, calendarMonth);
+  } = useKalenderTahun(calendarYear);
 
   // Konsumsi data kalender tahun berjalan untuk evaluasi agenda terdekat hari ini
   // (Zero-Loading: jika calendarYear === todayParsed.year, TanStack Query langsung
   // menggunakan instance query yang sama di memori RAM).
-  const { kalenderData: todayYearCalendarDays = [] } = useKalenderTahun(todayParsed.year);
+  const { kalenderData: todayYearCalendarDays } = useKalenderTahun(todayParsed.year);
 
-  // Konsumsi data tahun berikutnya untuk kesinambungan agenda melewati batas pergantian tahun
-  const { kalenderData: nextCalendarYearDays = [] } = useKalenderTahun(calendarYear + 1, undefined, {
-    enabled: rawCalendarDays.length > 0 && calendarYear < 2200,
-  });
-
-  const { kalenderData: nextTodayYearCalendarDays = [] } = useKalenderTahun(todayParsed.year + 1, undefined, {
-    enabled: todayYearCalendarDays.length > 0 && todayParsed.year < 2200,
-  });
-
-  const { data: purasList = [], error: purasError, refetch: refetchPuras, isLoading: isPurasLoading } = useReadQuery({
+  const { data: purasList, error: purasError, refetch: refetchPuras, isLoading: isPurasLoading } = useReadQuery({
     queryKey: ['piodalan', 'puras', 'observances'],
     queryFn: fetchPuraObservances,
     staleTime: 1000 * 60 * 60 * 24,
@@ -196,35 +188,35 @@ export function useDashboardData() {
   // ---------------------------------------------------------------------------
   // 7. Penarikan Maksimal 7 Hari Raya Terdekat (Lintas Bulan jika Diperlukan)
   // ---------------------------------------------------------------------------
-  const holidaysDaysPool = useMemo(() => {
-    if (nextCalendarYearDays.length > 0) {
-      return [...rawCalendarDays, ...nextCalendarYearDays];
-    }
-    return rawCalendarDays;
-  }, [rawCalendarDays, nextCalendarYearDays]);
-
-  const upcomingHariRaya: UpcomingHariRayaItem[] = useMemo(() => {
-    return extractTopUpcomingHariRaya(
-      holidaysDaysPool,
-      todayWITA,
-      calendarYear,
-      calendarMonth,
-      7
-    );
-  }, [holidaysDaysPool, todayWITA, calendarYear, calendarMonth]);
+  const holidaysThisYear = useMemo(() => extractTopUpcomingHariRaya(
+    rawCalendarDays, todayWITA, calendarYear, calendarMonth, HOLIDAY_LIMIT,
+  ), [rawCalendarDays, todayWITA, calendarYear, calendarMonth]);
+  const needsNextHolidayYear = rawCalendarDays.length > 0 && calendarYear < 2200 && holidaysThisYear.length < HOLIDAY_LIMIT;
+  const { kalenderData: nextCalendarYearDays } = useKalenderTahun(calendarYear + 1, undefined, { enabled: needsNextHolidayYear });
+  const upcomingHariRaya = useMemo(() => {
+    if (!needsNextHolidayYear || !nextCalendarYearDays.length) return holidaysThisYear;
+    return [...holidaysThisYear, ...extractTopUpcomingHariRaya(
+      nextCalendarYearDays, todayWITA, calendarYear, calendarMonth, HOLIDAY_LIMIT - holidaysThisYear.length,
+    )];
+  }, [needsNextHolidayYear, nextCalendarYearDays, holidaysThisYear, todayWITA, calendarYear, calendarMonth]);
 
   // ---------------------------------------------------------------------------
   // 8. Integrasi Data Dewasa Ayu Hari Ini & Piodalan Terdekat
   // ---------------------------------------------------------------------------
-  // Cari tanggal piodalan mulai hari ini dari data kalender dan aturan pura.
-  const realUpcomingPiodalan: PiodalanDashboardItem[] = useMemo(() => {
-    const daysPool = [...todayYearCalendarDays, ...nextTodayYearCalendarDays];
-
-    return extractTopUpcomingPiodalan(daysPool, purasList, todayWITA);
-  }, [todayYearCalendarDays, nextTodayYearCalendarDays, purasList, todayWITA]);
-
-  // Seluruh data piodalan di dashboard 100% menggunakan data real hasil kalkulasi master pura resmi backend Go
-  const piodalan: PiodalanDashboardItem[] = realUpcomingPiodalan;
+  const piodalanThisYear = useMemo(() => purasList
+    ? extractTopUpcomingPiodalan(todayYearCalendarDays, purasList, todayWITA, PIODALAN_LIMIT) : [],
+  [todayYearCalendarDays, purasList, todayWITA]);
+  const needsNextPiodalanYear = todayYearCalendarDays.length > 0 && Boolean(purasList?.length)
+    && todayParsed.year < 2200 && piodalanThisYear.length < PIODALAN_LIMIT;
+  const { kalenderData: nextTodayYearCalendarDays, isLoading: isNextPiodalanYearLoading } = useKalenderTahun(
+    todayParsed.year + 1, undefined, { enabled: needsNextPiodalanYear },
+  );
+  const piodalan = useMemo(() => {
+    if (!needsNextPiodalanYear || !nextTodayYearCalendarDays.length || !purasList) return piodalanThisYear;
+    return [...piodalanThisYear, ...extractTopUpcomingPiodalan(
+      nextTodayYearCalendarDays, purasList, todayWITA, PIODALAN_LIMIT - piodalanThisYear.length,
+    )];
+  }, [needsNextPiodalanYear, nextTodayYearCalendarDays, piodalanThisYear, purasList, todayWITA]);
 
   return {
     // Data Hero Hari Ini
@@ -252,7 +244,7 @@ export function useDashboardData() {
     piodalanList: piodalan,
     piodalanError: purasError,
     refetchPiodalan: refetchPuras,
-    isPiodalanLoading: isPurasLoading,
+    isPiodalanLoading: isPurasLoading || (needsNextPiodalanYear && isNextPiodalanYearLoading && piodalan.length === 0),
 
     // Status Jaringan & State TanStack Query
     isLoading,

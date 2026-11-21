@@ -2,12 +2,13 @@ import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import React, { useState, useMemo } from 'react';
 import { Search, ChevronDown, RotateCcw } from 'lucide-react';
 import { AestheticDatePicker } from '@/components/ui/AestheticDatePicker';
+import { isValidISODate } from '@/features/kalender/utils/calendarUtils';
 import type {
   OtonanSearchParams,
   OtonanSearchType,
 } from '../types/otonan.types';
 import { useMasterWewaranOptions } from '../hooks/useOtonan';
-import { getTodayWITA } from '../utils/otonanUtils';
+import { getTodayWITA, INVALID_BIRTH_DATE, MIN_BIRTH_YEAR, validateBirthDate } from '../utils/otonanUtils';
 import {
   buildPawukonDays,
   getValidPancawara,
@@ -69,9 +70,11 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
   );
 
   // Input mode tanggal lahir (default kosong agar menampilkan placeholder "dd/mm/yyyy")
-  const [birthDate, setBirthDate] = useState<string>(
-    activeParams?.tanggal_lahir || ''
-  );
+  const [linkedBirthDate, setLinkedBirthDate] = useState(activeParams?.tanggal_lahir ?? null);
+  const [birthDateDraft, setBirthDateDraft] = useState<{ iso: string; display: string } | null>(null);
+  const [birthDateError, setBirthDateError] = useState<string | null>(null);
+  const birthDate = birthDateDraft?.iso ?? linkedBirthDate ?? '';
+  const invalidLinkedBirthDate = linkedBirthDate !== null && !isValidISODate(linkedBirthDate);
   const [birthTime, setBirthTime] = useState<'before_06' | 'after_06'>(
     activeParams?.sebelum_jam_6 ? 'before_06' : 'after_06'
   );
@@ -130,7 +133,11 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
     setPreviousInputs1(currentInputs1);
     if (activeParams) {
       setActiveTab(activeParams.tipe_pencarian);
-      if (activeParams.tanggal_lahir) setBirthDate(activeParams.tanggal_lahir);
+      if (activeParams.tipe_pencarian === 'tanggal_lahir') {
+        setLinkedBirthDate(activeParams.tanggal_lahir ?? null);
+        setBirthDateDraft(null);
+        setBirthDateError(null);
+      }
       setBirthTime(activeParams.sebelum_jam_6 ? 'before_06' : 'after_06');
       if (activeParams.tahun_target) setTargetYear(activeParams.tahun_target);
       if (activeParams.saptawara_id) setSaptawaraId(String(activeParams.saptawara_id));
@@ -233,7 +240,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
   // -------------------------------------------------------------------------
   // 5. HANDLER AKSI SUBMIT FORM
   // -------------------------------------------------------------------------
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Resolusi tahun target menjadi angka valid (fallback ke tahun berjalan jika kosong)
@@ -241,7 +248,14 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
     const finalTargetYear = !isNaN(parsedYear) && parsedYear > 0 ? parsedYear : currentYear;
 
     if (activeTab === 'tanggal_lahir') {
-      if (!birthDate) return;
+      const error = birthDateDraft === null && linkedBirthDate !== null
+        ? (invalidLinkedBirthDate ? INVALID_BIRTH_DATE : null)
+        : validateBirthDate(birthDate, todayWITA);
+      if (error) {
+        setBirthDateError(error);
+        e.currentTarget.querySelector<HTMLInputElement>('#birth-date')?.focus();
+        return;
+      }
       onSubmit({
         tipe_pencarian: 'tanggal_lahir',
         tanggal_lahir: birthDate,
@@ -305,7 +319,13 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
         </div>
 
         {/* Form Inputs Container */}
-        <form onSubmit={handleSubmit} className="pt-6 space-y-4">
+        <form onSubmit={handleSubmit} onInvalid={(e) => {
+          if (e.target instanceof HTMLInputElement && e.target.id === 'birth-date') {
+            e.preventDefault();
+            setBirthDateError('Masukkan tanggal lahir.');
+            e.target.focus();
+          }
+        }} className="pt-6 space-y-4">
           {activeTab !== 'tanggal_lahir' && isMasterError && <QueryErrorState title="Gagal memuat pilihan wewaran" error={masterError} onRetry={() => { void refetchMasters(); }} />}
           {/* =============================================================== */}
           {/* MODE 1: TANGGAL LAHIR (Masehi)                                  */}
@@ -316,14 +336,20 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
               <div className="@min-[900px]:col-span-4 space-y-1.5">
                 <label
                   htmlFor="birth-date"
-                  className="text-[11px] font-extrabold text-slate-400 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
+                  className="text-[11px] font-extrabold text-slate-600 dark:text-slate-300 uppercase tracking-widest block mb-1.5"
                 >
                   TANGGAL LAHIR
                 </label>
                 <AestheticDatePicker
                   id="birth-date"
                   value={birthDate}
-                  onChange={(iso) => setBirthDate(iso)}
+                  displayValue={birthDateDraft?.display}
+                  onChange={(iso, display) => {
+                    setBirthDateDraft({ iso, display });
+                    setBirthDateError(null);
+                  }}
+                  error={birthDateError ?? (invalidLinkedBirthDate && birthDateDraft === null ? INVALID_BIRTH_DATE : null)}
+                  minYear={MIN_BIRTH_YEAR}
                   placeholder="dd/mm/yyyy"
                   required
                 />
@@ -381,7 +407,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-11 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-sm shadow-xs transition-all active:scale-98 cursor-pointer disabled:opacity-50 [touch-action:manipulation]"
+                  className="w-full h-11 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-primary-hover hover:bg-primary-dark active:bg-primary-dark text-white font-bold text-sm shadow-xs transition-all active:scale-98 cursor-pointer disabled:opacity-50 [touch-action:manipulation]"
                 >
                   <span>{isLoading ? 'Menghitung...' : 'Hitung Otonan'}</span>
                   <Search className="w-4 h-4" />
@@ -519,7 +545,7 @@ export const OtonanFormSection: React.FC<OtonanFormSectionProps> = ({
                   <button
                     type="submit"
                     disabled={isLoading || isMasterLoading || isMasterError || !isWewaranComplete || !isValidPawukon}
-                    className="w-full h-11 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-[#0e9f90] hover:bg-[#0c8a7d] active:bg-[#0a756a] text-white font-bold text-sm shadow-xs transition-all active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed [touch-action:manipulation]"
+                    className="w-full h-11 inline-flex items-center justify-center gap-2 px-6 rounded-xl bg-primary-hover hover:bg-primary-dark active:bg-primary-dark text-white font-bold text-sm shadow-xs transition-all active:scale-98 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed [touch-action:manipulation]"
                   >
                     <span>
                       {isLoading

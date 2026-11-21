@@ -173,8 +173,8 @@ export default function AdminContributionPage() {
         </div>
 
         {/* Tab Switcher Status */}
-        <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-end">
-          <div className="p-1 bg-slate-100 rounded-xl flex gap-1 text-xs">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-between md:justify-end">
+          <div className="p-1 bg-slate-100 rounded-xl flex flex-wrap gap-1 text-xs">
             {[
               { id: 'pending', label: `Menunggu (${stats.pending})` },
               { id: 'approved', label: `Disetujui (${stats.approved})` },

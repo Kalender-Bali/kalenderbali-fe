@@ -26,8 +26,10 @@ export interface AestheticDatePickerProps {
   value: string;
   /** Callback saat tanggal berubah: parameter (isoDate, displayDate) */
   onChange: (isoDate: string, displayDate: string) => void;
+  displayValue?: string;
   placeholder?: string;
   required?: boolean;
+  error?: string | null;
   minYear?: number;
   maxYear?: number;
   allowFuture?: boolean;
@@ -117,8 +119,10 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
   id = 'aesthetic-date-picker',
   value,
   onChange,
+  displayValue,
   placeholder = 'dd/mm/yyyy',
   required = false,
+  error,
   minYear = 1970,
   maxYear: customMaxYear,
   allowFuture = false,
@@ -130,15 +134,15 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
   const maxYear = customMaxYear ?? (allowFuture ? todayY + 15 : todayY);
 
   // State tampilan teks input (format DD/MM/YYYY)
-  const [inputText, setInputText] = useState<string>(toDisplayDate(value));
+  const [inputText, setInputText] = useState<string>(() => displayValue ?? toDisplayDate(value));
 
   // Sinkronisasi inputText jika props value berubah dari luar (misal URL params / reset)
   const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
-  const currentInputs1 = [value];
+  const currentInputs1 = [value, displayValue];
   if (previousInputs1 === null || currentInputs1.some((value, index) => !Object.is(value, previousInputs1[index]))) {
     setPreviousInputs1(currentInputs1);
-    setInputText(toDisplayDate(value));
-
+    const nextText = displayValue ?? toDisplayDate(value);
+    if (nextText !== inputText) setInputText(nextText);
   }
 
   // State tampilan bulan & tahun pada kalender popover
@@ -291,6 +295,8 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
           placeholder={placeholder}
           autoComplete="off"
           required={required}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
           className="w-full h-11 pl-4 pr-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold text-[#0f172a] dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#0d9488]/20 focus:border-[#0d9488] transition-all tabular-nums cursor-pointer [touch-action:manipulation]"
         />
 
@@ -309,6 +315,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
           <CalendarIcon className="w-4 h-4" />
         </button>
       </div>
+      {error && <p id={`${id}-error`} role="alert" className="mt-1.5 text-xs font-medium text-rose-700 dark:text-rose-300">{error}</p>}
 
       {/* =================================================================== */}
       {/* POPOVER KALENDER ESTETIK                                            */}
@@ -342,6 +349,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
             <div className="flex items-center gap-1.5">
               {/* Dropdown Bulan */}
               <select
+                aria-label="Bulan"
                 value={viewMonth}
                 onChange={(e) => setViewMonth(parseInt(e.target.value, 10))}
                 className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-white bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 rounded-lg px-2.5 py-1.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#0d9488]"
@@ -358,6 +366,7 @@ export const AestheticDatePicker: React.FC<AestheticDatePickerProps> = ({
 
               {/* Dropdown Tahun (Mendukung pemilihan cepat tahun lampau) */}
               <select
+                aria-label="Tahun"
                 value={viewYear}
                 onChange={(e) => {
                   const newY = parseInt(e.target.value, 10);

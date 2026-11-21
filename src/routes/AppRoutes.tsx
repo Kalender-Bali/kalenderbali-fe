@@ -22,7 +22,7 @@ import KeteranganDetailPage from '@/features/keterangan/pages/KeteranganDetailPa
 import OtonanPage from '@/features/otonan/pages/OtonanPage';
 import PiodalanPage from '@/features/piodalan/pages/PiodalanPage';
 import HariRayaPage from '@/features/hari-raya/pages/HariRayaPage';
-import KelolaPuraPage from '@/features/kelola-pura/pages/KelolaPuraPage';
+const KelolaPuraPage = lazy(() => import('@/features/kelola-pura/pages/KelolaPuraPage'));
 import WartaPage from '@/features/warta/pages/WartaPage';
 import WartaDetailPage from '@/features/warta/pages/WartaDetailPage';
 
@@ -79,9 +79,9 @@ const PremiumPage = lazy(() => import('@/features/premium/pages/PremiumPage'));
 import { PremiumSkeleton } from '@/features/premium/components/PremiumSkeleton';
 
 // Import komponen-komponen halaman Manajemen Admin
-import AdminUserPage from '@/features/admin/pages/AdminUserPage';
-import AdminTransactionPage from '@/features/admin/pages/AdminTransactionPage';
-import AdminContributionPage from '@/features/admin/pages/AdminContributionPage';
+const AdminUserPage = lazy(() => import('@/features/admin/pages/AdminUserPage'));
+const AdminTransactionPage = lazy(() => import('@/features/admin/pages/AdminTransactionPage'));
+const AdminContributionPage = lazy(() => import('@/features/admin/pages/AdminContributionPage'));
 const ChatbotPage = lazy(() => import('@/features/chatbot/pages/ChatbotPage'));
 const AdminChatPage = lazy(() => import('@/features/admin/pages/AdminChatPage'));
 
@@ -281,7 +281,7 @@ export default function AppRoutes() {
             <Route path="rubrik-dewasa/:id/ubah" element={<Suspense fallback={<DataSkeleton label="Memuat form rubrik" />}><RubrikDewasaFormPage /></Suspense>} />
             <Route path="pengingat" element={<Suspense fallback={<PengingatSkeleton />}><PengingatPage /></Suspense>} />
             {/* Halaman Utama Katalog & Kelola Pura Bali */}
-            <Route path="kelola-pura" element={<KelolaPuraPage />} />
+            <Route path="kelola-pura" element={<Suspense fallback={<DataSkeleton label="Memuat Kelola Pura" />}><KelolaPuraPage /></Suspense>} />
             <Route path="layanan/kelola-pura" element={<Navigate to="/kelola-pura" replace />} />
           </Route>
 
@@ -339,16 +339,16 @@ export default function AppRoutes() {
           <Route element={<AdminRoute />}>
 			<Route path="admin/chatbot" element={<Suspense fallback={<DataSkeleton label="Memuat pengaturan chatbot" />}><AdminChatPage /></Suspense>} />
             {/* Manajemen Anggota / User (Data User, Ubah Role, Verifikasi Kontributor) */}
-            <Route path="admin/users" element={<AdminUserPage />} />
+            <Route path="admin/users" element={<Suspense fallback={<DataSkeleton label="Memuat pengguna" />}><AdminUserPage /></Suspense>} />
             <Route path="admin/manajemen-user" element={<Navigate to="/admin/users" replace />} />
             <Route path="kelola-pengguna" element={<Navigate to="/admin/users" replace />} />
 
             {/* Transaksi User (Riwayat Pembelian Saldo/Layanan) */}
-            <Route path="admin/transaksi" element={<AdminTransactionPage />} />
+            <Route path="admin/transaksi" element={<Suspense fallback={<DataSkeleton label="Memuat transaksi" />}><AdminTransactionPage /></Suspense>} />
             <Route path="admin/transaksi-user" element={<Navigate to="/admin/transaksi" replace />} />
 
             {/* Pengajuan Kontribusi (Verifikasi Data Pura/Wariga dari Kontributor) */}
-            <Route path="admin/kontribusi" element={<AdminContributionPage />} />
+            <Route path="admin/kontribusi" element={<Suspense fallback={<DataSkeleton label="Memuat kontribusi" />}><AdminContributionPage /></Suspense>} />
             <Route path="admin/pengajuan-kontribusi" element={<Navigate to="/admin/kontribusi" replace />} />
           </Route>
 

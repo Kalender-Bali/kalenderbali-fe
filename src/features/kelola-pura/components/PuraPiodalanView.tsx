@@ -58,9 +58,9 @@ import { PremiumUpgradeModal } from './PremiumUpgradeModal';
 interface PuraPiodalanViewProps {
   puraId: number;
   pura: PuraBackendItem | null;
-  /** Callback untuk kembali ke tampilan katalog daftar pura (opsional, kini tersedia di header utama) */
-  onBack?: () => void;
 }
+
+type PiodalanDialog = 'piodalan-entry' | 'acara-entry' | 'piodalan-submission' | 'acara-submission' | 'upgrade';
 
 /**
  * ==============================================================================
@@ -136,31 +136,23 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
   } = usePiodalanSubmissions(puraId);
 
   // State Dialog Modal & Drawer
-  const [isPiodalanModalOpen, setIsPiodalanModalOpen] = useState<boolean>(false);
-  const [isAcaraModalOpen, setIsAcaraModalOpen] = useState<boolean>(false);
-  const [isPiodalanSubmissionModalOpen, setIsPiodalanSubmissionModalOpen] = useState<boolean>(false);
-  const [isAcaraSubmissionModalOpen, setIsAcaraSubmissionModalOpen] = useState<boolean>(false);
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState<boolean>(false);
+  const [dialog, setDialog] = useState<PiodalanDialog | null>(null);
   const [showSubmissionsDrawer, setShowSubmissionsDrawer] = useState<boolean>(false);
 
-  const [piodalanToDelete, setPiodalanToDelete] = useState<PuraPiodalanRecord | null>(null);
+  const [piodalanDeletion, setPiodalanDeletion] = useState<{ piodalan: PuraPiodalanRecord; acaraCount: number } | null>(null);
   const [acaraToDelete, setAcaraToDelete] = useState<PuraAcaraItem | null>(null);
 
   // State pelacakan alur konfirmasi hapus 2-tahap jika piodalan memiliki susunan acara
   const [isCheckingAcaras, setIsCheckingAcaras] = useState<boolean>(false);
-  const [piodalanAcarasCount, setPiodalanAcarasCount] = useState<number>(0);
+  const piodalanToDelete = piodalanDeletion?.piodalan;
+  const piodalanAcarasCount = piodalanDeletion?.acaraCount ?? 0;
 
   // Konfigurasi gaya badge tipe pura dan ringkasan penanggalan wariga
   const badgeStyle = getPuraTypeBadgeStyle(pura?.type);
   const observationSummary = pura ? getObservationSummary(pura) : 'Dasar penanggalan';
 
-  // Handler Usulan Odalan
-  const handleOpenPiodalanSubmission = () => {
-    if (isAdmin || isPremium) {
-      setIsPiodalanSubmissionModalOpen(true);
-    } else {
-      setIsUpgradeModalOpen(true);
-    }
+  const closeDialog = (kind: PiodalanDialog) => {
+    setDialog(current => current === kind ? null : current);
   };
 
   // Handler Usulan Acara
@@ -169,11 +161,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
       showAlert('Pilih siklus piodalan terlebih dahulu untuk mengusulkan susunan acara.');
       return;
     }
-    if (isAdmin || isPremium) {
-      setIsAcaraSubmissionModalOpen(true);
-    } else {
-      setIsUpgradeModalOpen(true);
-    }
+    setDialog(isAdmin || isPremium ? 'acara-submission' : 'upgrade');
   };
 
   /**
@@ -194,8 +182,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
         const childList = await fetchPiodalanAcaras(piodalan.id);
         count = Array.isArray(childList) ? childList.length : 0;
       }
-      setPiodalanAcarasCount(count);
-      setPiodalanToDelete(piodalan);
+      setPiodalanDeletion({ piodalan, acaraCount: count });
     } catch (err) {
       console.error('Gagal mengecek keterkaitan susunan acara piodalan:', err);
       showAlert('Susunan acara belum berhasil diperiksa. Coba lagi sebelum menghapus piodalan.');
@@ -212,8 +199,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
       if (selectedPiodalanId === piodalanToDelete.id) {
         setSelectedPiodalanId(null);
       }
-      setPiodalanToDelete(null);
-      setPiodalanAcarasCount(0);
+      setPiodalanDeletion(null);
     } catch {
       // Error ditangani di level hook usePiodalanMutations
     }
@@ -346,7 +332,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
         <aside className="lg:col-span-5 space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
             {/* Header Kartu Piodalan dengan Tombol Tambah Siklus & Usulan */}
-            <div className="flex items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3.5 border-b border-slate-100">
               <div className="flex items-center gap-2 shrink-0">
                 <CalendarDays className="w-4 h-4 text-[#0e9f90]" aria-hidden="true" />
                 <h3 className="text-sm font-bold text-slate-900">Daftar Piodalan Resmi</h3>
@@ -360,7 +346,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
                 {isAdmin && (
                   <button
                     type="button"
-                    onClick={() => setIsPiodalanModalOpen(true)}
+                    onClick={() => setDialog('piodalan-entry')}
                     className="min-h-[34px] inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold text-white bg-[#0e9f90] hover:bg-[#0c8a7d] active:scale-95 transition-all shadow-xs cursor-pointer"
                   >
                     <PlusCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
@@ -393,7 +379,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
                 {!isAdmin && (
                   <button
                     type="button"
-                    onClick={handleOpenPiodalanSubmission}
+                    onClick={() => setDialog(isPremium ? 'piodalan-submission' : 'upgrade')}
                     className="min-h-[34px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 transition-all shadow-2xs cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5 text-[#0e9f90]" aria-hidden="true" />
@@ -524,7 +510,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
                 {isAdmin && activePiodalan && (
                   <button
                     type="button"
-                    onClick={() => setIsAcaraModalOpen(true)}
+                    onClick={() => setDialog('acara-entry')}
                     className="min-h-[36px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-[#0e9f90] hover:bg-[#0c8a7d] active:scale-95 transition-all shadow-xs cursor-pointer"
                   >
                     <PlusCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
@@ -666,39 +652,39 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
       {/* ==================================================================== */}
       {/* Modal Tambah Siklus Piodalan Baru (Admin) */}
       <PiodalanEntryModal
-        isOpen={isPiodalanModalOpen}
+        isOpen={dialog === 'piodalan-entry'}
         puraId={puraId}
         puraName={pura?.name}
-        onClose={() => setIsPiodalanModalOpen(false)}
+        onClose={() => closeDialog('piodalan-entry')}
       />
 
       {/* Modal Tambah Tahapan Susunan Acara (Admin) */}
       {activePiodalan && (
         <AcaraEntryModal
-          isOpen={isAcaraModalOpen}
+          isOpen={dialog === 'acara-entry'}
           piodalanId={activePiodalan.id}
           piodalanDate={activePiodalan.ceremony_date || activePiodalan.date}
-          onClose={() => setIsAcaraModalOpen(false)}
+          onClose={() => closeDialog('acara-entry')}
         />
       )}
 
       {/* Modal Pengajuan Usulan Piodalan (Member) */}
       <PiodalanSubmissionModal
-        isOpen={isPiodalanSubmissionModalOpen}
+        isOpen={dialog === 'piodalan-submission'}
         puraId={puraId}
         puraName={pura?.name || 'Pura'}
-        onClose={() => setIsPiodalanSubmissionModalOpen(false)}
+        onClose={() => closeDialog('piodalan-submission')}
       />
 
       {/* Modal Pengajuan Usulan Acara (Member) */}
       {activePiodalan && (
         <AcaraSubmissionModal
-          isOpen={isAcaraSubmissionModalOpen}
+          isOpen={dialog === 'acara-submission'}
           piodalanId={activePiodalan.id}
           puraId={puraId}
           puraName={pura?.name || 'Pura'}
           piodalanDate={activePiodalan.ceremony_date || activePiodalan.date}
-          onClose={() => setIsAcaraSubmissionModalOpen(false)}
+          onClose={() => closeDialog('acara-submission')}
         />
       )}
 
@@ -718,10 +704,7 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
         childItemsCount={piodalanAcarasCount}
         childWarningMessage={`Jadwal piodalan ini tercatat masih memiliki ${piodalanAcarasCount} tahapan susunan acara terdaftar. Menghapus piodalan ini akan sekaligus menghapus seluruh tahapan acara terkait secara permanen dari basis data.`}
         isLoading={isDeletingPiodalan}
-        onClose={() => {
-          setPiodalanToDelete(null);
-          setPiodalanAcarasCount(0);
-        }}
+        onClose={() => setPiodalanDeletion(null)}
         onConfirm={handleConfirmDeletePiodalan}
       />
 
@@ -738,8 +721,8 @@ export const PuraPiodalanView: React.FC<PuraPiodalanViewProps> = ({
 
       {/* Modal Upgrade Member Premium jika Guest / Free mencoba mengusulkan */}
       <PremiumUpgradeModal
-        isOpen={isUpgradeModalOpen}
-        onClose={() => setIsUpgradeModalOpen(false)}
+        isOpen={dialog === 'upgrade'}
+        onClose={() => closeDialog('upgrade')}
         title="Fitur Khusus Member Premium"
         description={
           <>

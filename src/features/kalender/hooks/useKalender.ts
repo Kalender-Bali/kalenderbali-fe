@@ -2,10 +2,12 @@ import { useEffect, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useReadQuery } from '@/lib/useReadQuery';
 import { fetchKalenderTahun } from '../api/kalenderApi';
-import type { KalenderHarian, PiodalanItem, PiodalanTerdekatItem } from '../types/kalender.types';
+import type { KalenderHarian, PiodalanItem } from '../types/kalender.types';
 import { fetchPuraObservances, searchPiodalan } from '@/features/piodalan/api/piodalanApi';
 import { useAllPuras } from '@/features/piodalan/hooks/usePiodalan';
 import { matchPurasForDay, extractMonthPiodalanSummary } from '../utils/calendarUtils';
+
+const EMPTY_YEAR: KalenderHarian[] = [];
 
 function usePuraObservances() {
   return useReadQuery({
@@ -43,7 +45,7 @@ export function useKalenderTahun(year: number, activeMonth?: number, options?: {
   // 1. Eksekusi Query 1 Tahun Penuh dengan TanStack Query
   // -------------------------------------------------------------------------
   const {
-    data: rawData = [],
+    data: rawData = EMPTY_YEAR,
     isLoading,
     isError,
     error,
@@ -92,33 +94,6 @@ export function useKalenderTahun(year: number, activeMonth?: number, options?: {
     }
   }, [year, activeMonth, queryClient, rawData.length, options?.enabled]);
 
-  // -------------------------------------------------------------------------
-  // 4. Helper Penyarik Data (Derived Helpers Tanpa Duplikasi State)
-  // -------------------------------------------------------------------------
-
-  /**
-   * Mengambil data satu hari tertentu dalam O(1).
-   */
-  const getDayData = (dateString: string): KalenderHarian | undefined => {
-    return daysMap.get(dateString);
-  };
-
-  /**
-   * Mengambil seluruh hari di bulan tertentu (1 - 12).
-   */
-  const getMonthDays = (month: number): KalenderHarian[] => {
-    const monthPrefix = `${year}-${String(month).padStart(2, '0')}-`;
-    return rawData.filter((item) => item.tanggal.startsWith(monthPrefix));
-  };
-
-  /**
-   * Mengambil seluruh hari raya/rahinan yang jatuh pada bulan tertentu (1 - 12).
-   */
-  const getMonthHolidays = (month: number): KalenderHarian[] => {
-    const monthDays = getMonthDays(month);
-    return monthDays.filter((item) => item.hari_raya && item.hari_raya.length > 0);
-  };
-
   return {
     kalenderData: rawData,
     daysMap,
@@ -126,10 +101,6 @@ export function useKalenderTahun(year: number, activeMonth?: number, options?: {
     isError,
     error: error instanceof Error ? error.message : null,
     refetch,
-    // Helper fungsi langsung
-    getDayData,
-    getMonthDays,
-    getMonthHolidays,
   };
 }
 
@@ -229,7 +200,7 @@ export function useDayPiodalan(dateStr?: string, dayData?: KalenderHarian) {
  *
  * @param year Tahun Masehi target
  * @param month Nomor bulan Masehi (1 s.d. 12)
- * @param monthDays Daftar hari dalam bulan aktif (opsional, dari getMonthDays)
+ * @param monthDays Daftar hari bulan aktif. Undefined jika kalender bulan ini tidak tersedia.
  * @param todayISO Tanggal hari ini format YYYY-MM-DD WITA (opsional)
  * @param allYearDays Seluruh hari dalam tahun aktif untuk lookahead ke bulan depan (opsional)
  */
@@ -251,55 +222,34 @@ export function useMonthlyPiodalan(
 
   const useFallback = !inMemorySummary && (!monthDays || observances.isError);
 
-  const queryResult = useReadQuery<{
-    totalPuras: number;
-    upcomingItems: PiodalanTerdekatItem[];
-  }>({
-    queryKey: [
-      'kalender',
-      'piodalan',
-      'month',
-      year,
-      month,
-      todayISO,
-    ],
-    queryFn: async () => {
-      const res = await searchPiodalan({
-        mode: 'bulan',
-        bulan: month,
-        tahun: year,
-      });
-
-      if (res && Array.isArray(res.schedules) && res.schedules.length > 0) {
-        let totalPuras = 0;
-        for (let i = 0; i < res.schedules.length; i++) {
-          totalPuras += res.schedules[i].puras ? res.schedules[i].puras.length : 0;
-        }
-
-        return {
-          totalPuras,
-          upcomingItems: res.schedules
-            .filter(schedule => schedule.tanggal >= (todayISO ?? '') && schedule.puras.length > 0)
-            .slice(0, 3)
-            .map(schedule => ({
-              id: schedule.tanggal,
-              dayNumber: schedule.tanggal.slice(8, 10),
-              wukuTitle: schedule.wewaran || 'Piodalan Pura',
-              puraCountText: `${schedule.puras.length} pura`,
-              dateStr: schedule.tanggal,
-            })),
-        };
-      }
-
-      return { totalPuras: 0, upcomingItems: [] };
-    },
+  const queryResult = useReadQuery({
+    queryKey: ['kalender', 'piodalan', 'month', year, month],
+    queryFn: () => searchPiodalan({ mode: 'bulan', bulan: month, tahun: year }),
     enabled: Boolean(year && month) && useFallback,
     staleTime: 1000 * 60 * 10, // Fresh 10 menit di memori RAM
     refetchOnWindowFocus: false,
   });
 
+  const fallbackSummary = useMemo(() => {
+    const schedules = queryResult.data?.schedules;
+    if (!schedules) return undefined;
+    return {
+      totalPuras: schedules.reduce((total, schedule) => total + schedule.puras.length, 0),
+      upcomingItems: schedules
+        .filter(schedule => schedule.tanggal >= (todayISO ?? '') && schedule.puras.length > 0)
+        .slice(0, 3)
+        .map(schedule => ({
+          id: schedule.tanggal,
+          dayNumber: schedule.tanggal.slice(8, 10),
+          wukuTitle: schedule.wewaran || 'Piodalan Pura',
+          puraCountText: `${schedule.puras.length} pura`,
+          dateStr: schedule.tanggal,
+        })),
+    };
+  }, [queryResult.data, todayISO]);
+
   if (inMemorySummary) {
     return { ...queryResult, data: inMemorySummary, isLoading: false, isError: false, error: null };
   }
-  return { ...queryResult, isLoading: Boolean(year && month) && (!useFallback || queryResult.isLoading) };
+  return { ...queryResult, data: fallbackSummary, isLoading: Boolean(year && month) && (!useFallback || queryResult.isLoading) };
 }

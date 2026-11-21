@@ -158,12 +158,12 @@ export const CalendarHero: React.FC<CalendarHeroProps> = ({
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#e6f7f5] text-[#0d9488] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                 <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <span className="text-lg sm:text-xl font-extrabold text-[#0f172a] group-hover:text-[#0d9488] transition-colors tracking-tight block truncate tabular-nums">
+              <span className="min-w-0 text-lg sm:text-xl font-extrabold text-[#0f172a] group-hover:text-[#0d9488] transition-colors tracking-tight break-words tabular-nums">
                 {isLoading ? '...' : `${totalHolidays} Rahina · ${monthlyPiodalanCount ?? "—"} Piodalan`}
               </span>
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-500 font-medium block truncate">
+            <p className="text-xs sm:text-sm text-slate-500 font-medium break-words">
               {isLoading ? '...' : upcomingRahinaText}
             </p>
           </div>

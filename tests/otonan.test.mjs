@@ -2,11 +2,15 @@ import assert from 'node:assert/strict';
 import { after, test } from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createServer } from 'vite';
 
 const server = await createServer({
   configFile: false,
+  cacheDir: `/tmp/otonan-test-${process.pid}`,
   resolve: { alias: { '@': `${process.cwd()}/src` } },
+  optimizeDeps: { noDiscovery: true, include: [] },
   server: { middlewareMode: true, ws: false },
   appType: 'custom',
 });
@@ -16,6 +20,37 @@ const { OtonanResultSection } = await server.ssrLoadModule('/src/features/otonan
 const { downloadOtonanICS } = await server.ssrLoadModule('/src/features/otonan/utils/otonanUtils.ts');
 const { buildOtonanShareContent, hasOtonanBirthDetails } = await server.ssrLoadModule('/src/features/otonan/utils/otonanShareCard.ts');
 const { formatCardText } = await server.ssrLoadModule('/src/features/share-card/utils/shareCardDraft.ts');
+const { default: OtonanPage } = await server.ssrLoadModule('/src/features/otonan/pages/OtonanPage.tsx');
+const { validateBirthDate } = await server.ssrLoadModule('/src/features/otonan/utils/otonanUtils.ts');
+
+test('tanggal lahir yang diketik harus valid dan berada dalam rentang pemilih tanggal', () => {
+  const today = '2026-11-21';
+  for (const date of ['1970-01-01', '2000-02-29', today]) {
+    assert.equal(validateBirthDate(date, today), null, date);
+  }
+  for (const date of ['', '2000-02-31', '2001-02-29', '1969-12-31', '2026-11-22']) {
+    assert.ok(validateBirthDate(date, today), date);
+  }
+});
+
+test('tautan Otonan memvalidasi tanggal mustahil dan tetap mendukung tanggal historis', () => {
+  const client = new QueryClient();
+  const renderPage = (date) => renderToStaticMarkup(React.createElement(QueryClientProvider, { client },
+    React.createElement(MemoryRouter, { initialEntries: [`/otonan?birth_date=${date}&target_year=2026`] }, React.createElement(OtonanPage))));
+  const queryFor = (params) => client.getQueryCache().find({ queryKey: ['otonan', 'search', params] });
+  try {
+    const html = renderPage('2000-02-31');
+    assert.match(html, /<input id="birth-date"[^>]*aria-invalid="true"[^>]*aria-describedby="birth-date-error"[^>]*value="31\/02\/2000"/);
+    assert.match(html, /<p id="birth-date-error" role="alert"[^>]*>[^<]+<\/p>/);
+    assert.equal(queryFor(null)?.isDisabled(), true);
+
+    const historical = { tipe_pencarian: 'tanggal_lahir', tanggal_lahir: '1900-01-01', sebelum_jam_6: false, tahun_target: 2026 };
+    assert.doesNotMatch(renderPage(historical.tanggal_lahir), /birth-date-error/);
+    assert.ok(queryFor(historical));
+  } finally {
+    client.clear();
+  }
+});
 
 const elements = { saptawara: 'Redite', pancawara: 'Paing', wuku: 'Sinta' };
 function renderResults(mode, cycles, dates = ['2023-05-21', '2023-12-17']) {

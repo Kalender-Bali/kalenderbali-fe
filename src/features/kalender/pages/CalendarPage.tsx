@@ -112,29 +112,26 @@ function CalendarContent() {
     isError,
     error,
     refetch,
-    getMonthDays,
-    getMonthHolidays,
-    getDayData,
   } = useKalenderTahun(activeYear, activeMonth);
 
   // Data tanggal yang sedang dipilih
-  const selectedData = useMemo(() => getDayData(selectedDate), [getDayData, selectedDate]);
+  const selectedData = daysMap.get(selectedDate);
 
   // Data seluruh hari di bulan aktif & daftar hari raya bulan aktif
-  const currentMonthDays = useMemo(
-    () => getMonthDays(activeMonth),
-    [getMonthDays, activeMonth]
-  );
+  const currentMonthDays = useMemo(() => {
+    const prefix = `${activeYear}-${String(activeMonth).padStart(2, '0')}-`;
+    return kalenderData.filter(day => day.tanggal.startsWith(prefix));
+  }, [kalenderData, activeYear, activeMonth]);
   const currentMonthHolidays = useMemo(
-    () => getMonthHolidays(activeMonth),
-    [getMonthHolidays, activeMonth]
+    () => currentMonthDays.filter(day => day.hari_raya?.length),
+    [currentMonthDays]
   );
 
   // Ambil ringkasan piodalan bulan aktif secara instan & tangguh (Hybrid Resilient Engine)
   const { data: monthlyPiodalan, isLoading: isPiodalanLoading, isError: isPiodalanError, error: piodalanError, refetch: refetchPiodalan } = useMonthlyPiodalan(
     activeYear,
     activeMonth,
-    currentMonthDays,
+    !isLoading && !isError && !currentMonthDays.length ? undefined : currentMonthDays,
     todayWITA,
     kalenderData
   );

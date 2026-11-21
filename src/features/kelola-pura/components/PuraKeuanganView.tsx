@@ -9,7 +9,6 @@ import {
   Pencil,
   Trash2,
   Crown,
-  Sparkles,
   MapPin,
   Send,
   Eye,
@@ -20,7 +19,6 @@ import {
   useFinanceCategoriesData,
   useFinanceMutations,
   useFinanceSubmissions,
-  usePuraDetailData,
 } from '../hooks/useKelolaPura';
 import {
   formatRupiah,
@@ -30,6 +28,7 @@ import {
 } from '../utils/kelolaPuraUtils';
 import { FinanceEntryModal } from './FinanceEntryModal';
 import { FinanceSubmissionModal } from './FinanceSubmissionModal';
+import { FinanceSubmissionsDrawer } from './FinanceSubmissionsDrawer';
 import { FinanceDeleteConfirmModal } from './FinanceDeleteConfirmModal';
 import { PremiumUpgradeModal } from './PremiumUpgradeModal';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -40,17 +39,18 @@ import { QueryErrorState } from '@/components/ui/QueryErrorState';
  * ==============================================================================
  * PROPS: PuraKeuanganView
  * ==============================================================================
- * Menerima data master pura terpilih dan fungsi navigasi kembali ke katalog:
+ * Menerima data master pura terpilih dan profil detail untuk hak tulis:
  * - puraId: ID database pura yang sedang ditinjau transparansi keuangannya
  * - pura: Objek profil pura (atau null jika sedang dimuat)
- * - onBack: Callback untuk kembali ke tampilan katalog daftar pura (?view=list)
+ * - managementProfile: Profil detail terverifikasi untuk mapping pengelola (atau null)
  */
 interface PuraKeuanganViewProps {
   puraId: number;
   pura: PuraBackendItem | null;
-  /** Callback untuk kembali ke tampilan katalog daftar pura (opsional, kini tersedia di header utama) */
-  onBack?: () => void;
+  managementProfile: PuraBackendItem | null;
 }
+
+type FinanceDialog = { kind: 'entry'; entry: PuraFinanceEntry | null } | { kind: 'submission' | 'upgrade' };
 
 /**
  * ==============================================================================
@@ -72,6 +72,7 @@ interface PuraKeuanganViewProps {
 export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
   puraId,
   pura,
+  managementProfile,
 }) => {
   const { user } = useAuthStore();
   const { showAlert } = useAlertStore();
@@ -87,9 +88,8 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
   }, [user]);
 
   // Mapping terbaru menentukan hak tulis kas; Premium tetap hanya jalur usulan lama.
-  const managementProfile = usePuraDetailData(puraId);
-  const canManage = !managementProfile.isError && !!managementProfile.data && (isAdmin ||
-    managementProfile.data.manager?.some(manager => String(manager.user_id) === user?.id) === true);
+  const canManage = !!managementProfile && (isAdmin ||
+    managementProfile.manager?.some(manager => String(manager.user_id) === user?.id) === true);
 
   // Role Member Premium memiliki hak mengajukan draf usulan catatan kas baru
   const isPremium = useMemo(() => {
@@ -105,11 +105,8 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
   const [entryTypeFilter, setEntryTypeFilter] = useState<'all' | 'debit' | 'kredit'>('all');
 
   // State Modal Aksi Keuangan
-  const [isEntryModalOpen, setIsEntryModalOpen] = useState<boolean>(false);
-  const [entryToEdit, setEntryToEdit] = useState<PuraFinanceEntry | null>(null);
+  const [dialog, setDialog] = useState<FinanceDialog | null>(null);
   const [entryToDelete, setEntryToDelete] = useState<PuraFinanceEntry | null>(null);
-  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState<boolean>(false);
-  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState<boolean>(false);
   const [showSubmissionsDrawer, setShowSubmissionsDrawer] = useState<boolean>(false);
 
   // ============================================================================
@@ -148,11 +145,6 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
   // Ambil gaya visual badge tipe pura
   const badgeStyle = getPuraTypeBadgeStyle(pura?.type);
 
-  // Handler: Buka modal konfirmasi hapus transaksi kas (Personalisasi UI)
-  const handleOpenDeleteModal = (entry: PuraFinanceEntry) => {
-    setEntryToDelete(entry);
-  };
-
   // Handler: Tutup modal konfirmasi hapus transaksi kas
   const handleCloseDeleteModal = () => {
     if (!isDeleting) {
@@ -168,15 +160,6 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
       setEntryToDelete(null);
     } catch {
       showAlert("Transaksi kas gagal dihapus. Silakan coba lagi.");
-    }
-  };
-
-  // Handler: Klik tombol pengajuan usulan kas berdasarkan tingkatan akun
-  const handleOpenSubmission = () => {
-    if (isAdmin || isPremium) {
-      setIsSubmissionModalOpen(true);
-    } else {
-      setIsUpgradeModalOpen(true);
     }
   };
 
@@ -234,10 +217,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
             {canManage && (
               <button
                 type="button"
-                onClick={() => {
-                  setEntryToEdit(null);
-                  setIsEntryModalOpen(true);
-                }}
+                onClick={() => setDialog({ kind: 'entry', entry: null })}
                 className="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-[#0e9f90] text-white hover:bg-[#0c8a7d] active:scale-95 transition-all shadow-xs cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" aria-hidden="true" />
@@ -270,7 +250,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
             {!canManage && (
               <button
                 type="button"
-                onClick={handleOpenSubmission}
+                onClick={() => setDialog({ kind: isAdmin || isPremium ? 'submission' : 'upgrade' })}
                 className="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 active:scale-95 transition-all shadow-2xs cursor-pointer"
               >
                 <Send className="w-4 h-4 text-[#0e9f90]" aria-hidden="true" />
@@ -352,97 +332,12 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
       {/* 6. DRAWER TINJAUAN USULAN MEMBER (KHUSUS ROLE ADMINISTRATOR)         */}
       {/* ==================================================================== */}
       {isAdmin && showSubmissionsDrawer && (
-        <section
-          aria-label="Tinjauan Usulan Catatan Kas Member"
-          className="bg-amber-50/60 rounded-2xl border border-amber-200/80 p-5 shadow-xs space-y-4"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-600" aria-hidden="true" />
-              <h2 className="text-sm font-bold text-amber-950">
-                Usulan Catatan Kas dari Member Komunitas ({submissions.length})
-              </h2>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowSubmissionsDrawer(false)}
-              className="text-xs font-semibold text-amber-800 hover:text-amber-950"
-            >
-              Tutup Panel
-            </button>
-          </div>
-
-          {submissions.length === 0 ? (
-            <p className="text-xs text-amber-800/80 font-medium">
-              Belum ada usulan catatan kas yang diajukan oleh member untuk pura ini.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
-              {submissions.map((sub) => (
-                <div
-                  key={sub.id}
-                  className="bg-white rounded-xl border border-amber-200 p-4 space-y-2 shadow-2xs"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${
-                        sub.entry_type === 'debit'
-                          ? 'bg-emerald-50 text-emerald-800'
-                          : 'bg-rose-50 text-rose-800'
-                      }`}
-                    >
-                      {sub.entry_type === 'debit' ? 'Usulan Kas Masuk' : 'Usulan Kas Keluar'}
-                    </span>
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        sub.status === 'approved'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : sub.status === 'rejected'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
-                      {sub.status.toUpperCase()}
-                    </span>
-                  </div>
-
-                  <div className="text-xs space-y-0.5">
-                    <p className="font-extrabold text-slate-900 tabular-nums">
-                      {formatRupiah(sub.amount)} · {sub.category_name}
-                    </p>
-                    <p className="text-slate-600 italic">&ldquo;{sub.note}&rdquo;</p>
-                    <p className="text-[11px] text-slate-400">
-                      Diajukan oleh: <span className="font-semibold">{sub.user_name}</span> (
-                      {sub.user_email}) · {formatDateWITA(sub.transaction_date)}
-                    </p>
-                  </div>
-
-                  {sub.status === 'pending' && (
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => markRejected(sub.id)}
-                        className="min-h-[32px] px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition-all cursor-pointer"
-                      >
-                        Tolak
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          markApproved(sub.id);
-                          showAlert('Usulan kas disetujui!');
-                        }}
-                        className="min-h-[32px] px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-2xs transition-all cursor-pointer"
-                      >
-                        Setujui Usulan
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+        <FinanceSubmissionsDrawer
+          submissions={submissions}
+          onApprove={markApproved}
+          onReject={markRejected}
+          onClose={() => setShowSubmissionsDrawer(false)}
+        />
       )}
 
       {/* ==================================================================== */}
@@ -645,10 +540,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
                             {/* Tombol Edit */}
                             <button
                               type="button"
-                              onClick={() => {
-                                setEntryToEdit(entry);
-                                setIsEntryModalOpen(true);
-                              }}
+                              onClick={() => setDialog({ kind: 'entry', entry })}
                               aria-label={`Ubah catatan ${entry.note}`}
                               title="Ubah catatan kas"
                               className="min-h-[32px] min-w-[32px] inline-flex items-center justify-center rounded-lg text-slate-500 hover:text-teal-700 hover:bg-teal-50 transition-colors cursor-pointer"
@@ -659,7 +551,7 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
                             {/* Tombol Hapus */}
                             <button
                               type="button"
-                              onClick={() => handleOpenDeleteModal(entry)}
+                              onClick={() => setEntryToDelete(entry)}
                               disabled={isDeleting}
                               aria-label={`Hapus catatan ${entry.note}`}
                               title="Hapus catatan kas"
@@ -701,14 +593,11 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
       {/* 9. MODAL FORMULIR TRANSAKSI KAS (KHUSUS ADMINISTRATOR)               */}
       {/* ==================================================================== */}
       <FinanceEntryModal
-        isOpen={isEntryModalOpen && canManage}
-        onClose={() => {
-          setIsEntryModalOpen(false);
-          setEntryToEdit(null);
-        }}
+        isOpen={dialog?.kind === 'entry' && canManage}
+        onClose={() => setDialog(current => current?.kind === 'entry' ? null : current)}
         puraId={puraId}
         puraName={pura?.name || 'Pura'}
-        entryToEdit={entryToEdit}
+        entryToEdit={dialog?.kind === 'entry' ? dialog.entry : null}
         categories={categories}
         onSubmitSuccess={() => refetch()}
       />
@@ -717,8 +606,8 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
       {/* 10. MODAL FORMULIR PENGUSULAN KAS (KHUSUS MEMBER PREMIUM)            */}
       {/* ==================================================================== */}
       <FinanceSubmissionModal
-        isOpen={isSubmissionModalOpen}
-        onClose={() => setIsSubmissionModalOpen(false)}
+        isOpen={dialog?.kind === 'submission'}
+        onClose={() => setDialog(null)}
         puraId={puraId}
         puraName={pura?.name || 'Pura'}
         categories={categories}
@@ -739,8 +628,8 @@ export const PuraKeuanganView: React.FC<PuraKeuanganViewProps> = ({
       {/* 12. MODAL DIALOG UPGRADE PREMIUM (UNTUK GUEST / MEMBER FREE)         */}
       {/* ==================================================================== */}
       <PremiumUpgradeModal
-        isOpen={isUpgradeModalOpen}
-        onClose={() => setIsUpgradeModalOpen(false)}
+        isOpen={dialog?.kind === 'upgrade'}
+        onClose={() => setDialog(null)}
         title="Fitur Khusus Member Premium"
         description={
           <>

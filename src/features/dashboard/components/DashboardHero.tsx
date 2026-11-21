@@ -69,45 +69,45 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
         {/* ================================================================= */}
         <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
           {/* KOTAK 1: SASIH & PENGLANTAKA */}
-          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
             <div className="flex items-center justify-between gap-1 mb-1.5">
-              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest truncate">
+              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase sm:tracking-widest">
                 SASIH
               </span>
               <Moon className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
             </div>
             <div>
-              <span className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight block truncate">
+              <span className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight block break-words">
                 {heroData.sasih}
               </span>
-              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate mt-0.5">
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block break-words mt-0.5">
                 {heroData.pengalantaka}
               </span>
             </div>
           </div>
 
           {/* KOTAK 2: PAWUKON & DINA KE- */}
-          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
             <div className="flex items-center justify-between gap-1 mb-1.5">
-              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest truncate">
+              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase sm:tracking-widest">
                 PAWUKON
               </span>
               <Layers className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
             </div>
             <div>
-              <span className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight block truncate">
+              <span className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tracking-tight block break-words">
                 {heroData.wuku}
               </span>
-              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate mt-0.5">
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block break-words mt-0.5">
                 Dina ka-{heroData.dinaKa ?? '-'}
               </span>
             </div>
           </div>
 
           {/* KOTAK 3: URIP & ARAH PENGIDER-IDER */}
-          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-3 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-1.5 sm:p-3.5 shadow-2xs flex flex-col justify-between min-w-0">
             <div className="flex items-center justify-between gap-1 mb-1.5">
-              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase tracking-widest truncate">
+              <span className="text-[10px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-400 uppercase sm:tracking-widest">
                 URIP
               </span>
               <Compass className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
@@ -116,7 +116,7 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
               <span className="text-base sm:text-lg font-extrabold text-[#0f172a] dark:text-white tabular-nums tracking-tight block">
                 {heroData.urip ?? '-'}
               </span>
-              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block truncate capitalize mt-0.5">
+              <span className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium block break-words capitalize mt-0.5">
                 {heroData.arah}
               </span>
             </div>
@@ -127,17 +127,17 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
       {/* =================================================================== */}
       {/* 4. FOOTER BAWAH: STATUS PADEWASAN & TAUTAN KALENDER LENGKAP        */}
       {/* =================================================================== */}
-      <div className="flex items-center justify-between gap-3 pt-3 mt-3 border-t border-teal-200/50 dark:border-teal-900/40">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 pt-3 mt-3 border-t border-teal-200/50 dark:border-teal-900/40">
         <div className="flex items-center gap-2 min-w-0">
           <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-          <span className="text-xs text-slate-600 dark:text-slate-300 font-medium truncate">
+          <span className="text-xs text-slate-600 dark:text-slate-300 font-medium min-w-0 break-words">
             {heroData.quoteHariIni || 'Informasi kalender & wewaran Bali'}
           </span>
         </div>
 
         <Link
           to="/kalender"
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0d9488] dark:text-teal-400 hover:text-[#0c8a7d] transition-colors cursor-pointer shrink-0 [touch-action:manipulation] py-1"
+          className="inline-flex self-end sm:self-auto items-center gap-1.5 text-xs font-bold text-[#0d9488] dark:text-teal-400 hover:text-[#0c8a7d] transition-colors cursor-pointer shrink-0 [touch-action:manipulation] py-1"
         >
           <span>Buka kalender</span>
           <ArrowRight size={13} />

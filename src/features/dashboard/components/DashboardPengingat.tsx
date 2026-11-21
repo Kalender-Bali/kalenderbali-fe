@@ -11,10 +11,13 @@ import {
   CalendarCheck,
 } from 'lucide-react';
 import { usePengingat } from '@/features/pengingat/hooks/usePengingat';
+import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import { useAuthStore } from '@/stores/useAuthStore';
 import type { PengingatEntry, PengingatKind } from '@/features/pengingat/types/pengingat.types';
 import { formatReminderDate, getConditionLabel, getCountdown } from '@/features/pengingat/utils/pengingatUtils';
 import { computeDaysDifference } from '../utils/dashboardUtils';
+
+const EMPTY_REMINDERS: PengingatEntry[] = [];
 
 /**
  * ============================================================================
@@ -99,7 +102,8 @@ export const DashboardPengingat: React.FC<DashboardPengingatProps> = ({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   // Konsumsi data pengingat dari TanStack Query hook
-  const { data: reminders = [], isLoading } = usePengingat();
+  const { data, isLoading, isError, error, refetch } = usePengingat();
+  const reminders = data ?? EMPTY_REMINDERS;
 
   // State untuk auto carousel
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -214,9 +218,9 @@ export const DashboardPengingat: React.FC<DashboardPengingatProps> = ({
         {/* ================================================================= */}
         {/* KONTEN UTAMA: KARTU PENGINGAT (H-7) / EMPTY STATE                 */}
         {/* ================================================================= */}
-        {isLoading ? (
+        {isLoading && data === undefined ? (
           /* State Loading Skeleton */
-          <div className="bg-[#f8fafc] dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-4 sm:p-5 shadow-2xs space-y-3 animate-pulse">
+          <div role="status" aria-label="Memuat pengingat" className="bg-[#f8fafc] dark:bg-slate-800/80 rounded-xl border border-slate-200/80 dark:border-slate-700/80 p-4 sm:p-5 shadow-2xs space-y-3 animate-pulse">
             <div className="flex items-center justify-between">
               <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded-full" />
               <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded-full" />
@@ -246,6 +250,8 @@ export const DashboardPengingat: React.FC<DashboardPengingatProps> = ({
               <span>Masuk Akun</span>
             </button>
           </div>
+        ) : isError && data === undefined ? (
+          <QueryErrorState title="Gagal memuat pengingat" error={error} onRetry={() => { void refetch(); }} />
         ) : totalH7Count > 0 && activeReminder ? (
           /* Slide Kartu Pengingat Aktif (H-7) */
           <div

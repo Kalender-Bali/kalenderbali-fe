@@ -18,11 +18,13 @@ const server = await createServer({
     },
     load(id) {
       if (id === '\0error-portal') return 'export const createPortal = node => node;';
-      if (id === '\0error-router') return 'export const useNavigate = () => () => {}; export const useSearchParams = () => [new URLSearchParams(), () => {}];';
+      if (id === '\0error-router') return 'export const useNavigate = () => () => {}; export const useSearchParams = () => [new URLSearchParams(globalThis.__errorSearch), () => {}];';
       if (id === '\0error-query') return `
         export function useQuery(config) {
           globalThis.__errorQueries?.push(config);
-          return { data: undefined, isLoading: false, isError: false, error: null, refetch: async () => {}, ...globalThis.__errorQueryState };
+          const fixture = globalThis.__errorQueryState;
+          const state = typeof fixture === 'function' ? fixture(config.queryKey) : fixture;
+          return { data: undefined, isLoading: false, isError: false, error: null, refetch: async () => {}, ...state };
         }
         export const useQueryClient = () => ({ invalidateQueries() {} });
         export const useMutation = () => ({ mutateAsync() {}, isPending: false });
@@ -140,7 +142,7 @@ test('modal, dashboard, dan kas menampilkan error dengan retry tanpa klaim koson
     ['wariga-personal/components/DewasaTanggalLahirModal.tsx', 'DewasaTanggalLahirModal', { birthDate: date, calendarBirthDate: date, items: [], isLoading: false, error: failure, onRetry() {} }, /Tidak Ada Unsur/],
     ['wariga-personal/components/WarigaTanggalLahirModal.tsx', 'WarigaTanggalLahirModal', { birthDate: date, calendarBirthDate: date }, /Urip.*>0</],
     ['dashboard/components/DashboardDewasaAyu.tsx', 'DashboardDewasaAyu', { error: failure, onRetry() {} }, /Tidak ada padewasan/],
-    ['kelola-pura/components/PuraKeuanganView.tsx', 'PuraKeuanganView', { puraId: 1, pura: null }, /Rp\s*0|Belum Ada Transaksi/],
+    ['kelola-pura/components/PuraKeuanganView.tsx', 'PuraKeuanganView', { puraId: 1, pura: null, managementProfile: null }, /Rp\s*0|Belum Ada Transaksi/],
     ['kalender/components/CalendarInspector.tsx', 'CalendarInspector', { selectedDate: date }, /Tidak ada perayaan piodalan|0 lokasi/],
   ];
   for (const [path, name, props, emptyPattern] of cases) {
@@ -155,13 +157,50 @@ test('modal, dashboard, dan kas menampilkan error dengan retry tanpa klaim koson
 test('kas yang sedang dimuat tidak tampil nol; riwayat kosong yang sukses tetap ditampilkan', async () => {
   const { PuraKeuanganView } = await load('kelola-pura/components/PuraKeuanganView.tsx');
   globalThis.__errorQueryState = { isLoading: true };
-  const loading = renderToStaticMarkup(React.createElement(PuraKeuanganView, { puraId: 1, pura: null }));
+  const loading = renderToStaticMarkup(React.createElement(PuraKeuanganView, { puraId: 1, pura: null, managementProfile: null }));
   assert.match(loading, /aria-busy="true"/);
   assert.doesNotMatch(loading, /Rp\s*0|Belum Ada Transaksi/);
   const { PremiumHistoryModal } = await load('premium/components/PremiumHistoryModal.tsx');
   const empty = renderToStaticMarkup(React.createElement(PremiumHistoryModal, { isOpen: true, onClose() {}, purchases: [], isLoading: false }));
   assert.match(empty, /Belum Ada Riwayat Transaksi/);
   assert.doesNotMatch(empty, /role="alert"/);
+});
+test('hak tulis kas memakai satu detail pura dan menolak mapping katalog atau cache detail yang gagal dimuat ulang', async () => {
+  const { default: KelolaPuraPage } = await load('kelola-pura/pages/KelolaPuraPage.tsx');
+  const { useAuthStore } = await server.ssrLoadModule('/src/stores/useAuthStore.ts');
+  const initial = useAuthStore.getInitialState();
+  const previousUser = initial.user;
+  initial.user = { id: '7', role: 'Member', name: 'Uji', email: 'user@example.test' };
+  globalThis.__errorSearch = 'view=keuangan&pura_id=1';
+  const manager = [{ user_id: 7, name: 'Uji', email: 'user@example.test' }];
+  const catalog = { id: 1, name: 'Pura dari Katalog', type: 'Kawitan', status: 'Published' };
+  const detail = { ...catalog, name: 'Pura dari Detail' };
+  try {
+    for (const { catalogManagers, detailManagers, isError, canManage } of [
+      { catalogManagers: [], detailManagers: manager, isError: false, canManage: true },
+      { catalogManagers: manager, detailManagers: [], isError: false, canManage: false },
+      { catalogManagers: manager, detailManagers: manager, isError: true, canManage: false },
+    ]) {
+      globalThis.__errorQueries = [];
+      globalThis.__errorQueryState = ([scope, resource]) => {
+        if (scope === 'piodalan' && resource === 'puras') return { data: [{ ...catalog, manager: catalogManagers }] };
+        if (scope === 'pura' && resource === 'detail') return {
+          data: { ...detail, manager: detailManagers },
+          isError,
+          error: isError ? new Error('Detail tidak tersedia') : null,
+        };
+      };
+      const html = renderToStaticMarkup(React.createElement(KelolaPuraPage));
+      assert.equal(html.includes('Catat Transaksi Baru'), canManage);
+      if (isError) assert.match(html, /Gagal memuat profil pura/);
+      else assert.match(html, /Pura dari Katalog/);
+      const detailObservers = globalThis.__errorQueries.filter(({ queryKey }) => queryKey[0] === 'pura' && queryKey[1] === 'detail');
+      assert.equal(detailObservers.length, 1);
+    }
+  } finally {
+    initial.user = previousUser;
+    delete globalThis.__errorSearch;
+  }
 });
 test('langganan belum diperiksa ditampilkan terpisah dari akun gratis dan data premium lama', async () => {
   const { PremiumHero } = await load('premium/components/PremiumHero.tsx');
@@ -177,16 +216,50 @@ test('langganan belum diperiksa ditampilkan terpisah dari akun gratis dan data p
 test('ringkasan piodalan menghitung respons backend meski master pura belum tersedia', async () => {
   const { useMonthlyPiodalan, useDayPiodalan } = await load('kalender/hooks/useKalender.ts');
   globalThis.__errorQueries = [];
-  function Probe() { useMonthlyPiodalan(2026, 11, undefined, date); useDayPiodalan(date); return null; }
+  let result, today = date;
+  function Probe() { result = useMonthlyPiodalan(2026, 11, undefined, today); useDayPiodalan(date); return null; }
   renderToStaticMarkup(React.createElement(Probe));
   const month = globalThis.__errorQueries.find(q => q.queryKey[2] === 'month');
   const day = globalThis.__errorQueries.find(q => q.queryKey[2] === 'day');
+  assert.deepEqual(month.queryKey, ['kalender', 'piodalan', 'month', 2026, 11]);
   success({ data: { schedules: [{ tanggal: date, wewaran: 'Wraspati', puras: [{ id: 1, nama: 'Pura Uji' }] }] } });
-  const summary = await month.queryFn();
-  assert.equal(summary.totalPuras, 1);
-  assert.equal(summary.upcomingItems.length, 1);
+  const data = await month.queryFn();
+  globalThis.__errorQueryState = key => key[2] === 'month' ? { data } : {};
+  renderToStaticMarkup(React.createElement(Probe));
+  assert.equal(result.data.totalPuras, 1);
+  assert.equal(result.data.upcomingItems.length, 1);
+  today = '2026-11-13';
+  renderToStaticMarkup(React.createElement(Probe));
+  assert.equal(result.data.totalPuras, 1);
+  assert.equal(result.data.upcomingItems.length, 0);
   assert.equal((await day.queryFn()).totalCount, 1);
   apiClient.defaults.adapter = async config => { throw Object.assign(new Error(), { config, response: { status: 503, data: { message: 'Layanan sedang terganggu' } } }); };
   await assert.rejects(month.queryFn, /terganggu/);
   await assert.rejects(day.queryFn, /terganggu/);
+});
+
+test('dashboard memuat kalender tahun depan hanya ketika agenda tahun ini kurang', async (t) => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-12T04:00:00Z') });
+  const { useDashboardData } = await load('dashboard/hooks/useDashboardData.ts');
+  const day = (tanggal) => ({ tanggal, wewaran: { wuku: { nama: 'Sinta' } }, hari_raya: [{ nama: `Rahina ${tanggal}` }] });
+  let thisYear = Array.from({ length: 7 }, (_, i) => day(`2026-11-${i + 12}`));
+  const nextYear = [day('2027-01-01')];
+  globalThis.__errorQueryState = key => {
+    if (key[0] === 'kalender') return { data: key[1] === 2026 ? thisYear : nextYear };
+    if (key[0] === 'piodalan') return { data: [{ id: 1, name: 'Pura Uji', wuku: 'Sinta' }] };
+  };
+  let dashboard;
+  function Probe() { dashboard = useDashboardData(); return null; }
+  const render = () => {
+    globalThis.__errorQueries = [];
+    renderToStaticMarkup(React.createElement(Probe));
+    return globalThis.__errorQueries.filter(q => q.queryKey[0] === 'kalender' && q.queryKey[1] === 2027).map(q => q.enabled);
+  };
+  assert.deepEqual(render(), [false, false]);
+  assert.equal(dashboard.upcomingHariRaya.length, 7);
+  assert.equal(dashboard.piodalanList.length, 4);
+  thisYear = thisYear.slice(0, 1);
+  assert.deepEqual(render(), [true, true]);
+  assert.equal(dashboard.upcomingHariRaya.at(-1).tanggalISO, '2027-01-01');
+  assert.equal(dashboard.piodalanList.at(-1).tanggalFormatted, '1 Januari 2027');
 });

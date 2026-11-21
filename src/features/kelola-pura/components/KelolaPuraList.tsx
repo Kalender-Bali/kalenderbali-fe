@@ -251,7 +251,7 @@ export const KelolaPuraList: React.FC<KelolaPuraListProps> = ({
           {/* =================================================================== */}
           <nav
             aria-label="Navigasi Halaman Katalog Pura"
-            className="inline-flex items-stretch rounded-lg border border-slate-200 overflow-hidden divide-x divide-slate-200 text-xs sm:text-sm bg-white shadow-2xs"
+            className="inline-flex max-w-full flex-wrap items-stretch justify-center rounded-lg border border-slate-200 overflow-hidden divide-x divide-slate-200 text-xs sm:flex-nowrap sm:text-sm bg-white shadow-2xs"
           >
             {/* Tombol Sebelumnya */}
             <button

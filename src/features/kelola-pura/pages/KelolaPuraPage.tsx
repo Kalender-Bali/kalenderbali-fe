@@ -191,7 +191,6 @@ export default function KelolaPuraPage() {
         <PuraPiodalanView
           puraId={selectedPuraId}
           pura={activePura}
-          onBack={handleBackToList}
         />
       </div>
     );
@@ -214,7 +213,7 @@ export default function KelolaPuraPage() {
         <PuraKeuanganView
           puraId={selectedPuraId}
           pura={activePura}
-          onBack={handleBackToList}
+          managementProfile={detailQuery.data ?? null}
         />
       </div>
     );
