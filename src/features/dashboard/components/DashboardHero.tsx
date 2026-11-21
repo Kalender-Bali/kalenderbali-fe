@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Calendar, Moon, Layers, Compass, ArrowRight } from 'lucide-react';
 import type { DashboardHeroData } from '../types/dashboard.types';
 
@@ -12,7 +12,7 @@ import type { DashboardHeroData } from '../types/dashboard.types';
  *  2. Judul tanggal Masehi besar (tabular-nums) & baris wewaran lengkap.
  *  3. 3 Kotak statistik terstruktur rapi dengan ikon tematik (Sasih, Pawukon, Urip).
  *  4. Footer bawah selaras dengan card pengingat: ringkasan status padewasan &
- *     tombol navigasi cepat ke /kalender-bali.
+ *     tautan navigasi cepat ke /kalender.
  *
  * Mengikuti Aturan Desain AGENTS.md:
  *  - Latar mint lembut: bg-[#eaf7f5] dengan border border-[#cbebe5]
@@ -25,8 +25,6 @@ interface DashboardHeroProps {
 }
 
 export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
-  const navigate = useNavigate();
-
   return (
     <div className="bg-[#eaf7f5] dark:bg-slate-900 border border-[#cbebe5] dark:border-teal-500/20 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col justify-between h-full transition-all">
       <div className="space-y-4">
@@ -137,14 +135,13 @@ export const DashboardHero: React.FC<DashboardHeroProps> = ({ heroData }) => {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate('/kalender-bali')}
+        <Link
+          to="/kalender"
           className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0d9488] dark:text-teal-400 hover:text-[#0c8a7d] transition-colors cursor-pointer shrink-0 [touch-action:manipulation] py-1"
         >
           <span>Buka kalender</span>
           <ArrowRight size={13} />
-        </button>
+        </Link>
       </div>
     </div>
   );

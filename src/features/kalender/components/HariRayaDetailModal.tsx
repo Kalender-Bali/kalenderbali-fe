@@ -1,9 +1,7 @@
-import React, { useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { motion } from 'motion/react';
+import React, { useId } from 'react';
 import { X, Sparkles } from 'lucide-react';
 import { useHariRayaDetail } from '@/features/keterangan';
-import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
+import { CalendarModal } from './CalendarModal';
 
 /**
  * ============================================================================
@@ -18,10 +16,7 @@ import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
  *  - Kotak kontainer deskripsi filosofis utuh tanpa terpotong.
  *  - Footer tombol "Tutup" di pojok kanan bawah.
  *
- * Efek Blur Menyeluruh (createPortal ke document.body):
- *  - Menggunakan createPortal ke document.body dengan z-[100] sehingga
- *    backdrop blur menutupi seluruh layar (termasuk Sidebar dan cell tanggal).
- *  - scrollbar-gutter: stable mencegah layout shifting.
+ * Dialog native menjaga fokus saat dibuka dari rincian kalender.
  * ============================================================================
  */
 
@@ -38,24 +33,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
   holidayId,
   holidayName,
 }) => {
-  // Listener tombol 'Escape' untuk aksesibilitas keyboard & lock body scroll
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
+  const titleId = useId();
 
   // Ambil data detail makna hari raya dari cache TanStack Query
   const { detail, isLoading } = useHariRayaDetail(holidayId, holidayName);
@@ -65,31 +43,9 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
   const displayName = holidayName || detail?.name || 'Penjelasan Hari Raya';
   const description = detail?.description || '';
 
-  const modalContent = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overscroll-contain">
-      {/* 1. Backdrop Gelap dengan Efek Blur Menyeluruh ke Seluruh Halaman */}
-          <motion.div
-            key="hari-raya-backdrop"
-            variants={modalOverlayVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
-            aria-hidden="true"
-          />
-
-          {/* 2. Kontainer Kotak Modal Dialog (Melebar proporsional max-w-2xl) */}
-          <motion.div
-            key="hari-raya-content"
-            variants={modalContentVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xl overflow-hidden z-10 max-h-[88vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Banner Header dengan Sentuhan Gradien Lembut */}
+  return (
+    <CalendarModal titleId={titleId} width="max-w-2xl" onClose={onClose}>
+        {/* Banner Header dengan Sentuhan Gradien Lembut */}
         <div className="relative bg-gradient-to-r from-teal-50 via-slate-50 to-emerald-50 dark:from-slate-900 dark:via-slate-800/80 dark:to-slate-900 px-6 sm:px-8 py-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="p-1.5 rounded-lg bg-teal-100/80 dark:bg-primary-subtle text-teal-800 dark:text-primary-text">
@@ -114,7 +70,7 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
         <div className="p-6 sm:p-8 overflow-y-auto space-y-6 text-center">
           {/* Judul & Subtitle */}
           <div className="space-y-1.5">
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] dark:text-slate-100 tracking-tight">
+            <h3 id={titleId} className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] dark:text-slate-100 tracking-tight">
               {displayName}
             </h3>
             <p className="text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400">
@@ -160,9 +116,6 @@ export const HariRayaDetailModal: React.FC<HariRayaDetailModalProps> = ({
             Tutup
           </button>
         </div>
-      </motion.div>
-    </div>
+    </CalendarModal>
   );
-
-  return createPortal(modalContent, document.body);
 };

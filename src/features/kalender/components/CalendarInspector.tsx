@@ -69,7 +69,7 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
   const hariRayaList = selectedData?.hari_raya || [];
 
   // Data Piodalan Real dari Mesin Pencarian Go (Hybrid Resilient Engine)
-  const { data: dayPiodalanData, isLoading: isLoadingDayPio, isError: isDayPioError, error: dayPioError, refetch: refetchDayPio } = useDayPiodalan(
+  const { data: dayPiodalanData, totalCount: knownPiodalanCount, isLoading: isLoadingDayPio, isError: isDayPioError, error: dayPioError, refetch: refetchDayPio } = useDayPiodalan(
     selectedDate,
     selectedData
   );
@@ -233,11 +233,11 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
               <span className="text-xs sm:text-sm font-bold text-[#0f172a] dark:text-white">
                 Piodalan hari ini
               </span>
-              {isDayPioError ? null : isLoadingDayPio ? (
+              {isDayPioError ? null : isLoadingDayPio && knownPiodalanCount === undefined ? (
                 <span className="text-xs font-bold text-[#0d9488] dark:text-teal-400 tabular-nums">
                   Memuat...
                 </span>
-              ) : hasMorePiodalans ? (
+              ) : !isLoadingDayPio && hasMorePiodalans ? (
                 <button
                   type="button"
                   onClick={() => setIsPiodalanModalOpen(true)}
@@ -248,7 +248,7 @@ export const CalendarInspector: React.FC<CalendarInspectorProps> = ({
                 </button>
               ) : (
                 <span className="text-xs font-bold text-[#0d9488] dark:text-teal-400 tabular-nums">
-                  {piodalanTotal} lokasi
+                  {knownPiodalanCount ?? piodalanTotal} lokasi
                 </span>
               )}
             </div>

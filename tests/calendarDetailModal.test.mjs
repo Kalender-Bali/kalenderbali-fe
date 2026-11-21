@@ -38,6 +38,9 @@ test('modal detail menampilkan anjuran dan pantangan dari data padewasan', () =>
   assert.match(html, /Pantangan:/);
   assert.match(html, /mencetak naskah/i);
   assert.match(html, /Lihat selengkapnya/);
+  const labelledBy = html.match(/<dialog\b[^>]*aria-labelledby="([^"]+)"/)?.[1];
+  assert.ok(labelledBy);
+  assert.ok(html.includes(`id="${labelledBy}"`));
 });
 
 test('modal membedakan padewasan kosong dan data hari yang belum tersedia', () => {

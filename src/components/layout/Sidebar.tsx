@@ -1,3 +1,4 @@
+import type { RefObject } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -60,7 +61,7 @@ const handlePrefetch = (to: string) => {
   }
 };
 
-export default function Sidebar() {
+export default function Sidebar({ sidebarRef }: { sidebarRef: RefObject<HTMLElement | null> }) {
   // Mengambil state, status menu persisten, dan fungsi navigasi dari Zustand store
   const { isCollapsed, isMobileOpen, closeMobile, openMenus, toggleSubmenu } =
     useSidebarStore();
@@ -151,10 +152,16 @@ export default function Sidebar() {
       {/* - Di mobile: fixed drawer meluncur dari kiri             */}
       {/* ========================================================= */}
       <aside
+        id="site-sidebar"
+        ref={sidebarRef}
+        role={isMobileOpen ? 'dialog' : undefined}
+        aria-modal={isMobileOpen || undefined}
+        aria-label="Navigasi utama"
+        tabIndex={isMobileOpen ? -1 : undefined}
         className={`fixed top-0 bottom-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200/90 dark:border-slate-800 transition-all duration-300 ease-in-out select-none ${
           isMobileOpen
-            ? 'translate-x-0 w-72 shadow-2xl'
-            : '-translate-x-full lg:translate-x-0'
+            ? 'translate-x-0 w-72 shadow-2xl focus:outline-none'
+            : 'invisible -translate-x-full lg:visible lg:translate-x-0'
         } ${isCollapsed ? 'lg:w-20' : 'lg:w-64'}`}
       >
         {/* ========================================================= */}
@@ -215,7 +222,7 @@ export default function Sidebar() {
                   to={item.to}
                   onClick={closeMobile}
                   className={({ isActive }) =>
-                    `group relative flex items-center gap-3 px-3.5 min-h-11 rounded-xl text-sm font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
+                    `group relative flex items-center gap-3 px-3.5 min-h-11 rounded-xl text-sm font-medium border transition-colors duration-150 [touch-action:manipulation] ${
                       isActive
                         ? 'bg-primary-subtle text-primary font-bold border-primary-border shadow-2xs'
                         : 'bg-transparent border-transparent text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
@@ -240,7 +247,7 @@ export default function Sidebar() {
               <button
                 type="button"
                 onClick={() => toggleSubmenu(layananGroup.label)}
-                className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border bg-transparent border-transparent transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70 outline-none focus:outline-none [touch-action:manipulation] cursor-pointer ${
+                className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border bg-transparent border-transparent transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70 [touch-action:manipulation] cursor-pointer ${
                   isCollapsed ? 'justify-center px-0' : ''
                 }`}
               >
@@ -270,6 +277,7 @@ export default function Sidebar() {
               {/* Sub-item Layanan dengan Smooth Grid Accordion */}
               {!isCollapsed && (
                 <div
+                  inert={!openMenus[layananGroup.label]}
                   className={`grid transition-all duration-200 ease-in-out ${
                     openMenus[layananGroup.label]
                       ? 'grid-rows-[1fr] opacity-100 mt-1'
@@ -285,7 +293,7 @@ export default function Sidebar() {
                         onMouseEnter={() => handlePrefetch(subItem.to)}
                         onTouchStart={() => handlePrefetch(subItem.to)}
                         className={({ isActive }) =>
-                          `flex items-center min-h-9 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
+                          `flex items-center min-h-9 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-150 [touch-action:manipulation] ${
                             isActive
                               ? 'text-primary bg-primary-subtle font-bold border-primary-border'
                               : 'bg-transparent border-transparent text-slate-500 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'
@@ -317,7 +325,7 @@ export default function Sidebar() {
                       item.to === '/warta' &&
                       location.pathname.startsWith('/warta');
                     const isItemActive = isActive || isKeteranganActive || isWartaActive;
-                    return `group relative flex items-center gap-3 px-3.5 min-h-11 rounded-xl text-sm font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
+                    return `group relative flex items-center gap-3 px-3.5 min-h-11 rounded-xl text-sm font-medium border transition-colors duration-150 [touch-action:manipulation] ${
                       isItemActive
                         ? 'bg-primary-subtle text-primary font-bold border-primary-border shadow-2xs'
                         : 'bg-transparent border-transparent text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70'
@@ -343,7 +351,7 @@ export default function Sidebar() {
                 <button
                   type="button"
                   onClick={() => toggleSubmenu(adminGroup.label)}
-                  className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border bg-transparent border-transparent transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70 outline-none focus:outline-none [touch-action:manipulation] cursor-pointer ${
+                  className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border bg-transparent border-transparent transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70 [touch-action:manipulation] cursor-pointer ${
                     isCollapsed ? 'justify-center px-0' : ''
                   }`}
                 >
@@ -373,6 +381,7 @@ export default function Sidebar() {
                 {/* Sub-item Manajemen User dengan Smooth Grid Accordion */}
                 {!isCollapsed && (
                   <div
+                    inert={!openMenus[adminGroup.label]}
                     className={`grid transition-all duration-200 ease-in-out ${
                       openMenus[adminGroup.label]
                         ? 'grid-rows-[1fr] opacity-100 mt-1'
@@ -386,7 +395,7 @@ export default function Sidebar() {
                           to={subItem.to}
                           onClick={closeMobile}
                           className={({ isActive }) =>
-                            `flex items-center min-h-9 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-150 outline-none focus:outline-none [touch-action:manipulation] ${
+                            `flex items-center min-h-9 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors duration-150 [touch-action:manipulation] ${
                               isActive
                                 ? 'text-primary bg-primary-subtle font-bold border-primary-border'
                                 : 'bg-transparent border-transparent text-slate-500 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/60'

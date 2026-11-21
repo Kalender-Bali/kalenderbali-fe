@@ -1,6 +1,6 @@
 import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import { DataSkeleton } from '@/components/ui/DataSkeleton';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { AlertCircle } from 'lucide-react';
@@ -82,6 +82,7 @@ export default function CalendarPage() {
 function CalendarContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const dateToFocus = useRef<string | null>(null);
 
   // State lokal modal dialog rincian hari (dibuka saat tombol "Lihat detail hari" diklik)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -163,8 +164,9 @@ function CalendarContent() {
   /**
    * Mengubah tanggal terpilih dan menyinkronkannya langsung ke parameter URL.
    */
-  const handleSelectDate = (newDateStr: string) => {
+  const handleSelectDate = (newDateStr: string, restoreFocus = false) => {
     if (!isValidISODate(newDateStr)) return;
+    dateToFocus.current = restoreFocus ? newDateStr : null;
     setSearchParams({ date: newDateStr });
   };
 
@@ -278,6 +280,12 @@ function CalendarContent() {
             month={activeMonth}
             gridCells={gridCells}
             onSelectDate={handleSelectDate}
+            onSelectedDateMount={button => {
+              if (button && dateToFocus.current === selectedDate) {
+                dateToFocus.current = null;
+                button.focus();
+              }
+            }}
             onPrevMonth={handlePrevMonth}
             onNextMonth={handleNextMonth}
             onResetToday={handleResetToday}

@@ -14,6 +14,13 @@ const server = await createServer({
 after(() => server.close());
 const { isValidISODate, getTodayWITA } = await server.ssrLoadModule('/src/features/kalender/utils/calendarUtils.ts');
 const { default: CalendarPage } = await server.ssrLoadModule('/src/features/kalender/pages/CalendarPage.tsx');
+const { DashboardHero } = await server.ssrLoadModule('/src/features/dashboard/components/DashboardHero.tsx');
+
+test('tautan Buka kalender di Dashboard menuju rute kalender', () => {
+  const html = renderToStaticMarkup(React.createElement(MemoryRouter, null,
+    React.createElement(DashboardHero, { heroData: {} })));
+  assert.match(html, /<a\b[^>]*href="\/kalender"[^>]*><span>Buka kalender<\/span>/);
+});
 
 test('tanggal tidak ada, tahun nonkabisat, dan format URL yang keliru ditolak', () => {
   for (const date of [
@@ -67,6 +74,8 @@ test('tanggal valid, tahun kabisat, dan URL tanpa parameter tetap membuka kalend
       assert.match(html, /Detail tanggal/);
       assert.match(html, /Unduh \.ics/);
       assert.ok(html.includes(`>${Number(selected.slice(8, 10))}</span>`), selected);
+      assert.match(html, /<button\b[^>]*aria-label="\d+ \S+ \d{4}"[^>]*aria-pressed="true"/, selected);
+      assert.equal((html.match(/aria-pressed="true"/g) ?? []).length, 1, selected);
     } finally { client.clear(); }
   }
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import type { CalendarGridDay } from '../types/kalender.types';
-import { getHariRayaBadgeStyle } from '../utils/calendarUtils';
+import { formatFullIndoDate, getHariRayaBadgeStyle } from '../utils/calendarUtils';
 import { EASE_SMOOTH } from '@/lib/animations';
 
 /**
@@ -26,7 +26,8 @@ interface CalendarGridProps {
   month?: number;
   sakaYearText?: string;
   gridCells: CalendarGridDay[];
-  onSelectDate: (dateString: string) => void;
+  onSelectDate: (dateString: string, restoreFocus?: boolean) => void;
+  onSelectedDateMount: (button: HTMLButtonElement | null) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
   onResetToday: () => void;
@@ -40,6 +41,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   month,
   gridCells,
   onSelectDate,
+  onSelectedDateMount,
   onPrevMonth,
   onNextMonth,
   onResetToday,
@@ -128,10 +130,15 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           const isSunday = idx % 7 === 0;
 
           return (
-            <div
+            <button
               key={dateString}
-              onClick={() => onSelectDate(dateString)}
-              className={`min-h-[125px] sm:min-h-[140px] xl:min-h-[152px] p-2.5 sm:p-3 border-r border-b border-slate-200/90 dark:border-slate-800 flex flex-col justify-between transition-colors relative cursor-pointer select-none [touch-action:manipulation] ${
+              ref={isSelected ? onSelectedDateMount : undefined}
+              type="button"
+              aria-label={formatFullIndoDate(dateString)}
+              aria-pressed={isSelected}
+              aria-current={isToday ? 'date' : undefined}
+              onClick={event => onSelectDate(dateString, !isCurrentMonth && event.detail === 0)}
+              className={`min-h-[125px] sm:min-h-[140px] xl:min-h-[152px] p-2.5 sm:p-3 border-r border-b border-slate-200/90 dark:border-slate-800 flex flex-col justify-between text-left transition-colors relative cursor-pointer select-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-slate-900 dark:focus-visible:outline-white [touch-action:manipulation] ${
                 !isCurrentMonth
                   ? 'bg-slate-50/40 dark:bg-slate-950/40 text-slate-300 dark:text-slate-600'
                   : 'bg-white dark:bg-slate-900 hover:bg-slate-50/70 dark:hover:bg-slate-800/80'
@@ -146,7 +153,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
               }`}
             >
               {/* Baris Atas: Angka Tanggal & Label "Hari ini" */}
-              <div className="flex flex-col items-start">
+              <span className="flex flex-col items-start">
                 <span
                   className={`text-base sm:text-lg font-bold tabular-nums leading-none ${
                     !isCurrentMonth
@@ -168,21 +175,21 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                     Hari ini
                   </span>
                 )}
-              </div>
+              </span>
 
               {/* Baris Bawah: Badge Daftar Hari Raya / Rerainan */}
-              <div className="space-y-1.5 mt-2">
+              <span className="block space-y-1.5 mt-2">
                 {hariRayaList.slice(0, 2).map((hr) => {
                   const style = getHariRayaBadgeStyle(hr.nama);
                   return (
-                    <div
+                    <span
                       key={hr.id || hr.nama}
                       title={hr.nama}
                       className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-semibold truncate ${style.bg} ${style.text}`}
                     >
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${style.dot}`} />
                       <span className="truncate">{hr.nama}</span>
-                    </div>
+                    </span>
                   );
                 })}
 
@@ -192,8 +199,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                     +{hariRayaList.length - 2} lagi
                   </span>
                 )}
-              </div>
-            </div>
+              </span>
+            </button>
           );
         })}
       </motion.div>

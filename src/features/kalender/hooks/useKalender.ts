@@ -3,9 +3,19 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useReadQuery } from '@/lib/useReadQuery';
 import { fetchKalenderTahun } from '../api/kalenderApi';
 import type { KalenderHarian, PiodalanItem, PiodalanTerdekatItem } from '../types/kalender.types';
-import { searchPiodalan } from '@/features/piodalan/api/piodalanApi';
+import { fetchPuraObservances, searchPiodalan } from '@/features/piodalan/api/piodalanApi';
 import { useAllPuras } from '@/features/piodalan/hooks/usePiodalan';
 import { matchPurasForDay, extractMonthPiodalanSummary } from '../utils/calendarUtils';
+
+function usePuraObservances() {
+  return useReadQuery({
+    queryKey: ['piodalan', 'puras', 'observances'],
+    queryFn: fetchPuraObservances,
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 48,
+    refetchOnWindowFocus: false,
+  });
+}
 
 /**
  * ============================================================================
@@ -138,12 +148,12 @@ export function useKalenderTahun(year: number, activeMonth?: number, options?: {
  * @param dayData Objek KalenderHarian tanggal terpilih (opsional, dari daysMap)
  */
 export function useDayPiodalan(dateStr?: string, dayData?: KalenderHarian) {
-  // Konsumsi master 461 pura resmi dari backend Go (tersimpan 24 jam di cache memori)
-  const { data: purasList = [] } = useAllPuras();
+  const { data: observances } = usePuraObservances();
+  const { data: purasList, isLoading: isPurasLoading } = useAllPuras();
 
   // Hitung kecocokan pura secara instan di memori browser berdasarkan wewaran & sasih tanggal tersebut
   const inMemoryResult = useMemo(() => {
-    if (!dayData || purasList.length === 0) return null;
+    if (!dayData || !purasList) return null;
     const matched = matchPurasForDay(dayData, purasList);
     const items: PiodalanItem[] = matched.map((p, idx) => ({
       id: `pio-${p.id}`,
@@ -158,7 +168,7 @@ export function useDayPiodalan(dateStr?: string, dayData?: KalenderHarian) {
     };
   }, [dayData, purasList]);
 
-  return useReadQuery<{
+  const query = useReadQuery<{
     items: PiodalanItem[];
     totalCount: number;
   }>({
@@ -187,11 +197,6 @@ export function useDayPiodalan(dateStr?: string, dayData?: KalenderHarian) {
         }
       }
 
-      // Respons sukses tanpa agenda dapat dilengkapi data kalender dan master pura resmi.
-      if (inMemoryResult) {
-        return inMemoryResult;
-      }
-
       return { items: [], totalCount: 0 };
     },
     enabled: Boolean(dateStr),
@@ -199,13 +204,24 @@ export function useDayPiodalan(dateStr?: string, dayData?: KalenderHarian) {
     staleTime: 1000 * 60 * 15, // Fresh 15 menit di memori RAM
     refetchOnWindowFocus: false,
   });
+
+  const data = query.data?.totalCount ? query.data : inMemoryResult ?? query.data;
+  const countFromRules = !inMemoryResult && !data?.totalCount && dayData && observances
+    ? matchPurasForDay(dayData, observances).length
+    : undefined;
+  const waitingForProfiles = isPurasLoading && Boolean(countFromRules);
+  return {
+    ...query,
+    data,
+    totalCount: waitingForProfiles ? countFromRules : data?.totalCount ?? countFromRules,
+    isLoading: (!inMemoryResult && query.isLoading) || waitingForProfiles,
+  };
 }
 
 /**
  * useMonthlyPiodalan mengambil ringkasan agenda piodalan seluruh pura dalam satu bulan kalender.
  * Menggunakan pendekatan Hybrid Resilient:
- *  1. Instan O(1): Menghitung total piodalan dan 3 agenda terdekat dari seluruh hari bulan aktif
- *     berdasarkan master 461 pura di RAM. Menghilangkan masalah timeout / latensi loop SQL harian.
+ *  1. Menghitung total piodalan dan 3 agenda terdekat dari aturan pura begitu kalender tersedia.
  *  2. Lookahead Antar-Bulan: Jika sisa piodalan bulan aktif kurang dari 3, secara cerdas mengambil
  *     agenda dari bulan mendatang (selama dateStr >= todayISO), tanpa menampilkan tanggal masa lalu.
  *  3. Navigasi Presisi: Setiap item dilengkapi `dateStr` sehingga pengguna dapat mengklik
@@ -224,14 +240,16 @@ export function useMonthlyPiodalan(
   todayISO?: string,
   allYearDays?: KalenderHarian[]
 ) {
-  // Konsumsi master 461 pura resmi dari backend Go (tersimpan 24 jam di cache memori)
-  const { data: purasList = [] } = useAllPuras();
+  const observances = usePuraObservances();
+  const { data: publishedPuras } = useAllPuras();
+  const rules = observances.data ?? publishedPuras;
 
-  // Hitung ringkasan piodalan bulanan secara instan di memori browser (0ms)
   const inMemorySummary = useMemo(() => {
-    if (!monthDays || monthDays.length === 0 || purasList.length === 0) return null;
-    return extractMonthPiodalanSummary(monthDays, purasList, todayISO, allYearDays);
-  }, [monthDays, purasList, todayISO, allYearDays]);
+    if (!monthDays?.length || !rules) return null;
+    return extractMonthPiodalanSummary(monthDays, rules, todayISO, allYearDays);
+  }, [monthDays, rules, todayISO, allYearDays]);
+
+  const useFallback = !inMemorySummary && (!monthDays || observances.isError);
 
   const queryResult = useReadQuery<{
     totalPuras: number;
@@ -244,15 +262,8 @@ export function useMonthlyPiodalan(
       year,
       month,
       todayISO,
-      purasList.length,
-      allYearDays ? allYearDays.length : 0,
     ],
     queryFn: async () => {
-      // 1. Jika kalkulasi in-memory sudah tersedia dan memiliki hasil, prioritaskan langsung
-      if (inMemorySummary && (inMemorySummary.totalPuras > 0 || inMemorySummary.upcomingItems.length > 0)) {
-        return inMemorySummary;
-      }
-
       const res = await searchPiodalan({
         mode: 'bulan',
         bulan: month,
@@ -267,7 +278,7 @@ export function useMonthlyPiodalan(
 
         return {
           totalPuras,
-          upcomingItems: inMemorySummary?.upcomingItems ?? res.schedules
+          upcomingItems: res.schedules
             .filter(schedule => schedule.tanggal >= (todayISO ?? '') && schedule.puras.length > 0)
             .slice(0, 3)
             .map(schedule => ({
@@ -280,27 +291,15 @@ export function useMonthlyPiodalan(
         };
       }
 
-      // 2. Selalu fallback ke hasil memori
-      if (inMemorySummary) {
-        return inMemorySummary;
-      }
-
       return { totalPuras: 0, upcomingItems: [] };
     },
-    enabled: Boolean(year && month),
-    initialData: inMemorySummary || undefined,
+    enabled: Boolean(year && month) && useFallback,
     staleTime: 1000 * 60 * 10, // Fresh 10 menit di memori RAM
     refetchOnWindowFocus: false,
   });
 
-  // Pastikan data yang dikembalikan tidak pernah kosong jika inMemorySummary memiliki isi
-  const data =
-    queryResult.data && (queryResult.data.totalPuras > 0 || queryResult.data.upcomingItems.length > 0)
-      ? queryResult.data
-      : inMemorySummary || queryResult.data;
-
-  return {
-    ...queryResult,
-    data,
-  };
+  if (inMemorySummary) {
+    return { ...queryResult, data: inMemorySummary, isLoading: false, isError: false, error: null };
+  }
+  return { ...queryResult, isLoading: Boolean(year && month) && (!useFallback || queryResult.isLoading) };
 }

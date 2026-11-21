@@ -1,5 +1,5 @@
 import type { CalendarGridDay, KalenderHarian, PiodalanTerdekatItem } from '../types/kalender.types';
-import type { PuraBackendItem, PuraObservanceItem } from '@/features/piodalan/types/piodalan.types';
+import type { PuraObservanceItem } from '@/features/piodalan/types/piodalan.types';
 
 /**
  * ============================================================================
@@ -602,7 +602,7 @@ export function matchPurasForDay<T extends PuraObservanceItem>(
  */
 export function extractMonthPiodalanSummary(
   monthDays: KalenderHarian[],
-  purasList: PuraBackendItem[],
+  purasList: PuraObservanceItem[],
   todayISO?: string,
   allYearDays?: KalenderHarian[]
 ): {

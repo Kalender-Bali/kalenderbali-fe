@@ -21,7 +21,7 @@ import { getUserTier, authService } from '@/features/auth/services/authService';
 import { usePengingatNotifications } from '@/features/pengingat/hooks/usePengingat';
 import { PengingatNotificationList } from '@/features/pengingat/components/PengingatNotificationList';
 
-export default function Navbar() {
+export default function Navbar({ sidebarToggleRef }: { sidebarToggleRef: React.RefObject<HTMLButtonElement | null> }) {
   const navigate = useNavigate();
 
   // Mengambil action toggle sidebar dari global store Zustand
@@ -132,7 +132,7 @@ export default function Navbar() {
    * Handler tombol hamburger (responsive drawer di mobile vs mini-rail di desktop)
    */
   const handleToggleSidebar = () => {
-    if (window.innerWidth < 1024) {
+    if (!window.matchMedia('(min-width: 64rem)').matches) {
       toggleMobile();
     } else {
       toggleCollapse();
@@ -153,11 +153,13 @@ export default function Navbar() {
         {/* ========================================================= */}
         <div className="flex items-center gap-3">
           <button
+            ref={sidebarToggleRef}
             type="button"
             onClick={handleToggleSidebar}
             className="min-w-11 min-h-11 flex items-center justify-center p-2 text-slate-600 dark:text-slate-300 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-slate-800 active:scale-95 rounded-xl transition-all cursor-pointer [touch-action:manipulation]"
             title="Buka / Tutup Sidebar Navigasi"
             aria-label="Toggle Sidebar"
+            aria-controls="site-sidebar"
           >
             <Menu size={22} />
           </button>

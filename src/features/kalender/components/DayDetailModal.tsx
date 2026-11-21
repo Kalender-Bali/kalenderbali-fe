@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { X, Sparkles, Calendar, Moon, Compass } from 'lucide-react';
 import type { KalenderHarian, HariRayaItem } from '../types/kalender.types';
 import {
@@ -13,7 +11,7 @@ import {
 } from '../utils/calendarUtils';
 import { HariRayaDetailModal } from './HariRayaDetailModal';
 import { CalendarHolidayReminders } from './CalendarHolidayReminders';
-import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
+import { CalendarModal } from './CalendarModal';
 
 /**
  * ============================================================================
@@ -28,7 +26,7 @@ import { modalOverlayVariants, modalContentVariants } from '@/lib/animations';
  *  - Daftar Hari Raya / Rerainan (dapat diklik untuk membaca makna filosofis)
  *  - Petunjuk Padewasan (Panduan Hari Baik / Ala Ayuning Dewasa)
  *  - 10 Siklus Wewaran Lengkap (Ekawara s.d. Dasawara + Wuku)
- *  - Menggunakan createPortal ke document.body dengan z-[100] agar backdrop blur
+ *  - Membuka dialog native agar backdrop blur
  *    menyelimuti seluruh layar (Sidebar & Kalender).
  *
  * Aksesibilitas (WAI-ARIA):
@@ -53,31 +51,10 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
   onAddReminder,
 }) => {
   const navigate = useNavigate();
+  const titleId = useId();
 
   // State untuk melihat detail penjelasan hari raya dari dalam modal
   const [selectedHoliday, setSelectedHoliday] = useState<HariRayaItem | null>(null);
-
-  // Listener tombol 'Escape' untuk aksesibilitas keyboard & lock body scroll
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Jika sub-modal hari raya terbuka, biarkan sub-modal yang menangani Escape
-      if (selectedHoliday) return;
-
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose, selectedHoliday]);
 
   if (!isOpen) return null;
 
@@ -111,38 +88,16 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
     { label: 'Wuku', value: w?.wuku?.nama || '-' },
   ];
 
-  const modalContent = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overscroll-contain">
-      {/* 1. Backdrop Gelap dengan Efek Blur Menyeluruh ke Seluruh Halaman */}
-          <motion.div
-            key="day-modal-backdrop"
-            variants={modalOverlayVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
-            aria-hidden="true"
-          />
-
-          {/* 2. Kontainer Kotak Modal Dialog (Standar AGENTS.md Bab 4.7) */}
-          <motion.div
-            key="day-modal-content"
-            variants={modalContentVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xl overflow-hidden z-10 max-h-[88vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Banner Header dengan Sentuhan Gradien Lembut */}
+  return (
+    <CalendarModal titleId={titleId} width="max-w-xl" onClose={onClose}>
+        {/* Banner Header dengan Sentuhan Gradien Lembut */}
         <div className="relative bg-gradient-to-r from-teal-50 via-slate-50 to-emerald-50 dark:from-slate-900 dark:via-slate-800/80 dark:to-slate-900 px-6 sm:px-8 py-4 border-b border-slate-200/80 dark:border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <span className="p-1.5 rounded-lg bg-teal-100/80 dark:bg-primary-subtle text-teal-800 dark:text-primary-text">
               <Calendar className="w-4 h-4" />
             </span>
             <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+              <h3 id={titleId} className="text-base sm:text-lg font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
                 Rincian Penyelidikan Kalender
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tabular-nums">
@@ -284,8 +239,6 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
             Tutup
           </button>
         </div>
-      </motion.div>
-
       {/* Pop-up penjelasan hari raya jika diklik dari dalam modal detail hari */}
       {selectedHoliday && (
         <HariRayaDetailModal
@@ -295,10 +248,8 @@ export const DayDetailModal: React.FC<DayDetailModalProps> = ({
           holidayName={selectedHoliday.nama}
         />
       )}
-    </div>
+    </CalendarModal>
   );
-
-  return createPortal(modalContent, document.body);
 };
 
 

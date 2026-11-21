@@ -13,6 +13,7 @@ const {matchPurasForDay,getTodayWITA}=await server.ssrLoadModule('/src/features/
 const {apiClient}=await server.ssrLoadModule('/src/lib/axios.ts');
 const {CALENDAR_RULES_VERSION}=await server.ssrLoadModule('/src/lib/calendarCache.ts');
 const {CalendarInspector}=await server.ssrLoadModule('/src/features/kalender/components/CalendarInspector.tsx');
+const calendarPageModule=await server.ssrLoadModule('/src/features/kalender/pages/CalendarPage.tsx');
 const {useDashboardData}=await server.ssrLoadModule('/src/features/dashboard/hooks/useDashboardData.ts');
 const {default: DashboardPage}=await server.ssrLoadModule('/src/features/dashboard/pages/DashboardPage.tsx');
 const {extractTopUpcomingPiodalan}=await server.ssrLoadModule('/src/features/dashboard/utils/dashboardUtils.ts');
@@ -102,6 +103,22 @@ test('inspektur kalender menyediakan tombol untuk membuka rincian hari',()=>{
   const render=(selectedData)=>renderToStaticMarkup(React.createElement(QueryClientProvider,{client:qc},React.createElement(CalendarInspector,{selectedDate:day.tanggal,selectedData,isToday:true,onOpenDetailModal(){}})));
   assert.match(render(day),/Lihat detail hari/);
   qc.clear();
+});
+
+test('kalender menampilkan jumlah piodalan saat baru aturan ringan yang tersedia', (t) => {
+  const qc = client();
+  t.after(() => qc.clear());
+  qc.setQueryData(['kalender', Number(day.tanggal.slice(0, 4))], [day]);
+  qc.setQueryData(['piodalan', 'puras', 'observances'], [
+    { id: 1, name: 'Pura Uji', type: 'Kawitan', benchmark: 'Pawukon', wuku: 'Landep' },
+  ]);
+  const { default: CalendarPage } = calendarPageModule;
+  const html = renderToStaticMarkup(React.createElement(
+    QueryClientProvider, { client: qc },
+    React.createElement(MemoryRouter, { initialEntries: [`/kalender?date=${day.tanggal}`] }, React.createElement(CalendarPage)),
+  ));
+  assert.match(html, /0 Rahina · 1 Piodalan/);
+  assert.match(html, /Piodalan hari ini<\/span><span[^>]*>1 lokasi/);
 });
 
 test('dashboard memakai total dan pratinjau padewasan dari API', (t) => {

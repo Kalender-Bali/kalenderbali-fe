@@ -681,45 +681,33 @@ html.dark [class*="to-teal-50"]:not([class*="dark:to-"]) {
 /* ==========================================================================
    PENYESUAIAN MODAL & DIALOG UNIVERSAL DI MODE GELAP
    ========================================================================== */
-html.dark [role="dialog"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) > div.bg-white,
-html.dark [aria-modal="true"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *) > div.bg-white,
-html.dark [role="dialog"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *).bg-white,
-html.dark [aria-modal="true"]:not([data-theme-preview="light"]):not([data-theme-preview="light"] *).bg-white {
+/* Drawer memakai warna navigasi sendiri saat berperan sebagai dialog. */
+html.dark :is([role="dialog"], [aria-modal="true"]):not(:where(#site-sidebar)):not([data-theme-preview="light"]):not([data-theme-preview="light"] *) > div.bg-white,
+html.dark :is([role="dialog"], [aria-modal="true"]):not(:where(#site-sidebar)):not([data-theme-preview="light"]):not([data-theme-preview="light"] *).bg-white {
   background-color: #0f172a !important; /* slate-900 */
   border-color: #1e293b !important; /* slate-800 */
   color: #f8fafc !important;
 }
 
-html.dark [role="dialog"] .bg-\[\#f8fafc\],
-html.dark [role="dialog"] .bg-slate-50,
-html.dark [aria-modal="true"] .bg-\[\#f8fafc\],
-html.dark [aria-modal="true"] .bg-slate-50 {
+html.dark :is([role="dialog"], [aria-modal="true"]):not(:where(#site-sidebar)) :is(.bg-\[\#f8fafc\], .bg-slate-50) {
   background-color: rgba(30, 41, 59, 0.7) !important; /* slate-800/70 */
   border-color: #334155 !important;
 }
 
-html.dark [role="dialog"] .bg-slate-100,
-html.dark [aria-modal="true"] .bg-slate-100 {
+html.dark :is([role="dialog"], [aria-modal="true"]):not(:where(#site-sidebar)) .bg-slate-100 {
   background-color: #1e293b !important;
 }
 
-html.dark [role="dialog"] [class*="bg-gradient-to-r"][class*="from-teal-50"],
-html.dark [aria-modal="true"] [class*="bg-gradient-to-r"][class*="from-teal-50"] {
+html.dark :is([role="dialog"], [aria-modal="true"]):not(:where(#site-sidebar)) [class*="bg-gradient-to-r"][class*="from-teal-50"] {
   background: linear-gradient(to right, #1e293b, #1e293b 50%, #0f172a) !important;
   border-color: #334155 !important;
 }
 
-html.dark [role="dialog"] .text-\[\#0f172a\],
-html.dark [aria-modal="true"] .text-\[\#0f172a\],
-html.dark [role="dialog"] .text-slate-900,
-html.dark [aria-modal="true"] .text-slate-900 {
+html.dark :is([role="dialog"], [aria-modal="true"]):not(:where(#site-sidebar)) :is(.text-\[\#0f172a\], .text-slate-900) {
   color: #f8fafc !important;
 }
 
-html.dark [role="dialog"] .text-slate-600,
-html.dark [aria-modal="true"] .text-slate-600,
-html.dark [role="dialog"] .text-slate-500,
-html.dark [aria-modal="true"] .text-slate-500 {
+html.dark :is([role="dialog"], [aria-modal="true"]):not(:where(#site-sidebar)) :is(.text-slate-600, .text-slate-500) {
   color: #cbd5e1 !important;
 }
 
@@ -808,6 +796,10 @@ html.dark textarea:disabled {
  */
 html {
   scrollbar-gutter: stable;
+}
+
+html:has(dialog[data-calendar-modal]:modal) {
+  overflow: hidden;
 }
 
 html.dark {
