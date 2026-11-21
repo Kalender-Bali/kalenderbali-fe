@@ -212,7 +212,7 @@ export default function DashboardPage() {
           <DashboardDewasaAyu data={dewasaAyu} isLoading={isDewasaLoading} error={dewasaError} onRetry={() => refetchDewasa()} />
         </div>
 
-        {/* Kolom Kanan: Piodalan Terdekat (3 Pura Teratas) */}
+        {/* Kolom Kanan: Piodalan Terdekat */}
         <div>
           <DashboardPiodalan data={piodalan} error={piodalanError} onRetry={() => { void refetchPiodalan(); }} isLoading={isPiodalanLoading || isLoading} />
         </div>

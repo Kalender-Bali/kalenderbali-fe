@@ -4,6 +4,7 @@ import { createServer } from 'vite';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 
 const server=await createServer({configFile:false,resolve:{alias:{'@':`${process.cwd()}/src`}},server:{middlewareMode:true,ws:false},appType:'custom'});
 after(()=>server.close());
@@ -13,7 +14,9 @@ const {apiClient}=await server.ssrLoadModule('/src/lib/axios.ts');
 const {CALENDAR_RULES_VERSION}=await server.ssrLoadModule('/src/lib/calendarCache.ts');
 const {CalendarInspector}=await server.ssrLoadModule('/src/features/kalender/components/CalendarInspector.tsx');
 const {useDashboardData}=await server.ssrLoadModule('/src/features/dashboard/hooks/useDashboardData.ts');
+const {default: DashboardPage}=await server.ssrLoadModule('/src/features/dashboard/pages/DashboardPage.tsx');
 const {extractTopUpcomingPiodalan}=await server.ssrLoadModule('/src/features/dashboard/utils/dashboardUtils.ts');
+const {fetchPuraObservances}=await server.ssrLoadModule('/src/features/piodalan/api/piodalanApi.ts');
 const {RamalanSifatForm}=await server.ssrLoadModule('/src/features/ramalan-sifat/components/RamalanSifatForm.tsx');
 
 test('pengingat kalender memasang alarm H-1 17.00 dan hari H 06.00 WITA',()=>{
@@ -63,6 +66,37 @@ test('versi aturan menghindari cache browser lama tanpa mengubah body POST',asyn
 });
 
 function client(){return new QueryClient({defaultOptions:{queries:{retry:false,gcTime:0,staleTime:Infinity}}});}
+
+test('daftar pura ringan menghasilkan empat tanggal piodalan dashboard hingga tahun berikutnya', async (t) => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-12-29T04:00:00Z') });
+  const qc = client();
+  t.after(() => qc.clear());
+  qc.setQueryData(['kalender', 2026], ['2026-12-29', '2026-12-30', '2026-12-31'].map(tanggal => ({ ...day, tanggal })));
+  qc.setQueryData(['kalender', 2027], ['2027-01-01', '2027-01-02'].map(tanggal => ({ ...day, tanggal })));
+  const previousAdapter = apiClient.defaults.adapter;
+  t.after(() => { apiClient.defaults.adapter = previousAdapter; });
+  apiClient.defaults.adapter = async (config) => {
+    assert.equal(config.url, '/puras/observances');
+    return {
+      data: { data: [{ id: 1, name: 'Pura Uji', type: 'Kawitan', benchmark: 'Pawukon', wuku: 'Landep' }] },
+      status: 200,
+      headers: {},
+      config,
+    };
+  };
+  await qc.fetchQuery({ queryKey: ['piodalan', 'puras', 'observances'], queryFn: fetchPuraObservances });
+
+  const html = renderToStaticMarkup(React.createElement(
+    QueryClientProvider, { client: qc },
+    React.createElement(MemoryRouter, null, React.createElement(DashboardPage)),
+  ));
+
+  assert.equal((html.match(/Pura Uji/g) ?? []).length, 4);
+  assert.match(html, /4 Piodalan Terdekat/);
+  assert.match(html, /1 Januari 2027/);
+  assert.doesNotMatch(html, /2 Januari 2027/);
+});
+
 test('inspektur kalender menyediakan tombol untuk membuka rincian hari',()=>{
   const qc=client();
   const render=(selectedData)=>renderToStaticMarkup(React.createElement(QueryClientProvider,{client:qc},React.createElement(CalendarInspector,{selectedDate:day.tanggal,selectedData,isToday:true,onOpenDetailModal(){}})));
@@ -76,7 +110,7 @@ test('dashboard memakai total dan pratinjau padewasan dari API', (t) => {
   const year = Number(day.tanggal.slice(0, 4));
   qc.setQueryData(['kalender', year], [day]);
   qc.setQueryData(['kalender', year + 1], []);
-  qc.setQueryData(['piodalan', 'puras', 'all'], []);
+  qc.setQueryData(['piodalan', 'puras', 'observances'], []);
   qc.setQueryData(['ala-ayuning-dewasa', 'today', day.tanggal], {
     tanggal: day.tanggal,
     status_label: 'PER KEGIATAN',

@@ -8,9 +8,9 @@ import type { PiodalanDashboardItem } from '../types/dashboard.types';
  * ============================================================================
  * KOMPONEN: DashboardPiodalan (Baris 3 Kanan — Piodalan Terdekat)
  * ============================================================================
- * Menampilkan daftar 3 jadwal piodalan pura terdekat setelah hari ini:
+ * Menampilkan hingga 4 tanggal piodalan pura terdekat mulai hari ini:
  *  - Baris Atas: Judul "Piodalan Terdekat", subteks, dan badge countdown terdekat
- *  - Area Tengah: Menampilkan 3 kartu ringkas agenda piodalan pura terdekat
+ *  - Area Tengah: Kartu ringkas agenda piodalan pura terdekat
  *  - Baris Bawah:
  *    - Ringkasan status piodalan
  *    - Tautan "Lihat selengkapnya →" menuju ke /piodalan
@@ -39,15 +39,13 @@ export const DashboardPiodalan: React.FC<DashboardPiodalanProps> = ({
   const navigate = useNavigate();
 
   if (error && onRetry) return <QueryErrorState title="Gagal memuat piodalan terdekat" error={error} onRetry={onRetry} />;
-  if (isLoading) return <div role="status" className="h-64 bg-slate-100 rounded-2xl animate-pulse"><span className="sr-only">Memuat piodalan terdekat...</span></div>;
+  if (isLoading) return <div role="status" className="h-80 bg-slate-100 rounded-2xl animate-pulse"><span className="sr-only">Memuat piodalan terdekat...</span></div>;
 
-  // Konversi input menjadi array dan ambil maksimal 3 agenda piodalan teratas
   const piodalanList = Array.isArray(data)
     ? data
     : items || (data ? [data] : []);
 
-  const topThreePiodalan = piodalanList.slice(0, 3);
-  const nearestDaysRemaining = topThreePiodalan[0]?.daysRemainingText || '-';
+  const nearestDaysRemaining = piodalanList[0]?.daysRemainingText || '-';
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-col justify-between h-full">
@@ -61,7 +59,7 @@ export const DashboardPiodalan: React.FC<DashboardPiodalanProps> = ({
           </h2>
 
           {/* Badge Countdown Sisa Hari Terdekat (Emerald) */}
-          {topThreePiodalan.length > 0 && (
+          {piodalanList.length > 0 && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-extrabold uppercase tabular-nums shadow-2xs">
               {nearestDaysRemaining}
             </span>
@@ -73,17 +71,17 @@ export const DashboardPiodalan: React.FC<DashboardPiodalanProps> = ({
         </p>
 
         {/* ================================================================= */}
-        {/* 2. AREA TENGAH: DAFTAR 3 AGENDA PIODALAN TERATAS                  */}
+        {/* 2. AREA TENGAH: DAFTAR AGENDA PIODALAN TERDEKAT                  */}
         {/* ================================================================= */}
         <div className="space-y-2.5">
-          {topThreePiodalan.length === 0 ? (
+          {piodalanList.length === 0 ? (
             <div className="p-4 rounded-xl bg-[#f8fafc] border border-slate-200/70 text-center">
               <p className="text-xs text-slate-400 font-medium">
                 Belum ada agenda piodalan terdekat.
               </p>
             </div>
           ) : (
-            topThreePiodalan.map((pio) => (
+            piodalanList.map((pio) => (
               <div
                 key={pio.id}
                 onClick={() => navigate(pio.actionUrl || '/piodalan')}
@@ -139,7 +137,7 @@ export const DashboardPiodalan: React.FC<DashboardPiodalanProps> = ({
       {/* =================================================================== */}
       <div className="flex items-center justify-between gap-4 pt-3 mt-4 border-t border-slate-100">
         <span className="text-xs font-semibold text-slate-400 tabular-nums">
-          {topThreePiodalan.length > 0 ? `${topThreePiodalan.length} Piodalan Terdekat` : 'Piodalan Terdekat'}
+          {piodalanList.length > 0 ? `${piodalanList.length} Piodalan Terdekat` : 'Piodalan Terdekat'}
         </span>
 
         {/* Tautan Navigasi ke Halaman Piodalan Lengkap */}

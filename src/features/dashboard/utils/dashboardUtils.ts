@@ -27,7 +27,7 @@ import type {
   PiodalanDashboardItem,
   UpcomingHariRayaItem,
 } from '../types/dashboard.types';
-import type { PuraBackendItem } from '@/features/piodalan/types/piodalan.types';
+import type { PuraObservanceItem } from '@/features/piodalan/types/piodalan.types';
 import { getHariRayaSubtext } from '../data/dashboardMockData';
 
 /** Ringkasan dashboard berpusat pada hari ini, tanpa meminta pilihan kegiatan. */
@@ -403,7 +403,7 @@ export function extractTopUpcomingHariRaya(
 }
 
 // ---------------------------------------------------------------------------
-// 7. Penarik Maksimal 3 Piodalan Terdekat dari Hari Ini (Data Real BE/FE)
+// 7. Penarik Tanggal Piodalan Terdekat dari Hari Ini
 // ---------------------------------------------------------------------------
 
 /**
@@ -429,13 +429,13 @@ const capFirstLetter = (text?: string | null): string => {
  * @param allDays Daftar hari kalender dari backend Go
  * @param puras Daftar master pura resmi dari backend Go
  * @param todayDateISO Tanggal hari ini zona WITA ("YYYY-MM-DD")
- * @param limit Jumlah maksimal agenda piodalan terdekat (default: 3)
+ * @param limit Jumlah maksimal tanggal piodalan terdekat (default: 4)
  */
 export function extractTopUpcomingPiodalan(
   allDays: KalenderHarian[],
-  puras: PuraBackendItem[],
+  puras: PuraObservanceItem[],
   todayDateISO: string,
-  limit: number = 3
+  limit: number = 4
 ): PiodalanDashboardItem[] {
   if (
     !Array.isArray(puras) ||

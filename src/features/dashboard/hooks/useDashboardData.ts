@@ -19,7 +19,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useReadQuery } from '@/lib/useReadQuery';
 import { fetchDewasaAyuToday } from '@/features/ala-ayuning-dewasa/api/alaAyuningApi';
 import { useKalenderTahun } from '@/features/kalender/hooks/useKalender';
-import { useAllPuras } from '@/features/piodalan/hooks/usePiodalan';
+import { fetchPuraObservances } from '@/features/piodalan/api/piodalanApi';
 import {
   formatFullIndoDate,
   getIndoDayName,
@@ -87,8 +87,13 @@ export function useDashboardData() {
     enabled: todayYearCalendarDays.length > 0 && todayParsed.year < 2200,
   });
 
-  // Konsumsi master data pura resmi dari Backend Go (staleTime 24 jam di RAM)
-  const { data: purasList = [], error: purasError, refetch: refetchPuras, isLoading: isPurasLoading } = useAllPuras();
+  const { data: purasList = [], error: purasError, refetch: refetchPuras, isLoading: isPurasLoading } = useReadQuery({
+    queryKey: ['piodalan', 'puras', 'observances'],
+    queryFn: fetchPuraObservances,
+    staleTime: 1000 * 60 * 60 * 24,
+    gcTime: 1000 * 60 * 60 * 48,
+    refetchOnWindowFocus: false,
+  });
   const dewasaToday = useReadQuery({
     queryKey: ['ala-ayuning-dewasa', 'today', todayWITA],
     queryFn: fetchDewasaAyuToday,
@@ -209,18 +214,13 @@ export function useDashboardData() {
   }, [holidaysDaysPool, todayWITA, calendarYear, calendarMonth]);
 
   // ---------------------------------------------------------------------------
-  // 8. Integrasi Data Dewasa Ayu Hari Ini & Piodalan Terdekat (Masing-masing 3 Item)
+  // 8. Integrasi Data Dewasa Ayu Hari Ini & Piodalan Terdekat
   // ---------------------------------------------------------------------------
-  // Ekstraksi 3 piodalan pura terdekat setelah hari ini dari data real kalender & pura resmi
+  // Cari tanggal piodalan mulai hari ini dari data kalender dan aturan pura.
   const realUpcomingPiodalan: PiodalanDashboardItem[] = useMemo(() => {
     const daysPool = [...todayYearCalendarDays, ...nextTodayYearCalendarDays];
 
-    return extractTopUpcomingPiodalan(
-      daysPool,
-      purasList,
-      todayWITA,
-      3
-    );
+    return extractTopUpcomingPiodalan(daysPool, purasList, todayWITA);
   }, [todayYearCalendarDays, nextTodayYearCalendarDays, purasList, todayWITA]);
 
   // Seluruh data piodalan di dashboard 100% menggunakan data real hasil kalkulasi master pura resmi backend Go

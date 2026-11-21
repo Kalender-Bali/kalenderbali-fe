@@ -1,5 +1,5 @@
 import type { CalendarGridDay, KalenderHarian, PiodalanTerdekatItem } from '../types/kalender.types';
-import type { PuraBackendItem } from '@/features/piodalan/types/piodalan.types';
+import type { PuraBackendItem, PuraObservanceItem } from '@/features/piodalan/types/piodalan.types';
 
 /**
  * ============================================================================
@@ -539,10 +539,10 @@ export const getPuraPriorityScore = (type?: string | null): number => {
  * Mencocokkan daftar pura yang melangsungkan piodalan pada suatu hari kalender tertentu.
  * Menggunakan aturan Pawukon (210 hari) dan Sasih (Candra) dengan toleransi variasi ejaan.
  */
-export function matchPurasForDay(
+export function matchPurasForDay<T extends PuraObservanceItem>(
   day: KalenderHarian,
-  purasList: PuraBackendItem[]
-): PuraBackendItem[] {
+  purasList: T[]
+): T[] {
   if (!day || !Array.isArray(purasList) || purasList.length === 0) return [];
 
   const dWuku = normalizeCalendarString(day.wewaran?.wuku?.nama);
@@ -551,7 +551,7 @@ export function matchPurasForDay(
   const dSasih = normalizeCalendarString(day.sasih?.nama_sasih);
   const dPT = normalizeCalendarString(day.pengalantaka?.purnama_tilem);
 
-  const matched: PuraBackendItem[] = [];
+  const matched: T[] = [];
 
   for (const p of purasList) {
     const bench = (p.benchmark || '').toLowerCase();

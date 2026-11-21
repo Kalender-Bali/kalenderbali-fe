@@ -5,6 +5,7 @@ import { toApiError } from '@/lib/apiError';
 import type { KalenderHarian } from '@/features/kalender/types/kalender.types';
 import type {
   PuraBackendItem,
+  PuraObservanceItem,
   MasterDropdownOption,
   PuraPiodalanRecord,
   PiodalanAcaraItem,
@@ -51,6 +52,11 @@ export async function fetchPuraList(searchQuery?: string): Promise<PuraBackendIt
 
   // Daftar master berbagi cache dengan Kelola Pura; komunitas tidak memiliki piodalan.
   return onlyPuras(apiArray<PuraBackendItem>(items));
+}
+
+export async function fetchPuraObservances(): Promise<PuraObservanceItem[]> {
+  const response = await apiClient.get('/puras/observances');
+  return apiArray<PuraObservanceItem>(response.data?.data);
 }
 
 /**

@@ -95,6 +95,10 @@ export interface PuraBackendItem {
   updated_at?: string;
 }
 
+export type PuraObservanceItem = Pick<PuraBackendItem,
+  'id' | 'name' | 'type' | 'benchmark' | 'wuku' | 'saptawara' | 'pancawara' | 'sasih' | 'purnama_tilem'
+>;
+
 // ==============================================================================
 // 3. RANGKAIAN UPACARA / ACARA PIODALAN (KONTRIBUSI KONTRIBUTOR)
 // ==============================================================================

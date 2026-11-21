@@ -197,7 +197,7 @@ export const DashboardSkeleton: React.FC = () => {
           </div>
         </div>
 
-        {/* Kolom Kanan: Piodalan Terdekat (3 Item Skeleton) */}
+        {/* Kolom Kanan: Piodalan Terdekat (4 Item Skeleton) */}
         <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center mb-1">
@@ -207,7 +207,7 @@ export const DashboardSkeleton: React.FC = () => {
             <div className="h-3.5 w-48 bg-slate-100 rounded-full mb-3" />
 
             <div className="space-y-2.5">
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
                   className="p-3 rounded-xl bg-[#f8fafc] border border-slate-200/70 flex items-center gap-3.5"
