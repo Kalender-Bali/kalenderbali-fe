@@ -29,7 +29,8 @@ export default function LoginPage() {
   const { isAuthenticated } = useAuthStore();
 
   // Ambil state redirect jika pengguna sebelumnya dicegat oleh route guard
-  const from = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/';
+  const origin = (location.state as { from?: { pathname?: string; search?: string; hash?: string } })?.from;
+  const from = origin?.pathname ? origin.pathname + (origin.search ?? '') + (origin.hash ?? '') : '/';
 
   // State Formulir
   const [email, setEmail] = useState('');

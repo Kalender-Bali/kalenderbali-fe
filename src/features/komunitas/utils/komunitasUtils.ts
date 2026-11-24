@@ -9,7 +9,7 @@ export function positiveId(value: unknown): number | undefined {
 }
 export function isAdmin(user: AuthUser | null): boolean { return user?.role.trim().toLowerCase() === 'admin'; }
 export function canRegister(user: AuthUser | null): boolean {
-  return !!user && ['member', 'admin'].includes(user.role.trim().toLowerCase());
+  return !!user && ['member', 'contributor', 'admin'].includes(user.role.trim().toLowerCase());
 }
 export function canManageCommunity(user: AuthUser | null, profile?: KomunitasDetail | null): boolean {
   const id = positiveId(user?.id);

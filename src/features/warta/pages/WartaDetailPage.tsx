@@ -16,6 +16,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { AppDialog } from '@/components/ui/AppDialog';
 import {
   ArrowLeft,
   Calendar,
@@ -111,13 +112,16 @@ export default function WartaDetailPage() {
   // 4. HANDLER PENGHAPUSAN WARTA
   // ---------------------------------------------------------------------------
   // Konfirmasi penghapusan warta dan navigasi kembali ke katalog warta setelah sukses
-  const handleDeleteArticle = async () => {
-    if (!article) return;
-    const confirmDelete = window.confirm(
-      `Apakah Anda yakin ingin menghapus warta "${article.title}"? Tindakan ini permanen dan tidak dapat dibatalkan.`
-    );
-    if (!confirmDelete) return;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const handleDeleteArticle = () => {
+    if (!article) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteArticle = async () => {
+    if (!article) return;
+    setShowDeleteConfirm(false);
     try {
       setIsDeleting(true);
       await deleteMutation.mutateAsync(article.id);
@@ -396,6 +400,34 @@ export default function WartaDetailPage() {
           onClose={() => setIsEditModalOpen(false)}
           onSubmit={handleUpdateSubmit}
         />
+      )}
+
+      {showDeleteConfirm && article && (
+        <AppDialog
+          title="Hapus Warta"
+          description={`Apakah Anda yakin ingin menghapus warta "${article.title}"? Tindakan ini permanen dan tidak dapat dibatalkan.`}
+          onClose={() => setShowDeleteConfirm(false)}
+          footer={
+            <>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl bg-rose-700 px-5 text-sm font-bold text-white hover:bg-rose-800 disabled:opacity-50"
+                onClick={() => void confirmDeleteArticle()}
+              >
+                Ya, Hapus
+              </button>
+            </>
+          }
+        >
+          <p className="text-sm text-slate-600">Artikel yang dihapus akan hilang dari seluruh sistem secara permanen.</p>
+        </AppDialog>
       )}
     </article>
   );

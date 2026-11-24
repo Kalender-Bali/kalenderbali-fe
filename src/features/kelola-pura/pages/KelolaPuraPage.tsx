@@ -1,3 +1,8 @@
+import { useAuthStore } from '@/stores/useAuthStore';
+import { ProfileContributor } from '@/features/profile/components/ProfileContributor';
+import { PuraSubmissions } from '../components/PuraSubmissions';
+import type { PuraSubmission } from '../api/puraProfileApi';
+import { PuraProfileForm } from '../components/PuraProfileForm';
 import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import { useMemo, useState, useEffect } from 'react';
 import type { PuraBackendItem } from '../types/kelolaPura.types';
@@ -35,6 +40,12 @@ import { QueryErrorState } from '@/components/ui/QueryErrorState';
  * ==============================================================================
  */
 export default function KelolaPuraPage() {
+  const user = useAuthStore(state => state.user);
+  const [showContributor, setShowContributor] = useState(false);
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [showSubmissions, setShowSubmissions] = useState(false);
+  const [editing, setEditing] = useState<PuraSubmission>();
+  const canRegister = ['contributor', 'member', 'admin'].includes(user?.role.toLowerCase() ?? '');
   // ============================================================================
   // 1. MANAJEMEN STATE PARAMETER URL (URL-AS-STATE)
   // ============================================================================
@@ -224,8 +235,12 @@ export default function KelolaPuraPage() {
   // ============================================================================
   return (
     <div className="space-y-6">
+      {showContributor && <ProfileContributor gate admin={false} contributor={false} actionClassName="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold" onClose={() => setShowContributor(false)} />}
+      {showSubmissions && <PuraSubmissions onClose={() => setShowSubmissions(false)} onEdit={item => { setShowSubmissions(false); setEditing(item); setShowRegistration(true); }} />}
+      {showRegistration && <PuraProfileForm profile={editing} onClose={() => { setShowRegistration(false); setEditing(undefined); }} onSaved={() => { setShowRegistration(false); setEditing(undefined); setShowSubmissions(true); void purasQuery.refetch(); }} />}
       {/* 1. Header Banner Utama dengan Estetika Tirta Bali & Metrik */}
       <KelolaPuraHero
+        rightAction={<div className="flex flex-wrap gap-2">{canRegister && <button type="button" className="min-h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold" onClick={() => setShowSubmissions(true)}>Pengajuan Pura</button>}<button type="button" className="min-h-11 rounded-xl bg-teal-700 px-4 text-sm font-bold text-white" onClick={() => canRegister ? setShowRegistration(true) : setShowContributor(true)}>Daftarkan Pura</button></div>}
         totalPura={puras.length}
         totalKabupaten={9}
       />

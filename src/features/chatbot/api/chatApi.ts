@@ -4,9 +4,9 @@ import { ChatError, readChatStream } from './stream';
 import type { ChatStatus } from './stream';
 
 export interface ChatRoom { id: number; created_at: string; expires_at: string | null }
-export interface ChatMessage { id: number; role: 'user' | 'assistant'; content: string; created_at: string; references?: unknown }
-export interface ChatQuota { date: string; limit: number; used: number; remaining: number; resets_at: string; can_start: boolean; required_reservation: number }
-export interface ChatSettings { maintenance: boolean; premium_daily_tokens: number; admin_daily_tokens: number; global_tokens_minute: number; global_tokens_day: number; global_requests_minute: number; global_requests_day: number }
+export interface ChatMessage { id: number; role: 'user' | 'assistant'; content: string; created_at: string; references?: unknown; clarification_yes_no?: boolean }
+export interface ChatQuota { date: string; limit: number; used: number; remaining: number; resets_at: string; can_start: boolean; required_reservation: number; maintenance?: boolean; dev_unlimited?: boolean }
+export interface ChatSettings { maintenance: boolean; premium_daily_tokens: number; admin_daily_tokens: number }
 export interface ChatStat { date: string; state: string; outcome: string | null; feature: string | null; clarification_reason: string | null; count: number; tokens: number; unconfirmed_reserved_tokens: number; average_duration_ms: number | null }
 export interface ChatStats { data: ChatStat[]; cache_stats_available: boolean; clarification_stats_available: boolean }
 
@@ -27,13 +27,13 @@ export const chatApi = {
 };
 
 // Fetch diperlukan karena Axios browser tidak menyediakan stream POST yang dapat dibaca bertahap.
-export async function sendChat(id: number, operationId: string, message: string, signal: AbortSignal, onStatus: (status: ChatStatus) => void) {
+export async function sendChat(id: number, operationId: string, message: string, signal: AbortSignal, onStatus: (status: ChatStatus) => void, devUnlimited = false) {
   const token = useAuthStore.getState().token;
   if (!token) throw new ChatError('Silakan masuk terlebih dahulu.', 'AUTH_REQUIRED', 401);
   const controller = new AbortController();
   const cancel = () => controller.abort();
   if (signal.aborted) controller.abort(); else signal.addEventListener('abort', cancel, { once: true });
-  const timer = setTimeout(() => controller.abort(), 55000);
+  const timer = devUnlimited ? undefined : setTimeout(() => controller.abort(), 55000);
   try {
     const base = (apiClient.defaults.baseURL || '/api/v1').replace(/\/$/, '');
     const response = await fetch(`${base}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream', Authorization: `Bearer ${token}` }, body: JSON.stringify({ room_id: roomId(id), operation_id: operationId, message }), signal: controller.signal, cache: 'no-store' });

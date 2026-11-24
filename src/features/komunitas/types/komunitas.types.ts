@@ -31,6 +31,8 @@ export interface KomunitasDetail extends KomunitasLocation {
   latitude?: number;
   longitude?: number;
   manager: KomunitasManager[];
+  submitted_by?: number;
+  review_note?: string;
 }
 export interface KomunitasFilters { search: string; country: string; province: string; city: string }
 export interface KomunitasPageData {

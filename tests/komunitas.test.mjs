@@ -188,3 +188,53 @@ test('kartu dan empty state menampilkan sumber asli serta tidak mengarang profil
   const empty = renderToStaticMarkup(React.createElement(KomunitasList, { items: [], loading: false, more: false, loadingMore: false, onMore() {}, onOpen() {}, onRegister() {}, filtered: false }));
   assert.match(empty, /Belum ada komunitas/); assert.doesNotMatch(empty, /Suka Duka B/);
 });
+
+test('role contributor backend dapat mendaftarkan komunitas', () => {
+  assert.equal(utils.canRegister({ role: 'contributor' }), true);
+});
+
+test('detail komunitas menyimpan pemilik pengajuan dan catatan penolakan', () => {
+  const detail = api.parseCommunityDetail({ ...profile, submitted_by: 7, review_note: 'Perbaiki alamat' });
+  assert.equal(detail.submitted_by, 7);
+  assert.equal(detail.review_note, 'Perbaiki alamat');
+});
+
+test('review komunitas mengirim status dan catatan ke endpoint pengajuan', async () => {
+  let request;
+  respond({ message: 'ok' }, config => { request = config; });
+  await api.reviewCommunity(20, 'Rejected', 'Alamat belum lengkap');
+  assert.equal(request.url, '/submissions/community/20/status');
+  assert.deepEqual(JSON.parse(request.data), { status: 'Rejected', review_note: 'Alamat belum lengkap' });
+});
+
+test('pengajuan Warta memakai kuota dan status moderasi sesuai API', async () => {
+  const { fetchWartaSubmissions, updateWartaSubmission } = await server.ssrLoadModule('/src/features/warta/api/wartaSubmissionApi.ts');
+  const calls = [];
+  apiClient.defaults.adapter = async config => {
+    calls.push(config);
+    return { config, data: config.method === 'get' ? { data: [], total: 0 } : { message: 'ok' }, status: 200, statusText: 'OK', headers: {} };
+  };
+  await fetchWartaSubmissions(1);
+  await updateWartaSubmission(8, 'Review');
+  assert.equal(calls[0].url, '/articles/unpublished');
+  assert.equal(calls[1].url, '/submissions/warta/8/status');
+  assert.deepEqual(JSON.parse(calls[1].data), { status: 'Review', review_note: '' });
+});
+
+test('pendaftaran Pura mengirim data dan mempertahankan tipe Pura', async () => {
+  const { savePuraProfile } = await server.ssrLoadModule('/src/features/kelola-pura/api/puraProfileApi.ts');
+  let request;
+  respond({ data: { id: 10 } }, config => { request = config; });
+  await savePuraProfile({ name: 'Pura Desa', type: 'Kahyangan Tiga', country_id: 1 });
+  assert.equal(request.url, '/puras');
+  assert.equal(JSON.parse(request.data).type, 'Kahyangan Tiga');
+});
+
+test('moderasi Pura mengirim status dan catatan', async () => {
+  const { reviewPuraProfile } = await server.ssrLoadModule('/src/features/kelola-pura/api/puraProfileApi.ts');
+  let request;
+  respond({ message: 'ok' }, config => { request = config; });
+  await reviewPuraProfile(8, 'Rejected', 'Lengkapi lokasi');
+  assert.equal(request.url, '/submissions/pura/8/status');
+  assert.deepEqual(JSON.parse(request.data), { status: 'Rejected', review_note: 'Lengkapi lokasi' });
+});

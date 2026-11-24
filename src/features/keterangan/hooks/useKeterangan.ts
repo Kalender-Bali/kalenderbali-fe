@@ -139,9 +139,9 @@ export function useKeteranganTypeDetail(typeCode: string | null) {
     },
     // Query hanya aktif jika ada typeCode terpilih dan kategori tersebut aktif di backend
     enabled: Boolean(typeCode && !isPending),
-    staleTime: Infinity,
+    staleTime: 0,
     gcTime: 1000 * 60 * 60 * 24,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
 
   });
 

@@ -108,27 +108,26 @@ export default function Sidebar({ sidebarRef }: { sidebarRef: RefObject<HTMLElem
    * Menggantikan nama menu lama 'Info Kita' menjadi 'Warta Budaya'
    */
   const secondaryNavItems: NavItem[] = [
-	{ to: '/chatbot', label: 'Asisten Kalender Bali', icon: Bot },
-    { to: '/keterangan', label: 'Keterangan', icon: FileText },
+    { to: '/pengingat', label: 'Pengingat', icon: BellRing },
+    { to: '/chatbot', label: 'Asisten Pintar', icon: Bot },
     { to: '/kelola-pura', label: 'Kelola Pura', icon: Landmark },
     // Komunitas memiliki direktori dan buku kas tersendiri meskipun memakai API Pura.
     { to: '/komunitas', label: 'Komunitas', icon: Users },
     { to: '/warta', label: 'Warta Budaya', icon: Newspaper },
-    { to: '/pengingat', label: 'Pengingat', icon: BellRing },
+    { to: '/keterangan', label: 'Keterangan', icon: FileText },
   ];
 
-  /**
-   * Definisi menu Manajemen User khusus Administrator (Sesuai Desain Mockup)
-   * Hanya tampil ketika pengguna login dengan role Admin.
-   */
+  // Pertahankan kunci lama agar preferensi buka/tutup tetap terbaca.
+  const adminMenuKey = 'Manajemen User';
+  const isAdminMenuOpen = openMenus[adminMenuKey];
   const adminGroup: NavGroup = {
-    label: 'Manajemen User',
+    label: 'Administrasi',
     icon: Users,
     children: [
-      { to: '/admin/users', label: 'Manajemen User' },
+      { to: '/admin/users', label: 'Pengguna' },
       { to: '/admin/transaksi', label: 'Transaksi User' },
       { to: '/admin/kontribusi', label: 'Pengajuan Kontribusi' },
-	  { to: '/admin/chatbot', label: 'Pengelolaan Chatbot' },
+      { to: '/admin/chatbot', label: 'Pengelolaan Chatbot' },
     ],
   };
 
@@ -308,7 +307,6 @@ export default function Sidebar({ sidebarRef }: { sidebarRef: RefObject<HTMLElem
               )}
             </div>
 
-            {/* Menu Item Tambahan: Keterangan, Kelola Pura, Warta, Pengingat */}
             {secondaryNavItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -345,12 +343,12 @@ export default function Sidebar({ sidebarRef }: { sidebarRef: RefObject<HTMLElem
               );
             })}
 
-            {/* Menu Accordion: Manajemen User (Khusus Administrator) */}
+            {/* Menu Accordion: Administrasi */}
             {isAdmin && (
               <div>
                 <button
                   type="button"
-                  onClick={() => toggleSubmenu(adminGroup.label)}
+                  onClick={() => toggleSubmenu(adminMenuKey)}
                   className={`group relative w-full flex items-center justify-between px-3.5 min-h-11 rounded-xl text-sm font-medium border bg-transparent border-transparent transition-colors duration-150 text-slate-600 dark:text-slate-400 hover:text-[#0f172a] dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/70 [touch-action:manipulation] cursor-pointer ${
                     isCollapsed ? 'justify-center px-0' : ''
                   }`}
@@ -362,7 +360,7 @@ export default function Sidebar({ sidebarRef }: { sidebarRef: RefObject<HTMLElem
 
                   {!isCollapsed && (
                     <span className="text-slate-400 transition-transform duration-200">
-                      {openMenus[adminGroup.label] ? (
+                      {isAdminMenuOpen ? (
                         <ChevronDown size={16} />
                       ) : (
                         <ChevronRight size={16} />
@@ -378,12 +376,12 @@ export default function Sidebar({ sidebarRef }: { sidebarRef: RefObject<HTMLElem
                   )}
                 </button>
 
-                {/* Sub-item Manajemen User dengan Smooth Grid Accordion */}
+                {/* Sub-item Administrasi dengan Smooth Grid Accordion */}
                 {!isCollapsed && (
                   <div
-                    inert={!openMenus[adminGroup.label]}
+                    inert={!isAdminMenuOpen}
                     className={`grid transition-all duration-200 ease-in-out ${
-                      openMenus[adminGroup.label]
+                      isAdminMenuOpen
                         ? 'grid-rows-[1fr] opacity-100 mt-1'
                         : 'grid-rows-[0fr] opacity-0'
                     }`}

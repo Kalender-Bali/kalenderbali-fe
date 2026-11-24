@@ -12,6 +12,22 @@ export default defineConfig({
     alias: {
       '@': path.resolve(import.meta.dirname, './src'),
     },
+    dedupe: ['react', 'react-dom'],
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'lucide-react',
+      'react-router-dom',
+      '@tanstack/react-query',
+      'zustand',
+      'axios',
+      'clsx',
+      'tailwind-merge',
+      'motion',
+    ],
   },
   server: {
     port: 3000,

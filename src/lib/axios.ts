@@ -46,6 +46,65 @@ apiClient.interceptors.request.use(
   }
 );
 
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value: unknown) => void;
+  reject: (reason: unknown) => void;
+}> = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+function extractErrorMessage(error: any): string {
+  const errorPayload = error.response?.data;
+  let errorMessage =
+    errorPayload?.error?.message ||
+    errorPayload?.message ||
+    (typeof errorPayload?.error === 'string' ? errorPayload.error : null);
+
+  if (!errorMessage) {
+    if (error.response?.status === 502) {
+      errorMessage = 'Server backend Go (Port 8080) sedang tidak aktif atau tidak dapat dijangkau. Silakan jalankan backend terlebih dahulu.';
+    } else if (error.code === 'ERR_NETWORK') {
+      errorMessage = 'Koneksi jaringan gagal. Tidak dapat menghubungi server backend.';
+    } else {
+      errorMessage = 'Terjadi kesalahan pada server';
+    }
+  }
+  return errorMessage;
+}
+
+function createApiError(error: any) {
+  const errorPayload = error.response?.data;
+  const errorMessage = extractErrorMessage(error);
+  const err = new Error(errorMessage) as Error & {
+    status?: number;
+    code?: string;
+    reason?: string;
+    remainingAttempts?: number;
+    retryAt?: string | null;
+    email?: string;
+    response?: typeof error.response;
+  };
+
+  err.status = error.response?.status;
+  err.code = errorPayload?.code || errorPayload?.error?.code;
+  err.reason = errorPayload?.reason;
+  err.remainingAttempts = errorPayload?.remaining_attempts;
+  err.retryAt = errorPayload?.retry_at;
+  err.email = errorPayload?.email; // Berguna untuk error 403 EMAIL_NOT_VERIFIED
+  err.response = error.response;
+  return err;
+}
+
 /**
  * ==============================================================================
  * RESPONSE INTERCEPTOR: PENANGANAN STATUS & EKSTRAKSI ERROR BACKEND
@@ -57,57 +116,79 @@ apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
     // Pertahankan identitas pembatalan agar query tidak menganggapnya gangguan server.
     if (axios.isCancel(error)) {
       return Promise.reject(error);
     }
 
-    // Respons 401 dari token lama tidak boleh menghapus sesi yang sudah berganti.
+    const originalRequest = error.config;
     const activeToken = useAuthStore.getState().token;
-    const headers = error.config?.headers;
+    const refreshToken = useAuthStore.getState().refreshToken;
+    const headers = originalRequest?.headers;
     const requestAuthorization = headers?.get?.('Authorization') ?? headers?.Authorization;
-    if (error.response?.status === 401 && activeToken && requestAuthorization === `Bearer ${activeToken}`) {
-      useAuthStore.getState().logout();
-    }
+    const isCurrentToken = Boolean(activeToken && requestAuthorization === `Bearer ${activeToken}`);
+    const isAuthUrl = Boolean(
+      originalRequest?.url?.includes('/refresh') ||
+      originalRequest?.url?.includes('/login') ||
+      originalRequest?.url?.includes('/register')
+    );
 
-    // Ekstrak pesan dan metadata error terstruktur dari backend Go
-    const errorPayload = error.response?.data;
-    let errorMessage =
-      errorPayload?.error?.message ||
-      errorPayload?.message ||
-      (typeof errorPayload?.error === 'string' ? errorPayload.error : null);
+    // Jika memiliki refreshToken aktif dan token kedaluwarsa, lakukan silent token refresh
+    if (error.response?.status === 401 && isCurrentToken && refreshToken && !originalRequest?._retry && !isAuthUrl) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((newToken) => {
+            if (originalRequest.headers) {
+              if (typeof originalRequest.headers.set === 'function') {
+                originalRequest.headers.set('Authorization', `Bearer ${newToken}`);
+              } else {
+                originalRequest.headers.Authorization = `Bearer ${newToken}`;
+              }
+            }
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
 
-    // Jika backend offline atau proxy 502 Bad Gateway
-    if (!errorMessage) {
-      if (error.response?.status === 502) {
-        errorMessage = 'Server backend Go (Port 8080) sedang tidak aktif atau tidak dapat dijangkau. Silakan jalankan backend terlebih dahulu.';
-      } else if (error.code === 'ERR_NETWORK') {
-        errorMessage = 'Koneksi jaringan gagal. Tidak dapat menghubungi server backend.';
-      } else {
-        errorMessage = 'Terjadi kesalahan pada server';
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshUrl = `${apiClient.defaults.baseURL || '/api/v1'}/refresh`;
+      try {
+        const { data } = await axios.post<{ access_token: string; refresh_token?: string }>(
+          refreshUrl,
+          { refresh_token: refreshToken },
+          { headers: { 'Content-Type': 'application/json' }, timeout: 10000 }
+        );
+        const newAccessToken = data.access_token;
+        const newRefreshToken = data.refresh_token || refreshToken;
+        useAuthStore.getState().setToken(newAccessToken, newRefreshToken);
+        if (originalRequest.headers) {
+          if (typeof originalRequest.headers.set === 'function') {
+            originalRequest.headers.set('Authorization', `Bearer ${newAccessToken}`);
+          } else {
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+          }
+        }
+        processQueue(null, newAccessToken);
+        return apiClient(originalRequest);
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        useAuthStore.getState().logout();
+        return Promise.reject(createApiError(error));
+      } finally {
+        isRefreshing = false;
       }
     }
 
-    // Buat objek Error kaya metadata untuk dikonsumsi oleh komponen antarmuka
-    const err = new Error(errorMessage) as Error & {
-      status?: number;
-      code?: string;
-      reason?: string;
-      remainingAttempts?: number;
-      retryAt?: string | null;
-      email?: string;
-      response?: typeof error.response;
-    };
+    // Respons 401 dari token lama tidak boleh menghapus sesi yang sudah berganti.
+    if (error.response?.status === 401 && isCurrentToken) {
+      useAuthStore.getState().logout();
+    }
 
-    err.status = error.response?.status;
-    err.code = errorPayload?.code || errorPayload?.error?.code;
-    err.reason = errorPayload?.reason;
-    err.remainingAttempts = errorPayload?.remaining_attempts;
-    err.retryAt = errorPayload?.retry_at;
-    err.email = errorPayload?.email; // Berguna untuk error 403 EMAIL_NOT_VERIFIED
-    err.response = error.response;
-
-    return Promise.reject(err);
+    return Promise.reject(createApiError(error));
   }
 );

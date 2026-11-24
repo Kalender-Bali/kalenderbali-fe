@@ -41,8 +41,8 @@ export const adminService = {
   /**
    * Menyetujui atau menolak permohonan status kontributor pura / konten
    */
-  async approveContributor(userId: string, approve: boolean): Promise<{ message: string }> {
-    const payload: ApproveContributorPayload = { approve };
+  async approveContributor(userId: string, approve: boolean, reviewNote = ''): Promise<{ message: string }> {
+    const payload: ApproveContributorPayload & { review_note: string } = { approve, review_note: reviewNote };
     const response = await apiClient.put<{ message: string }>(
       `/admin/members/${userId}/approve-contributor`,
       payload

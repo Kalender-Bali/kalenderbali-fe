@@ -105,11 +105,12 @@ export function useKomunitasMutations(id?: number) {
   const run = <T,>(operation: () => Promise<T>) => inCommunitySession(operation, invalidate);
   const save = useMutation({ ...config, mutationFn: (payload: KomunitasPayload) => run(() => api.saveCommunity(payload, id)) });
   const moderate = useMutation({ ...config, mutationFn: (status: 'Published' | 'Rejected') => run(() => api.moderateCommunity(id!, status)) });
+  const review = useMutation({ ...config, mutationFn: (payload: { status: 'Published' | 'Rejected' | 'Review'; note?: string }) => run(() => api.reviewCommunity(id!, payload.status, payload.note)) });
   const remove = useMutation({ ...config, mutationFn: () => run(() => api.deleteCommunity(id!)) });
   const addManager = useMutation({ ...config, mutationFn: (userId: number) => run(() => api.addCommunityManager(id!, userId)) });
   const removeManager = useMutation({ ...config, mutationFn: (userId: number) => run(() => api.removeCommunityManager(id!, userId)) });
   const createFinance = useMutation({ ...config, mutationFn: (payload: KomunitasFinancePayload) => run(() => api.createFinanceEntry(id!, { ...payload, pura_id: id! })) });
   const updateFinance = useMutation({ ...config, mutationFn: ({ entryId, payload }: { entryId: number; payload: KomunitasFinanceUpdate }) => run(() => api.updateFinanceEntry(entryId, payload)) });
   const removeFinance = useMutation({ ...config, mutationFn: (entryId: number) => run(() => api.deleteFinanceEntry(entryId)) });
-  return { save, moderate, remove, addManager, removeManager, createFinance, updateFinance, removeFinance };
+  return { save, moderate, review, remove, addManager, removeManager, createFinance, updateFinance, removeFinance };
 }

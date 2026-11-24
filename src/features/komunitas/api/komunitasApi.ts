@@ -52,6 +52,7 @@ export function parseCommunityDetail(value: unknown): KomunitasDetail {
     country_id: optionalId('country_id'), province_id: optionalId('province_id'), city_id: optionalId('city_id'),
     latitude: coordinate('latitude', 90), longitude: coordinate('longitude', 180),
     manager: row.manager == null ? [] : apiArray<unknown>(row.manager).map(manager),
+    submitted_by: optionalId('submitted_by'), review_note: optionalString(row.review_note),
   };
 }
 const directory: Record<KomunitasTab, string> = { semua: '/puras', saya: '/puras/my', pengajuan: '/puras/unpublished' };
@@ -103,6 +104,10 @@ export async function saveCommunity(input: KomunitasPayload, communityId?: numbe
 export async function moderateCommunity(communityId: number, nextStatus: 'Published' | 'Rejected') {
   const response = await apiClient.put(`/puras/${id(communityId)}/status`, { status: nextStatus });
   return parseCommunityDetail(response.data?.data);
+}
+// Moderasi menyimpan catatan dan mengizinkan pengusul mengirim ulang.
+export async function reviewCommunity(communityId: number, nextStatus: 'Published' | 'Rejected' | 'Review', note = '') {
+  await apiClient.put(`/submissions/community/${id(communityId)}/status`, { status: nextStatus, review_note: note });
 }
 export async function deleteCommunity(communityId: number) { await apiClient.delete(`/puras/${id(communityId)}`); }
 export async function addCommunityManager(communityId: number, userId: number) { await apiClient.post(`/puras/${id(communityId)}/managers`, { user_id: id(userId) }); }

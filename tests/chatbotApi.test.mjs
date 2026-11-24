@@ -23,3 +23,23 @@ test('network failure is explained in Indonesian', async () => {
   globalThis.fetch = async () => { throw new TypeError('Failed to fetch'); };
   await assert.rejects(sendChat(1, 'operation-1', 'Halo', new AbortController().signal, () => {}), /Koneksi/);
 });
+
+test('dev chat skips its deadline but still honors cancellation', async () => {
+  useAuthStore.getState().login({ id:'1', name:'A', email:'a@b.c', role:'admin' }, 'access');
+  const abort = new AbortController();
+  const previousSetTimeout = globalThis.setTimeout;
+  globalThis.setTimeout = (callback, delay, ...args) => {
+    assert.notEqual(delay, 55000);
+    return previousSetTimeout(callback, delay, ...args);
+  };
+  globalThis.fetch = async (_url, { signal }) => {
+    abort.abort();
+    assert.equal(signal.aborted, true);
+    throw signal.reason;
+  };
+  try {
+    await assert.rejects(sendChat(1, 'operation-dev', 'Halo', abort.signal, () => {}, true), { name: 'AbortError' });
+  } finally {
+    globalThis.setTimeout = previousSetTimeout;
+  }
+});

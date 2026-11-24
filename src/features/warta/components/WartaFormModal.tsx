@@ -32,6 +32,7 @@ interface WartaFormModalProps {
 
   /** Status loading pengiriman data ke server */
   isSubmitting?: boolean;
+  contributor?: boolean;
 
   /** Callback ketika modal ditutup / dibatalkan */
   onClose: () => void;
@@ -48,6 +49,7 @@ const WartaFormDialogContent: React.FC<Omit<WartaFormModalProps, 'isOpen'>> = ({
   mode,
   initialData,
   isSubmitting = false,
+  contributor = false,
   onClose,
   onSubmit,
 }) => {
@@ -302,7 +304,7 @@ const WartaFormDialogContent: React.FC<Omit<WartaFormModalProps, 'isOpen'>> = ({
             ) : (
               <>
                 <CheckCircle size={16} />
-                <span>{mode === 'create' ? 'Terbitkan Warta' : 'Simpan Perubahan'}</span>
+                <span>{mode === 'create' ? (contributor ? 'Ajukan Warta' : 'Terbitkan Warta') : 'Simpan Perubahan'}</span>
               </>
             )}
           </button>

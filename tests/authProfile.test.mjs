@@ -185,3 +185,15 @@ test('kesalahan kredensial dan verifikasi email tetap diteruskan tanpa meminta p
     assertLoggedOut();
   }
 });
+
+test('update profile sends both editable fields', async () => {
+  let sent;
+  apiClient.defaults.adapter = async config => {
+    sent = config;
+    return response(config, { message: 'Profile updated successfully' });
+  };
+  await authService.updateProfile({ name: 'Ayu', phone: '' });
+  assert.equal(sent.url, '/users/profile');
+  assert.equal(sent.method, 'put');
+  assert.deepEqual(JSON.parse(sent.data), { name: 'Ayu', phone: '' });
+});

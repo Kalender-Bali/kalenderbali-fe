@@ -17,7 +17,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useReadQuery } from '@/lib/useReadQuery';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { useAuthQueryScope } from '@/stores/useAuthStore';
+import { useAuthQueryScope, useAuthStore } from '@/stores/useAuthStore';
 import type {
   ArticleBackendItem,
   ArticleListResponse,
@@ -137,7 +137,7 @@ export function useCreateWartaMutation() {
     onSuccess: () => {
       // Perbarui cache daftar warta publik dan warta saya secara instan
       queryClient.invalidateQueries({ queryKey: ['articles'] });
-      showAlert('Warta berhasil diterbitkan!');
+      showAlert(useAuthStore.getState().user?.role.toLowerCase() === 'admin' ? 'Warta berhasil diterbitkan!' : 'Pengajuan Warta terkirim untuk ditinjau.');
     },
     onError: (error: unknown) => {
       const err = error as { response?: { data?: { message?: string } }; message?: string };

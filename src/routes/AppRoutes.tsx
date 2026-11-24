@@ -5,6 +5,7 @@ import AppLayout from '@/components/layout/AppLayout';
 // Import komponen proteksi rute khusus Admin & Pengguna Terautentikasi
 import AdminRoute from '@/components/auth/AdminRoute';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ProfilePage from '@/features/profile/pages/ProfilePage';
 
 // Import komponen-komponen halaman autentikasi mandiri
 import LoginPage from '@/features/auth/pages/LoginPage';
@@ -276,6 +277,7 @@ export default function AppRoutes() {
           <Route path="komunitas" element={<Suspense fallback={<KomunitasSkeleton />}><KomunitasPage /></Suspense>} />
           <Route path="layanan/komunitas" element={<Navigate to="/komunitas" replace />} />
           <Route element={<ProtectedRoute />}>
+            <Route path="profil" element={<ProfilePage />} />
             <Route path="rubrik-dewasa/saya" element={<Suspense fallback={<DataSkeleton label="Memuat rubrik" />}><RubrikDewasaPage mine /></Suspense>} />
             <Route path="rubrik-dewasa/buat" element={<Suspense fallback={<DataSkeleton label="Memuat form rubrik" />}><RubrikDewasaFormPage /></Suspense>} />
             <Route path="rubrik-dewasa/:id/ubah" element={<Suspense fallback={<DataSkeleton label="Memuat form rubrik" />}><RubrikDewasaFormPage /></Suspense>} />

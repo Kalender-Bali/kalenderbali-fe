@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { DataSkeleton } from '@/components/ui/DataSkeleton';
 import { QueryErrorState } from '@/components/ui/QueryErrorState';
 import { useAuthQueryScope, useAuthStore } from '@/stores/useAuthStore';
@@ -8,6 +8,7 @@ import { RubrikDeleteDialog } from '../components/RubrikDeleteDialog';
 import { rubrikInput, rubrikLabel, rubrikPanel, rubrikPrimary, rubrikSecondary } from '../components/rubrikStyles';
 import { useRubrikList, useRubrikMutation } from '../hooks/useRubrikDewasa';
 import type { RubrikDewasa, RubrikNavigationState } from '../types/rubrikDewasa.types';
+import { ProfileContributor } from '@/features/profile/components/ProfileContributor';
 import { canAuthorRubrik } from '../utils/rubrikAccess';
 
 export default function RubrikDewasaPage({ mine = false }: { mine?: boolean }) {
@@ -21,12 +22,22 @@ export default function RubrikDewasaPage({ mine = false }: { mine?: boolean }) {
 
 function RubrikCatalog({ mine, canAuthor }: { mine: boolean; canAuthor: boolean }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const search = params.get('q') ?? '';
   const rawPage = Number(params.get('page'));
   const page = Number.isSafeInteger(rawPage) && rawPage > 0 && rawPage <= Math.floor(Number.MAX_SAFE_INTEGER / RUBRIK_PAGE_SIZE) ? rawPage : 1;
   const query = useRubrikList(search, page, mine);
   const deletion = useRubrikMutation(deleteRubrik);
+  const [showContributor, setShowContributor] = useState(() => new URLSearchParams(location.search).has('contributor_action') && !canAuthor);
+  // Lanjutkan aksi sekali setelah login dengan izin akun terbaru.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (!params.has('contributor_action')) return;
+    params.delete('contributor_action');
+    if (canAuthor) navigate('/rubrik-dewasa/buat', { replace: true, state: { catalogSearch: params.toString() ? `?${params}` : '' } });
+    else setParams(params, { replace: true });
+  }, [canAuthor, location.search, navigate, setParams]);
   const [toDelete, setToDelete] = useState<RubrikDewasa | null>(null);
   const lastPage = Math.max(1, Math.ceil((query.data?.total ?? 0) / RUBRIK_PAGE_SIZE));
   const title = mine ? 'Rubrik Saya' : 'Rubrik Dewasa Ayu';
@@ -62,6 +73,7 @@ function RubrikCatalog({ mine, canAuthor }: { mine: boolean; canAuthor: boolean 
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl dark:text-white">{title}</h1>
           {!mine && <p className="text-sm text-slate-500 dark:text-slate-400">Telusuri kriteria padewasan dan temukan tanggal yang sesuai.</p>}
         </div>
+        {!canAuthor && !mine && <button type="button" className={rubrikPrimary} onClick={() => setShowContributor(true)}>Buat Rubrik</button>}
         {canAuthor && (
           <div className="flex flex-wrap gap-2">
             {mine
@@ -72,6 +84,7 @@ function RubrikCatalog({ mine, canAuthor }: { mine: boolean; canAuthor: boolean 
         )}
       </header>
 
+      {showContributor && <ProfileContributor gate admin={false} contributor={false} actionClassName={rubrikSecondary} onClose={() => setShowContributor(false)} />}
       <section className={rubrikPanel}>
         <form className="flex items-end gap-2" role="search" onSubmit={(event) => {
           event.preventDefault();

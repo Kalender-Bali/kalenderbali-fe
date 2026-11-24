@@ -17,3 +17,22 @@ test('authenticated user sees chat page and quota loading', () => {
  const html = renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(ChatbotPage)));
  assert.match(html, /Percakapan/); assert.match(html, /Kirim pesan/);
 });
+test('chat room container has constant height and scrollable message area', () => {
+ globalThis.__chatAuth = { isAuthenticated:true, user:{id:'1',role:'user',name:'A'} };
+ const html = renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(ChatbotPage)));
+ assert.match(html, /h-\[560px\]/);
+ assert.match(html, /overflow-y-auto/);
+ assert.match(html, /min-h-0/);
+});
+test('suggestions are rendered as quick send options', () => {
+ globalThis.__chatAuth = { isAuthenticated:true, user:{id:'1',role:'user',name:'A'} };
+ const html = renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(ChatbotPage)));
+ assert.match(html, /Apa itu Pancawara\?/);
+ assert.match(html, /Jelaskan arti Saptawara/);
+ assert.match(html, /Apa yang dimaksud dengan wuku\?/);
+});
+test('admin user sees page and can chat during maintenance', () => {
+ globalThis.__chatAuth = { isAuthenticated:true, user:{id:'2',role:'admin',name:'Admin'} };
+ const html = renderToStaticMarkup(React.createElement(MemoryRouter,null,React.createElement(ChatbotPage)));
+ assert.match(html, /Kirim pesan/);
+});

@@ -4,8 +4,6 @@ export type LimitKey = Exclude<keyof ChatSettings, 'maintenance'>;
 export type LimitDraft = Record<LimitKey, string>;
 export const limitLabels: Record<LimitKey, string> = {
   premium_daily_tokens: 'Token harian premium', admin_daily_tokens: 'Token harian admin',
-  global_tokens_minute: 'Token global per menit', global_tokens_day: 'Token global per hari',
-  global_requests_minute: 'Permintaan global per menit', global_requests_day: 'Permintaan global per hari',
 };
 
 // Tolak angka pecahan dan overflow sebelum pengaturan dikirim ke database.
@@ -14,7 +12,7 @@ export function parseSettings(draft: LimitDraft, maintenance: boolean): ChatSett
   for (const key of Object.keys(limitLabels) as LimitKey[]) {
     const raw = draft[key]?.trim();
     const number = Number(raw);
-    if (!raw || !/^\d+$/.test(raw) || !Number.isSafeInteger(number) || number > 2147483647 || ((key === 'premium_daily_tokens' || key === 'admin_daily_tokens') && number < 1)) {
+    if (!raw || !/^\d+$/.test(raw) || !Number.isSafeInteger(number) || number > 2147483647 || number < 1) {
       throw new Error(`Nilai ${limitLabels[key].toLowerCase()} harus berupa bilangan bulat yang valid.`);
     }
     values[key] = number;

@@ -15,6 +15,7 @@
 
 import React, { useState } from 'react';
 import { Eye, Edit3, Trash2, PenSquare, Calendar, User, FileText } from 'lucide-react';
+import { AppDialog } from '@/components/ui/AppDialog';
 import type { ArticleBackendItem } from '../types/warta.types';
 import { getArticleImageUrl, formatWartaDate } from '../api/wartaApi';
 
@@ -44,15 +45,18 @@ export const WartaAdminTable: React.FC<WartaAdminTableProps> = ({
 }) => {
   // State pelacak ID baris yang sedang dalam proses penghapusan
   const [deletingId, setDeletingId] = useState<number | string | null>(null);
+  const [deleteArticle, setDeleteArticle] = useState<ArticleBackendItem | null>(null);
 
   const handleDeleteClick = (article: ArticleBackendItem) => {
-    const confirmDelete = window.confirm(
-      `Apakah Anda yakin ingin menghapus warta "${article.title}"? Tindakan ini akan menghapus artikel dari seluruh sistem.`
-    );
-    if (confirmDelete) {
-      setDeletingId(article.id);
-      onDelete(article.id, article.title);
-    }
+    setDeleteArticle(article);
+  };
+
+  const confirmDeleteAction = () => {
+    if (!deleteArticle) return;
+    const toDelete = deleteArticle;
+    setDeleteArticle(null);
+    setDeletingId(toDelete.id);
+    onDelete(toDelete.id, toDelete.title);
   };
 
   return (
@@ -190,6 +194,34 @@ export const WartaAdminTable: React.FC<WartaAdminTableProps> = ({
           </tbody>
         </table>
       </div>
+
+      {deleteArticle && (
+        <AppDialog
+          title="Hapus Warta"
+          description={`Apakah Anda yakin ingin menghapus warta "${deleteArticle.title}"? Tindakan ini akan menghapus artikel dari seluruh sistem.`}
+          onClose={() => setDeleteArticle(null)}
+          footer={
+            <>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                onClick={() => setDeleteArticle(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl bg-rose-700 px-5 text-sm font-bold text-white hover:bg-rose-800 disabled:opacity-50"
+                onClick={confirmDeleteAction}
+              >
+                Ya, Hapus
+              </button>
+            </>
+          }
+        >
+          <p className="text-sm text-slate-600">Artikel yang dihapus tidak dapat dipulihkan kembali.</p>
+        </AppDialog>
+      )}
     </div>
   );
 };

@@ -16,12 +16,14 @@ function QuickFinance({ profile, onOpen }: { profile: KomunitasDetail; onOpen: (
   </div>;
 }
 /** Detail menggabungkan informasi publik, pintasan kas, dan aksi sesuai hak profil aktif. */
-export function KomunitasDetailModal({ profile, loading, error, onRetry, onClose, canManage, admin, onAction, onKas, onModerate, busy, actionError }: {
+export function KomunitasDetailModal({ profile, loading, error, onRetry, onClose, canManage, canResubmit = false, admin, onAction, onKas, onModerate, busy, actionError }: {
   profile?: KomunitasDetail; loading: boolean; error: unknown; onRetry: () => void; onClose: () => void;
-  canManage: boolean; admin: boolean; onAction: (action: string) => void; onKas: () => void;
-  onModerate: (status: 'Published' | 'Rejected') => void; busy: boolean; actionError: string;
+  canManage: boolean; canResubmit?: boolean; admin: boolean; onAction: (action: string) => void; onKas: () => void;
+  onModerate: (status: 'Published' | 'Rejected' | 'Review', note?: string) => void; busy: boolean; actionError: string;
 }) {
   const [tab, setTab] = useState('info');
+  const [rejecting, setRejecting] = useState(false);
+  const [note, setNote] = useState('');
   const map = safeHttpUrl(profile?.location_url || '');
   return <KomunitasModal title={profile?.name || 'Profil Komunitas'} onClose={onClose} busy={busy}>
     {loading ? <div role="status" className="h-64 animate-pulse rounded-xl bg-slate-100" aria-label="Memuat profil" /> : error ? <QueryErrorState title="Profil belum dapat dibuka" error={error} onRetry={onRetry} /> : profile && <>
@@ -35,9 +37,12 @@ export function KomunitasDetailModal({ profile, loading, error, onRetry, onClose
         </div>
         <section><h3 className="mb-2 text-sm font-bold text-slate-900">Pengelola komunitas</h3>{profile.manager.length ? <ul className="space-y-2">{profile.manager.map(manager => <li key={manager.user_id} className="flex items-center gap-2 text-sm text-slate-600"><Users size={16} />{manager.name}</li>)}</ul> : <p className="text-sm text-slate-500">Belum ada pengelola terdaftar.</p>}</section>
       </div>}
+      {profile.review_note && <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Catatan admin: {profile.review_note}</p>}
+      {canResubmit && profile.status === 'Rejected' && <button type="button" disabled={busy} onClick={() => onModerate('Review')} className={primaryButton}>Kirim Ulang Pengajuan</button>}
       {actionError && <p role="alert" className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700">{actionError}</p>}
       {/* Hak mutasi mengikuti mapping profil; moderasi dan pengelola hanya untuk Admin. */}
-      {admin && profile.status === 'Review' && <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-900">Pengajuan menunggu peninjauan Anda.</p><div className="flex flex-wrap gap-2"><button type="button" disabled={busy} onClick={() => onModerate('Published')} className={primaryButton}>Setujui</button><button type="button" disabled={busy} onClick={() => onModerate('Rejected')} className={secondaryButton}>Tolak Pengajuan</button></div></div>}
+      {admin && profile.status === 'Review' && <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4"><p className="text-sm font-semibold text-amber-900">Pengajuan menunggu peninjauan Anda.</p><div className="flex flex-wrap gap-2"><button type="button" disabled={busy} onClick={() => onModerate('Published')} className={primaryButton}>Setujui</button><button type="button" disabled={busy} onClick={() => setRejecting(true)} className={secondaryButton}>Tolak Pengajuan</button></div></div>}
+      {admin && rejecting && <form onSubmit={event => { event.preventDefault(); if (note.trim()) onModerate('Rejected', note.trim()); }} className="space-y-2"><label className="block text-sm font-semibold">Alasan penolakan<textarea className="mt-2 block w-full rounded-xl border border-slate-300 p-3" required maxLength={2000} value={note} onChange={event => setNote(event.target.value)} /></label><button className={primaryButton} disabled={busy}>Kirim penolakan</button><button type="button" className={secondaryButton} onClick={() => setRejecting(false)}>Batal</button></form>}
       <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">{canManage && <button type="button" disabled={busy} onClick={() => onAction('edit')} className={secondaryButton}><Pencil size={16} />Edit Profil</button>}{admin && <><button type="button" disabled={busy} onClick={() => onAction('managers')} className={secondaryButton}><Users size={16} />Atur Pengelola</button><button type="button" disabled={busy} onClick={() => onAction('delete')} className={`${secondaryButton} text-rose-700`}><Trash2 size={16} />Hapus Komunitas</button></>}</div>
     </>}
   </KomunitasModal>;

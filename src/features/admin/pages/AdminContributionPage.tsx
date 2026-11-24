@@ -13,7 +13,30 @@ import {
   User,
 } from 'lucide-react';
 import { adminService } from '../services/adminService';
+import { apiClient } from '@/lib/axios';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { useAlertStore } from '@/stores/useAlertStore';
 import type { AdminMemberItem } from '../types/admin.types';
+
+type Application = { user_id: number; status: 'pending' | 'approved' | 'rejected'; description: string; review_note?: string };
+
+// Gabungkan alasan pengajuan dengan data akun yang sudah digunakan tabel.
+async function loadContributors(): Promise<AdminMemberItem[]> {
+  const members = await adminService.getAllMembers();
+  const applications: Application[] = [];
+  let page = 1;
+  while (true) {
+    const response = await apiClient.get<{ data: Application[]; total: number }>('/admin/contributor-applications', { params: { page, per_page: 100 } });
+    const rows = response.data.data ?? [];
+    applications.push(...rows);
+    if (!rows.length || applications.length >= response.data.total) break;
+    page += 1;
+  }
+  return members.map(member => {
+    const application = applications.find(item => String(item.user_id) === String(member.id));
+    return { ...member, contribution_status: application?.status ?? null, description: application?.description, review_note: application?.review_note };
+  });
+}
 
 export default function AdminContributionPage() {
   const [members, setMembers] = useState<AdminMemberItem[]>([]);
@@ -28,7 +51,7 @@ export default function AdminContributionPage() {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const data = await adminService.getAllMembers();
+      const data = await loadContributors();
       setMembers(data);
       setErrorMsg(null);
     } catch (caught) {
@@ -41,7 +64,7 @@ export default function AdminContributionPage() {
 
   useEffect(() => {
     let active = true;
-    void adminService.getAllMembers().then((data) => {
+    void loadContributors().then((data) => {
       if (active) { setMembers(data); setErrorMsg(null); }
     }).catch((error: unknown) => {
       if (active) setErrorMsg(toApiError(error).message || 'Gagal memuat data pengajuan kontributor.');
@@ -84,15 +107,36 @@ export default function AdminContributionPage() {
     return { pending, approved, rejected };
   }, [members]);
 
-  // Handler persetujuan pengajuan kontributor
-  const handleReview = async (member: AdminMemberItem, approve: boolean) => {
-    const actionLabel = approve ? 'Menyetujui' : 'Menolak';
-    const confirmText = `${actionLabel} permohonan kontributor dari "${member.name}"?`;
-    if (!window.confirm(confirmText)) return;
+  // Handler persetujuan & penolakan pengajuan kontributor menggunakan AppDialog
+  const [reviewDialog, setReviewDialog] = useState<{
+    member: AdminMemberItem;
+    approve: boolean;
+  } | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  const [reviewError, setReviewError] = useState('');
 
+  // State untuk modal konfirmasi pencabutan peran contributor
+  const [revokeDialog, setRevokeDialog] = useState<AdminMemberItem | null>(null);
+  const [revokeError, setRevokeError] = useState('');
+
+  const handleReview = (member: AdminMemberItem, approve: boolean) => {
+    setReviewDialog({ member, approve });
+    setRejectReason('');
+    setReviewError('');
+  };
+
+  const confirmReview = async () => {
+    if (!reviewDialog || processingId) return;
+    const { member, approve } = reviewDialog;
+    if (!approve && !rejectReason.trim()) {
+      setReviewError('Alasan penolakan wajib diisi.');
+      return;
+    }
     setProcessingId(member.id);
+    setReviewError('');
     try {
-      await adminService.approveContributor(member.id, approve);
+      await adminService.approveContributor(member.id, approve, rejectReason.trim());
+      await fetchContributors();
       const newStatus = approve ? 'approved' : 'rejected';
       // Perbarui state lokal secara instan
       setMembers((prev) =>
@@ -100,9 +144,38 @@ export default function AdminContributionPage() {
           item.id === member.id ? { ...item, contribution_status: newStatus } : item
         )
       );
+      useAlertStore.getState().showAlert(
+        approve
+          ? `Permohonan kontributor dari "${member.name}" berhasil disetujui!`
+          : `Permohonan kontributor dari "${member.name}" berhasil ditolak.`
+      );
+      setReviewDialog(null);
     } catch (caught) {
-    const err = toApiError(caught);
-      alert(err.message || 'Gagal memproses permohonan kontributor.');
+      const err = toApiError(caught);
+      setReviewError(err.message || 'Gagal memproses permohonan kontributor.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  // Pencabutan hanya mengubah role dan mempertahankan langganan berbayar.
+  const revokeContributor = (member: AdminMemberItem) => {
+    setRevokeDialog(member);
+    setRevokeError('');
+  };
+
+  const confirmRevoke = async () => {
+    if (!revokeDialog || processingId) return;
+    const member = revokeDialog;
+    setProcessingId(member.id);
+    setRevokeError('');
+    try {
+      await apiClient.put(`/admin/members/${member.id}/role`, { role: 'user' });
+      await fetchContributors();
+      useAlertStore.getState().showAlert(`Role kontributor dari "${member.name}" berhasil dicabut.`);
+      setRevokeDialog(null);
+    } catch (error) {
+      setRevokeError(toApiError(error).message || 'Gagal mencabut contributor.');
     } finally {
       setProcessingId(null);
     }
@@ -110,6 +183,15 @@ export default function AdminContributionPage() {
 
   return (
     <div className="space-y-6">
+      <section className="rounded-2xl border border-slate-200 bg-white p-6">
+        <h2 className="text-lg font-bold">Contributor Aktif</h2>
+        {members.filter(member => ['contributor', 'member'].includes(member.role.toLowerCase())).map(member => (
+          <div key={member.id} className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+            <div><p className="font-semibold">{member.name}</p><p className="text-sm text-slate-500">{member.email}</p></div>
+            <button type="button" className="min-h-11 rounded-xl border border-rose-300 px-4 text-sm text-rose-700" disabled={processingId !== null} onClick={() => void revokeContributor(member)}>Cabut Contributor</button>
+          </div>
+        ))}
+      </section>
       {/* ========================================================= */}
       {/* 1. HERO BANNER HALAMAN                                     */}
       {/* ========================================================= */}
@@ -295,6 +377,8 @@ export default function AdminContributionPage() {
                             <span className="font-bold text-sm text-[#0f172a] block truncate">
                               {member.name}
                             </span>
+                            <p className="whitespace-pre-wrap break-words text-slate-600">{member.description}</p>
+                            {member.review_note && <p className="text-slate-500">Catatan: {member.review_note}</p>}
                             <span className="text-[11px] text-slate-400 font-medium block truncate">
                               ID: #{member.id}
                             </span>
@@ -344,7 +428,7 @@ export default function AdminContributionPage() {
                           <button
                             type="button"
                             onClick={() => handleReview(member, true)}
-                            disabled={isProcessing || status === 'approved'}
+                            disabled={isProcessing || status !== 'pending'}
                             className="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 transition-all cursor-pointer inline-flex items-center gap-1 [touch-action:manipulation] disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Setujui sebagai Kontributor"
                           >
@@ -355,7 +439,7 @@ export default function AdminContributionPage() {
                           <button
                             type="button"
                             onClick={() => handleReview(member, false)}
-                            disabled={isProcessing || status === 'rejected'}
+                            disabled={isProcessing || status !== 'pending'}
                             className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/80 transition-all cursor-pointer inline-flex items-center gap-1 [touch-action:manipulation] disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Tolak Permohonan"
                           >
@@ -372,6 +456,106 @@ export default function AdminContributionPage() {
           </div>
         )}
       </div>
+
+      {/* Modal Dialog Persetujuan / Penolakan Kontributor */}
+      {reviewDialog && (
+        <AppDialog
+          title={reviewDialog.approve ? 'Setujui Permohonan Kontributor' : 'Tolak Permohonan Kontributor'}
+          description={
+            reviewDialog.approve
+              ? `Konfirmasi persetujuan hak akses kontributor untuk "${reviewDialog.member.name}". Pengguna akan dapat mengajukan dan mengelola konten.`
+              : `Masukkan alasan penolakan permohonan kontributor dari "${reviewDialog.member.name}".`
+          }
+          onClose={() => { if (!processingId) setReviewDialog(null); }}
+          footer={
+            <>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                disabled={Boolean(processingId)}
+                onClick={() => setReviewDialog(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className={
+                  reviewDialog.approve
+                    ? 'min-h-11 rounded-xl bg-teal-700 px-5 text-sm font-bold text-white hover:bg-teal-800 disabled:opacity-50'
+                    : 'min-h-11 rounded-xl bg-rose-700 px-5 text-sm font-bold text-white hover:bg-rose-800 disabled:opacity-50'
+                }
+                disabled={Boolean(processingId)}
+                onClick={() => void confirmReview()}
+              >
+                {processingId ? 'Memproses…' : reviewDialog.approve ? 'Ya, Setujui' : 'Kirim Penolakan'}
+              </button>
+            </>
+          }
+        >
+          <div className="space-y-3">
+            <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3 text-sm">
+              <p className="font-semibold text-slate-800">{reviewDialog.member.name}</p>
+              <p className="text-xs text-slate-500">{reviewDialog.member.email}</p>
+              {reviewDialog.member.description && (
+                <p className="mt-2 text-xs text-slate-600">
+                  <span className="font-semibold">Alasan pengajuan:</span> {reviewDialog.member.description}
+                </p>
+              )}
+            </div>
+
+            {!reviewDialog.approve && (
+              <label className="block text-sm font-semibold">
+                Alasan Penolakan <span className="text-rose-500">*</span>
+                <textarea
+                  required
+                  rows={4}
+                  maxLength={2000}
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  placeholder="Contoh: Alasan atau kualifikasi pengajuan belum memenuhi syarat..."
+                  className="mt-1.5 block w-full rounded-xl border border-slate-200 p-3 text-sm font-normal focus:border-teal-600 focus:outline-none"
+                />
+              </label>
+            )}
+
+            {reviewError && <p role="alert" className="text-sm font-medium text-rose-700">{reviewError}</p>}
+          </div>
+        </AppDialog>
+      )}
+
+      {/* Modal Dialog Pencabutan Role Kontributor */}
+      {revokeDialog && (
+        <AppDialog
+          title="Cabut Status Kontributor"
+          description={`Apakah Anda yakin ingin mencabut status kontributor dari "${revokeDialog.name}"? Pengguna akan dikembalikan menjadi peran pengguna biasa.`}
+          onClose={() => { if (!processingId) setRevokeDialog(null); }}
+          footer={
+            <>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                disabled={Boolean(processingId)}
+                onClick={() => setRevokeDialog(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl bg-rose-700 px-5 text-sm font-bold text-white hover:bg-rose-800 disabled:opacity-50"
+                disabled={Boolean(processingId)}
+                onClick={() => void confirmRevoke()}
+              >
+                {processingId ? 'Mencabut…' : 'Ya, Cabut Status'}
+              </button>
+            </>
+          }
+        >
+          {revokeError && <p role="alert" className="text-sm font-medium text-rose-700">{revokeError}</p>}
+          <p className="text-sm text-slate-600">
+            Pengguna tidak akan lagi dapat mengajukan pembaruan data sebelum mengajukan permohonan baru.
+          </p>
+        </AppDialog>
+      )}
     </div>
   );
 }

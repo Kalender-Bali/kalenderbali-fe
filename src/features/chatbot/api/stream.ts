@@ -1,5 +1,5 @@
 export type ChatStatus = { stage: string; feature?: string };
-export type ChatAnswer = { answer: string; clarification_reason?: string; references?: unknown; usage?: { total_tokens: number } };
+export type ChatAnswer = { answer: string; clarification_reason?: string; clarification_yes_no?: boolean; references?: unknown; usage?: { total_tokens: number } };
 
 export class ChatError extends Error {
   code?: string;

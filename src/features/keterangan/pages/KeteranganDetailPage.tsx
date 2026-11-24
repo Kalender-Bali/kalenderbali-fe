@@ -17,6 +17,9 @@ import {
   useKeteranganTypeDetail,
 } from '../hooks/useKeterangan';
 import { KeteranganPagination } from '../components/KeteranganPagination';
+import { KeteranganEdit } from '../components/KeteranganEdit';
+import { KeteranganSubmissions } from '../components/KeteranganSubmissions';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 /** Konfigurasi jumlah item maksimum per halaman (10 entri per halaman) */
 const ITEMS_PER_PAGE = 10;
@@ -47,6 +50,8 @@ const ITEMS_PER_PAGE = 10;
  */
 
 export default function KeteranganDetailPage() {
+  const role = useAuthStore(state => state.user?.role.trim().toLowerCase());
+  const [showSubmissions, setShowSubmissions] = useState(false);
   const { typeCode } = useParams<{ typeCode: string }>();
   const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
@@ -120,6 +125,11 @@ export default function KeteranganDetailPage() {
   // Nomor halaman aktif (1-indexed, dimulai dari 1)
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Kembalikan halaman elemen yang dipilih sebelum pengguna masuk.
+  const resumeValue = searchParams.has('contributor_action') ? searchParams.get('contributor_value') : null;
+  const [handledResume, setHandledResume] = useState<string | null>(null);
+  const resumeIndex = resumeValue ? filteredValues.findIndex(item => String(item.id) === resumeValue) : -1;
+
   // Reset nomor halaman kembali ke halaman 1 saat pencarian atau kategori berganti
   const [previousInputs1, setPreviousInputs1] = useState<readonly unknown[] | null>(null);
   const currentInputs1 = [searchTerm, typeCode];
@@ -127,6 +137,10 @@ export default function KeteranganDetailPage() {
     setPreviousInputs1(currentInputs1);
     setCurrentPage(1);
 
+  }
+  if (previousInputs1 !== null && resumeValue && resumeValue !== handledResume && resumeIndex >= 0) {
+    setHandledResume(resumeValue);
+    setCurrentPage(Math.floor(resumeIndex / ITEMS_PER_PAGE) + 1);
   }
 
   // Perhitungan matematis total halaman dan indeks rentang item aktif
@@ -166,6 +180,7 @@ export default function KeteranganDetailPage() {
 
   return (
     <div className="space-y-6 pb-16 max-w-[1560px] mx-auto select-none">
+      {showSubmissions && <KeteranganSubmissions onClose={() => setShowSubmissions(false)} />}
       {/* =================================================================== */}
       {/* 1. HEADER & HERO BANNER SECTION (Sesuai Gaya HariRayaHero)          */}
       {/* =================================================================== */}
@@ -204,6 +219,7 @@ export default function KeteranganDetailPage() {
           {category?.description ||
             'Katalog rincian elemen dan makna filosofis penanggalan Bali.'}
         </p>
+        {role && ['contributor', 'member', 'admin'].includes(role) && <button type="button" className="min-h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50" onClick={() => setShowSubmissions(true)}>Pengajuan Keterangan</button>}
       </div>
 
       {/* =================================================================== */}
@@ -385,6 +401,7 @@ export default function KeteranganDetailPage() {
                           </p>
                         )}
                       </div>
+                      <div><KeteranganEdit item={item} /></div>
                     </div>
                   );
                 })}

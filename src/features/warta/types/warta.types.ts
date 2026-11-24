@@ -18,6 +18,9 @@
  * Sesuai dengan struct `articleResponse` di backend-go (dto.go baris 467).
  */
 export interface ArticleBackendItem {
+  publication_status?: 'Review' | 'Rejected' | 'Published';
+  review_note?: string;
+
   /** ID unik artikel (kunci primer di PostgreSQL) */
   id: number | string;
 

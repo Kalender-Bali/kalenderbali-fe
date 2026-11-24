@@ -3,6 +3,8 @@ import { useReadQuery } from '@/lib/useReadQuery';
 import { authQueryScope, useAuthQueryScope, useAuthStore } from '@/stores/useAuthStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { AppDialog } from '@/components/ui/AppDialog';
+import { useAlertStore } from '@/stores/useAlertStore';
 import {
   Users,
   Search,
@@ -71,12 +73,20 @@ export default function AdminUserPage() {
     return () => observer.disconnect();
   }, [showTable]);
 
-  // Handler ubah peran hak akses
-  const handleToggleRole = async (member: AdminMemberItem) => {
-    const targetRole = (member.role || '').toLowerCase() === 'admin' ? 'Member' : 'Admin';
-    const confirmText = `Ubah peran "${member.name}" menjadi "${targetRole}"?`;
-    if (!window.confirm(confirmText)) return;
+  // State untuk modal konfirmasi ubah peran
+  const [roleDialog, setRoleDialog] = useState<{ member: AdminMemberItem; targetRole: 'Member' | 'Admin' } | null>(null);
+  const [roleError, setRoleError] = useState('');
 
+  // Handler ubah peran hak akses
+  const handleToggleRole = (member: AdminMemberItem) => {
+    const targetRole = (member.role || '').toLowerCase() === 'admin' ? 'Member' : 'Admin';
+    setRoleDialog({ member, targetRole });
+    setRoleError('');
+  };
+
+  const confirmToggleRole = async () => {
+    if (!roleDialog) return;
+    const { member, targetRole } = roleDialog;
     const { token } = useAuthStore.getState();
     const isCurrentSession = () => {
       const session = useAuthStore.getState();
@@ -85,6 +95,7 @@ export default function AdminUserPage() {
     if (!token || !isCurrentSession()) return;
 
     setUpdatingIds((ids) => new Set(ids).add(member.id));
+    setRoleError('');
     try {
       await adminService.updateMemberRole(member.id, targetRole);
       if (!isCurrentSession()) return;
@@ -98,8 +109,10 @@ export default function AdminUserPage() {
         previous?.map((item) => item.id === member.id ? { ...item, role: targetRole } : item)
       );
       if (wasRefreshing) reloadMembers();
+      useAlertStore.getState().showAlert(`Peran "${member.name}" berhasil diubah menjadi ${targetRole}!`);
+      setRoleDialog(null);
     } catch (caught) {
-      if (isCurrentSession()) alert(toApiError(caught).message || 'Gagal memperbarui peran pengguna.');
+      if (isCurrentSession()) setRoleError(toApiError(caught).message || 'Gagal memperbarui peran pengguna.');
     } finally {
       setUpdatingIds((ids) => {
         const next = new Set(ids);
@@ -413,6 +426,40 @@ export default function AdminUserPage() {
           </div>
         )}
       </div>
+
+      {/* Modal Dialog Konfirmasi Ubah Peran Pengguna */}
+      {roleDialog && (
+        <AppDialog
+          title="Ubah Peran Pengguna"
+          description={`Apakah Anda yakin ingin mengubah peran pengguna "${roleDialog.member.name}" (${roleDialog.member.email}) menjadi "${roleDialog.targetRole}"?`}
+          onClose={() => { if (!updatingIds.has(roleDialog.member.id)) setRoleDialog(null); }}
+          footer={
+            <>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                disabled={updatingIds.has(roleDialog.member.id)}
+                onClick={() => setRoleDialog(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl bg-teal-700 px-5 text-sm font-bold text-white hover:bg-teal-800 disabled:opacity-50"
+                disabled={updatingIds.has(roleDialog.member.id)}
+                onClick={() => void confirmToggleRole()}
+              >
+                {updatingIds.has(roleDialog.member.id) ? 'Memperbarui…' : `Ya, Ubah Menjadi ${roleDialog.targetRole}`}
+              </button>
+            </>
+          }
+        >
+          {roleError && <p role="alert" className="mb-2 text-sm font-medium text-rose-700">{roleError}</p>}
+          <p className="text-sm text-slate-600">
+            Perubahan hak akses akan segera berlaku pada sesi pengguna berikutnya.
+          </p>
+        </AppDialog>
+      )}
     </div>
   );
 }

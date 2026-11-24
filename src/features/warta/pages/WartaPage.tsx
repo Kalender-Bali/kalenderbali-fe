@@ -16,7 +16,7 @@
  */
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Search,
   X,
@@ -29,6 +29,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { ProfileContributor } from '@/features/profile/components/ProfileContributor';
 import type { ArticleBackendItem, CreateArticlePayload, UpdateArticlePayload } from '../types/warta.types';
 import {
   useWartaList,
@@ -39,15 +40,18 @@ import {
 import { WartaCard } from '../components/WartaCard';
 import { WartaAdminTable } from '../components/WartaAdminTable';
 import { WartaFormModal } from '../components/WartaFormModal';
+import { WartaSubmissions } from '../components/WartaSubmissions';
 
 const ITEMS_PER_PAGE = 12;
 
 export default function WartaPage() {
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAuthenticated } = useAuthStore();
   const isAdmin = Boolean(user && user.role?.toLowerCase() === 'admin');
+  const canWrite = isAdmin || ['member', 'contributor'].includes(user?.role?.trim().toLowerCase() ?? '');
+  const [showContributor, setShowContributor] = useState(() => searchParams.has('contributor_action') && !canWrite);
+  const [showSubmissions, setShowSubmissions] = useState(false);
 
   // ---------------------------------------------------------------------------
   // 1. REKONSTRUKSI STATE DARI URL SEARCH PARAMS (URL-AS-STATE)
@@ -73,8 +77,15 @@ export default function WartaPage() {
   const [searchInput, setSearchInput] = useState(activeSearchQuery);
 
   // State modal formulir tambah / edit warta
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(() => searchParams.has('contributor_action') && !!canWrite);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
+  // Penanda dari login hanya dipakai sekali; filter lain tetap dipertahankan.
+  useEffect(() => {
+    if (!searchParams.has('contributor_action')) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete('contributor_action');
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
   const [editingArticle, setEditingArticle] = useState<ArticleBackendItem | null>(null);
 
   // ---------------------------------------------------------------------------
@@ -176,8 +187,8 @@ export default function WartaPage() {
 
   // Handler membuka form tambah warta
   const handleOpenCreateForm = () => {
-    if (!isAuthenticated || !user) {
-      navigate('/login', { state: { from: location } });
+    if (!isAuthenticated || !user || !canWrite) {
+      setShowContributor(true);
       return;
     }
     setFormMode('create');
@@ -213,6 +224,8 @@ export default function WartaPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-300">
+      {showSubmissions && <WartaSubmissions onClose={() => setShowSubmissions(false)} onEdit={article => { setShowSubmissions(false); handleOpenEditForm(article); }} />}
+      {showContributor && <ProfileContributor gate admin={false} contributor={false} actionClassName="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold" onClose={() => setShowContributor(false)} />}
       {/* ==================================================================== */}
       {/* 1. HEADER HALAMAN STANDAR (AGENTS.md Bagian 4.1)                     */}
       {/* Header utama halaman warta: breadcrumb navigasi ringkas, judul H1,    */}
@@ -234,6 +247,8 @@ export default function WartaPage() {
           Warta Budaya
         </h1>
 
+        <button type="button" onClick={handleOpenCreateForm} className="mt-3 min-h-11 rounded-xl bg-teal-700 px-4 text-sm font-bold text-white">Tulis Warta</button>
+        {canWrite && <button type="button" className="ml-2 min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold" onClick={() => setShowSubmissions(true)}>{isAdmin ? 'Pengajuan Warta' : 'Pengajuan Warta Saya'}</button>}
         {/* Deskripsi Ringkas Fungsi Halaman */}
         <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed max-w-2xl">
           Kumpulan artikel, kabar perayaan hari raya, dan wawasan sastra wariga Bali terverifikasi.
@@ -500,6 +515,7 @@ export default function WartaPage() {
       <WartaFormModal
         isOpen={isFormModalOpen}
         mode={formMode}
+        contributor={!isAdmin}
         initialData={editingArticle}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
         onClose={() => setIsFormModalOpen(false)}

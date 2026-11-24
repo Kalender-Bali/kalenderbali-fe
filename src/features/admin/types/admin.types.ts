@@ -12,6 +12,8 @@ export interface AdminMemberItem {
   role: 'Admin' | 'Member' | 'Guest' | string;
   is_verified: boolean;
   avatar_url?: string | null;
+  description?: string;
+  review_note?: string;
   contribution_status?: 'pending' | 'approved' | 'rejected' | null;
   created_at?: string;
 }

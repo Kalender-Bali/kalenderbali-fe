@@ -16,6 +16,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Calendar, Clock, User, Share2, Edit3, Trash2 } from 'lucide-react';
+import { AppDialog } from '@/components/ui/AppDialog';
 import type { ArticleBackendItem } from '../types/warta.types';
 import { getArticleImageUrl, formatWartaDate, calculateReadTime } from '../api/wartaApi';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -104,15 +105,17 @@ export const WartaDetailModal: React.FC<WartaDetailModalProps> = ({
   };
 
   // Handler konfirmasi penghapusan warta
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const handleDeleteConfirm = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const executeDelete = () => {
     if (!onDelete) return;
-    const confirmDelete = window.confirm(
-      `Apakah Anda yakin ingin menghapus warta "${article.title}"? Tindakan ini tidak dapat dibatalkan.`
-    );
-    if (confirmDelete) {
-      setIsDeleting(true);
-      onDelete(article.id);
-    }
+    setIsDeleting(true);
+    setShowDeleteConfirm(false);
+    onDelete(article.id);
   };
 
   return createPortal(
@@ -272,6 +275,34 @@ export const WartaDetailModal: React.FC<WartaDetailModalProps> = ({
           </button>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <AppDialog
+          title="Hapus Warta"
+          description={`Apakah Anda yakin ingin menghapus warta "${article.title}"? Tindakan ini tidak dapat dibatalkan.`}
+          onClose={() => setShowDeleteConfirm(false)}
+          footer={
+            <>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="min-h-11 rounded-xl bg-rose-700 px-5 text-sm font-bold text-white hover:bg-rose-800 disabled:opacity-50"
+                onClick={executeDelete}
+              >
+                Ya, Hapus
+              </button>
+            </>
+          }
+        >
+          <p className="text-sm text-slate-600">Artikel yang dihapus akan hilang dari seluruh sistem secara permanen.</p>
+        </AppDialog>
+      )}
     </div>,
     document.body
   );

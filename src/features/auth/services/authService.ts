@@ -147,6 +147,11 @@ export const authService = {
     }
   },
 
+  // Simpan kedua field profil yang diterima backend.
+  async updateProfile(payload: { name: string; phone: string }): Promise<void> {
+    await apiClient.put('/users/profile', payload);
+  },
+
   /**
    * Mengambil status langganan aktif pengguna langsung dari tabel store_purchases
    * Endpoint: GET /api/v1/purchases/my-active-product

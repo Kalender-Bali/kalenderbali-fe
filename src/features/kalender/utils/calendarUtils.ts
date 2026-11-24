@@ -1,5 +1,6 @@
 import type { CalendarGridDay, KalenderHarian, PiodalanTerdekatItem } from '../types/kalender.types';
 import type { PuraObservanceItem } from '@/features/piodalan/types/piodalan.types';
+import { useAlertStore } from '@/stores/useAlertStore';
 
 /**
  * ============================================================================
@@ -467,7 +468,7 @@ export function exportHariRayaToICS(
   });
 
   if (events.length === 0) {
-    alert('Tidak ada agenda hari raya pada bulan ini untuk diunduh.');
+    useAlertStore.getState().showAlert('Tidak ada agenda hari raya pada bulan ini untuk diunduh.');
     return;
   }
 
