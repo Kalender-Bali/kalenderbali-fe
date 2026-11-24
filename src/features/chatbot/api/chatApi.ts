@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { ChatError, readChatStream } from './stream';
 import type { ChatStatus } from './stream';
 
-export interface ChatRoom { id: number; created_at: string; expires_at: string | null }
+export interface ChatRoom { id: number; title?: string; created_at: string; expires_at: string | null }
 export interface ChatMessage { id: number; role: 'user' | 'assistant'; content: string; created_at: string; references?: unknown; clarification_yes_no?: boolean }
 export interface ChatQuota { date: string; limit: number; used: number; remaining: number; resets_at: string; can_start: boolean; required_reservation: number; maintenance?: boolean; dev_unlimited?: boolean }
 export interface ChatSettings { maintenance: boolean; premium_daily_tokens: number; admin_daily_tokens: number }
@@ -20,6 +20,7 @@ export const chatApi = {
   async createRoom() { const room = (await apiClient.post<Envelope<ChatRoom>>('/chat/rooms')).data.data; roomId(room.id); return room; },
   async messages(id: number) { return (await apiClient.get<Envelope<ChatMessage[]>>(`/chat/rooms/${roomId(id)}/messages`)).data.data; },
   async removeRoom(id: number) { await apiClient.delete(`/chat/rooms/${roomId(id)}`); },
+  async renameRoom(id: number, title: string) { return (await apiClient.put<Envelope<ChatRoom>>(`/chat/rooms/${roomId(id)}`, { title })).data.data; },
   async quota() { return (await apiClient.get<Envelope<ChatQuota>>('/chat/quota')).data.data; },
   async settings() { return (await apiClient.get<Envelope<ChatSettings>>('/admin/chat/settings')).data.data; },
   async saveSettings(settings: ChatSettings) { return (await apiClient.put<Envelope<ChatSettings>>('/admin/chat/settings', settings)).data.data; },

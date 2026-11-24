@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { after, afterEach, test } from 'node:test';
 import { createServer } from 'vite';
 const server = await createServer({ configFile: false, resolve: { alias: { '@': `${process.cwd()}/src` } }, server: { middlewareMode: true, ws: false }, appType: 'custom' });
-const { sendChat } = await server.ssrLoadModule('/src/features/chatbot/api/chatApi.ts');
+const { chatApi, sendChat } = await server.ssrLoadModule('/src/features/chatbot/api/chatApi.ts');
+const { apiClient } = await server.ssrLoadModule('/src/lib/axios.ts');
 const { useAuthStore } = await server.ssrLoadModule('/src/stores/useAuthStore.ts');
 const original = globalThis.fetch;
 afterEach(() => { globalThis.fetch = original; useAuthStore.getState().logout(); });
@@ -41,5 +42,23 @@ test('dev chat skips its deadline but still honors cancellation', async () => {
     await assert.rejects(sendChat(1, 'operation-dev', 'Halo', abort.signal, () => {}, true), { name: 'AbortError' });
   } finally {
     globalThis.setTimeout = previousSetTimeout;
+  }
+});
+
+test('renameRoom sends PUT to /chat/rooms/:id with trimmed title', async () => {
+  let captured;
+  const previousAdapter = apiClient.defaults.adapter;
+  apiClient.defaults.adapter = async config => {
+    captured = config;
+    return { data: { data: { id: 7, title: 'Topik Baru', created_at: '2026-11-24T00:00:00Z', expires_at: null } }, status: 200, statusText: 'OK', headers: {}, config };
+  };
+  try {
+    const updated = await chatApi.renameRoom(7, 'Topik Baru');
+    assert.equal(captured.method, 'put');
+    assert.equal(captured.url, '/chat/rooms/7');
+    assert.deepEqual(JSON.parse(captured.data), { title: 'Topik Baru' });
+    assert.equal(updated.title, 'Topik Baru');
+  } finally {
+    apiClient.defaults.adapter = previousAdapter;
   }
 });

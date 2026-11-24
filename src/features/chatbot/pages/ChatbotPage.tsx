@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bot, MessageCircle, Plus, Send, Square, Trash2, Wrench } from 'lucide-react';
+import { Bot, Check, MessageCircle, Pencil, Plus, Send, Square, Trash2, Wrench, X } from 'lucide-react';
 import { AppDialog } from '@/components/ui/AppDialog';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { chatApi, sendChat } from '../api/chatApi';
@@ -8,6 +8,7 @@ import type { ChatMessage, ChatQuota, ChatRoom } from '../api/chatApi';
 import { ChatError } from '../api/stream';
 import { relatedLinks } from '../api/relatedLinks';
 import type { RelatedLink } from '../api/relatedLinks';
+import { ChatMessageContent } from '../components/ChatMessageContent';
 
 const primary = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#0e9f90] px-5 text-sm font-bold text-white transition-colors hover:bg-[#0c8a7d] disabled:cursor-not-allowed disabled:opacity-50';
 const secondary = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50';
@@ -15,23 +16,18 @@ const suggestions = ['Apa itu Pancawara?', 'Jelaskan arti Saptawara', 'Apa yang 
 const progress: Record<string, string> = { processing: 'Memahami pertanyaan Anda…', searching: 'Mencari informasi Kalender Bali…', composing: 'Menyusun jawaban untuk Anda…' };
 type DisplayMessage = Pick<ChatMessage, 'role' | 'content' | 'clarification_yes_no'> & { id: string; keterangan?: boolean; links?: RelatedLink[]; clarification?: boolean };
 
-function renderAssistantText(content: string) {
-  // Render penanda tebal sebagai elemen React agar isi jawaban tetap diperlakukan sebagai teks.
-  return content.split(/(\*\*[^*\r\n]+\*\*)/).map((part, index) =>
-    index % 2 === 1 ? <strong key={index}>{part.slice(2, -2)}</strong> : part,
-  );
-}
-
 function messageText(error: unknown) { return error instanceof Error ? error.message : 'Sistem sedang mengalami masalah. Silakan coba lagi.'; }
 function roomLabel(room: ChatRoom) {
+  const custom = room.title?.trim();
+  if (custom) return custom;
   const date = new Date(room.created_at);
   return Number.isNaN(date.getTime()) ? 'Percakapan' : `Percakapan ${new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Makassar' }).format(date)}`;
 }
 
 export default function ChatbotPage() {
   const { user, isAuthenticated } = useAuthStore();
-  return <div className="space-y-6 pb-8">
-    <header className="space-y-1.5">
+  return <div className="space-y-4 pb-2">
+    <header className="space-y-1">
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-semibold text-slate-400"><span>Wargabali</span><span>/</span><span>Layanan</span><span>/</span><span className="font-bold text-teal-700">Asisten Kalender Bali</span></nav>
       <h1 className="text-2xl font-extrabold tracking-tight text-[#0f172a] sm:text-3xl lg:text-4xl">Asisten Kalender Bali</h1>
       <p className="max-w-2xl text-xs font-medium leading-relaxed text-slate-500 sm:text-sm">Tanyakan istilah dan keterangan yang tersedia di Kalender Bali dengan bahasa sehari-hari.</p>
@@ -58,6 +54,9 @@ function ChatSession({ premiumExpiresAt, isAdmin }: { premiumExpiresAt?: string 
   const [deleteTarget, setDeleteTarget] = useState<{ item: ChatRoom; trigger: HTMLButtonElement } | null>(null);
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [editingRoomId, setEditingRoomId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [renaming, setRenaming] = useState(false);
   const [clock, setClock] = useState(() => Date.now());
   const active = useRef(true);
   const newRoomButton = useRef<HTMLButtonElement>(null);
@@ -146,6 +145,31 @@ function ChatSession({ premiumExpiresAt, isAdmin }: { premiumExpiresAt?: string 
       if (active.current) setDeleting(false);
     }
   }
+  function startRename(item: ChatRoom) {
+    setEditingRoomId(item.id);
+    setEditTitle(roomLabel(item));
+  }
+  function cancelRename() {
+    setEditingRoomId(null);
+    setEditTitle('');
+  }
+  async function saveRename(id: number) {
+    const trimmed = editTitle.trim();
+    if (!trimmed) return;
+    setRenaming(true);
+    try {
+      const updated = await chatApi.renameRoom(id, trimmed);
+      if (active.current) {
+        setRooms(previous => previous.map(r => r.id === id ? { ...r, title: updated.title || trimmed } : r));
+        setEditingRoomId(null);
+        setEditTitle('');
+      }
+    } catch (cause) {
+      if (active.current) setError(messageText(cause));
+    } finally {
+      if (active.current) setRenaming(false);
+    }
+  }
   async function submit(value: string) {
     const message = value.trim();
     if (!message || sending.current || disabled) return;
@@ -172,6 +196,7 @@ function ChatSession({ premiumExpiresAt, isAdmin }: { premiumExpiresAt?: string 
         setStatus(progress[update.stage] || 'Memproses permintaan Anda…');
       }, quota?.dev_unlimited === true);
       if (active.current) {
+        setRooms(previous => previous.map(r => (r.id === selected && (!r.title || !r.title.trim())) ? { ...r, title: message.slice(0, 60) } : r));
         setMessages(previous => [
           ...previous,
           ...(requiresChoice ? [userMessage] : []),
@@ -225,13 +250,96 @@ function ChatSession({ premiumExpiresAt, isAdmin }: { premiumExpiresAt?: string 
       </div>
     )}
     <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="flex flex-col rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs sm:p-5 lg:h-[560px]">
+      <aside className="flex flex-col rounded-2xl border border-slate-200/90 bg-white p-4 shadow-xs sm:p-5 h-[560px] min-h-[560px] lg:h-[calc(100vh-20.5rem)] lg:min-h-[560px]">
         <div className="shrink-0">
           <div className="flex items-center justify-between gap-2"><h2 className="text-base font-extrabold tracking-tight text-slate-900">Percakapan</h2><button type="button" className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-teal-700 hover:bg-teal-50 disabled:opacity-50" ref={newRoomButton} title="Percakapan baru" aria-label="Percakapan baru" disabled={busy || roomLoading || isMaintenance} onClick={newRoom}><Plus size={20} /></button></div>
           <p className="mt-1 text-xs leading-relaxed text-slate-500">Histori tersimpan di akun selama satu bulan.</p>
         </div>
         <div className="mt-4 max-h-56 flex-1 min-h-0 space-y-1 overflow-y-auto lg:max-h-none">
-          {loading ? <div aria-label="Memuat percakapan" className="h-12 animate-pulse rounded-xl bg-slate-100" /> : rooms.length === 0 ? <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-500">Belum ada percakapan tersimpan.</p> : rooms.map(item => <div key={item.id} className={`flex items-center rounded-xl border ${room === item.id ? 'border-teal-200 bg-teal-50' : 'border-transparent hover:bg-slate-50'}`}><button type="button" disabled={busy || roomLoading} onClick={() => void openRoom(item.id)} className="min-h-11 min-w-0 flex-1 truncate px-3 text-left text-xs font-semibold text-slate-700 disabled:opacity-50" aria-current={room === item.id ? 'true' : undefined}>{roomLabel(item)}</button><button type="button" disabled={busy || roomLoading} onClick={event => requestRoomDeletion(item, event.currentTarget)} className="flex min-h-11 min-w-11 items-center justify-center rounded-xl text-slate-400 hover:text-rose-600 disabled:opacity-50" aria-label={`Hapus ${roomLabel(item)}`}><Trash2 size={16} /></button></div>)}
+          {loading ? (
+            <div aria-label="Memuat percakapan" className="h-12 animate-pulse rounded-xl bg-slate-100" />
+          ) : rooms.length === 0 ? (
+            <p className="rounded-xl bg-slate-50 p-3 text-xs text-slate-500">Belum ada percakapan tersimpan.</p>
+          ) : (
+            rooms.map(item =>
+              editingRoomId === item.id ? (
+                <form
+                  key={item.id}
+                  onSubmit={e => { e.preventDefault(); void saveRename(item.id); }}
+                  className="flex items-center gap-1 rounded-xl border border-teal-300 bg-white p-1 shadow-2xs"
+                >
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Escape') cancelRename(); }}
+                    autoFocus
+                    maxLength={100}
+                    disabled={renaming}
+                    className="min-h-9 min-w-0 flex-1 rounded-lg border-0 bg-transparent px-2 text-xs font-semibold text-slate-800 focus:outline-none"
+                    aria-label="Nama percakapan"
+                  />
+                  <button
+                    type="submit"
+                    disabled={renaming || !editTitle.trim()}
+                    className="flex min-h-9 min-w-9 items-center justify-center rounded-lg text-teal-700 hover:bg-teal-50 disabled:opacity-50"
+                    aria-label="Simpan nama"
+                    title="Simpan nama"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={renaming}
+                    onClick={cancelRename}
+                    className="flex min-h-9 min-w-9 items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 disabled:opacity-50"
+                    aria-label="Batal ubah nama"
+                    title="Batal ubah nama"
+                  >
+                    <X size={16} />
+                  </button>
+                </form>
+              ) : (
+                <div
+                  key={item.id}
+                  className={`flex items-center rounded-xl border ${room === item.id ? 'border-teal-200 bg-teal-50' : 'border-transparent hover:bg-slate-50'}`}
+                >
+                  <button
+                    type="button"
+                    disabled={busy || roomLoading}
+                    onClick={() => void openRoom(item.id)}
+                    className="min-h-11 min-w-0 flex-1 truncate px-3 text-left text-xs font-semibold text-slate-700 disabled:opacity-50"
+                    aria-current={room === item.id ? 'true' : undefined}
+                    title={roomLabel(item)}
+                  >
+                    {roomLabel(item)}
+                  </button>
+                  <div className="flex shrink-0 items-center">
+                    <button
+                      type="button"
+                      disabled={busy || roomLoading}
+                      onClick={() => startRename(item)}
+                      className="flex min-h-11 min-w-8 items-center justify-center rounded-xl text-slate-400 hover:text-teal-600 disabled:opacity-50"
+                      aria-label={`Ubah nama ${roomLabel(item)}`}
+                      title="Ubah nama"
+                    >
+                      <Pencil size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy || roomLoading}
+                      onClick={event => requestRoomDeletion(item, event.currentTarget)}
+                      className="flex min-h-11 min-w-8 items-center justify-center rounded-xl text-slate-400 hover:text-rose-600 disabled:opacity-50"
+                      aria-label={`Hapus ${roomLabel(item)}`}
+                      title="Hapus percakapan"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              )
+            )
+          )}
         </div>
         {quota && <div className="mt-4 shrink-0 rounded-xl border border-teal-200/60 bg-[#e6f7f5] p-3">
           {quota.dev_unlimited ? (
@@ -243,7 +351,7 @@ function ChatSession({ premiumExpiresAt, isAdmin }: { premiumExpiresAt?: string 
           </>}
         </div>}
       </aside>
-      <section className="flex h-[560px] max-h-[560px] min-w-0 flex-col rounded-2xl border border-slate-200/90 bg-white shadow-xs" aria-label="Chatbot Kalender Bali">
+      <section className="flex h-[560px] min-h-[560px] lg:h-[calc(100vh-20.5rem)] lg:min-h-[560px] lg:max-h-none min-w-0 flex-col rounded-2xl border border-slate-200/90 bg-white shadow-xs" aria-label="Chatbot Kalender Bali">
         <div className="flex shrink-0 items-center justify-between border-b border-slate-100 p-4 sm:p-5">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#e6f7f5] text-teal-700"><Bot size={22} /></div>
@@ -255,12 +363,12 @@ function ChatSession({ premiumExpiresAt, isAdmin }: { premiumExpiresAt?: string 
             </span>
           )}
         </div>
-        <div className="flex-1 min-h-0 space-y-4 overflow-y-auto p-4 sm:p-6" aria-live="polite" aria-relevant="additions text">
+        <div className="flex flex-1 min-h-0 flex-col space-y-4 overflow-y-auto p-4 sm:p-6" aria-live="polite" aria-relevant="additions text">
           {roomLoading ? (
-            <div aria-label="Memuat pesan" className="h-20 animate-pulse rounded-xl bg-slate-100" />
+            <div aria-label="Memuat pesan" className="m-auto h-20 w-full max-w-md animate-pulse rounded-xl bg-slate-100" />
           ) : messages.length === 0 && !busy ? (
             isMaintenance ? (
-              <div className="mx-auto max-w-lg py-12 text-center">
+              <div className="my-auto mx-auto max-w-lg py-12 text-center">
                 <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400">
                   <Wrench size={28} />
                 </div>
@@ -270,7 +378,7 @@ function ChatSession({ premiumExpiresAt, isAdmin }: { premiumExpiresAt?: string 
                 </p>
               </div>
             ) : (
-              <div className="mx-auto max-w-lg py-8 text-center">
+              <div className="my-auto mx-auto max-w-lg py-8 text-center">
                 <MessageCircle className="mx-auto text-teal-600" size={30} />
                 <h3 className="mt-3 text-lg font-extrabold text-slate-900">Apa yang ingin Anda ketahui?</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">Mulai dengan pertanyaan tentang keterangan Kalender Bali.</p>
@@ -279,9 +387,13 @@ function ChatSession({ premiumExpiresAt, isAdmin }: { premiumExpiresAt?: string 
                 </div>
               </div>
             )
-          ) : visibleMessages.map(item => <div key={item.id} className={`flex ${item.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed sm:max-w-[80%] ${item.role === 'user' ? 'bg-[#0e9f90] text-white' : 'border border-slate-200/70 bg-slate-50 text-slate-700'}`}><p className="whitespace-pre-wrap break-words">
-            {item.role === 'assistant' ? renderAssistantText(item.content) : item.content}
-          </p>{item.id === pendingChoice?.id && !busy && <p className="mt-1 text-xs text-white">Belum terkonfirmasi</p>}{Boolean(item.links?.length) && <div className="mt-3 flex flex-wrap gap-2">{item.links?.map(link => <div key={link.to} className="flex flex-wrap gap-1">{!requiresChoice && (item.clarification || (item.links?.length || 0) > 1) && <button type="button" disabled={disabled} onClick={() => void submit(link.choice)} className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-bold text-teal-700 hover:bg-teal-100 disabled:opacity-50">Pilih {link.label}</button>}<Link to={link.to} className="rounded-lg border border-teal-200 bg-white px-3 py-2 text-xs font-bold text-teal-700 hover:bg-teal-50">Lihat {link.label}</Link></div>)}</div>}{!requiresChoice && item.links && item.links.length > 1 && <p className="mt-2 text-xs text-slate-500">Pilih salah satu keterangan atau tuliskan jawaban Anda di bawah.</p>}{item.keterangan && !item.links?.length && <Link to="/keterangan" className="mt-3 inline-block font-bold text-teal-700 underline underline-offset-2">Lihat halaman Keterangan</Link>}</div></div>)}
+          ) : visibleMessages.map(item => <div key={item.id} className={`flex ${item.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`max-w-[90%] rounded-2xl px-4 py-3 text-sm leading-relaxed sm:max-w-[80%] ${item.role === 'user' ? 'bg-[#0e9f90] text-white' : 'border border-slate-200/70 bg-slate-50 text-slate-700'}`}>
+            {item.role === 'assistant' ? (
+              <ChatMessageContent content={item.content} />
+            ) : (
+              <p className="whitespace-pre-wrap break-words text-white">{item.content}</p>
+            )}
+            {item.id === pendingChoice?.id && !busy && <p className="mt-1 text-xs text-white">Belum terkonfirmasi</p>}{Boolean(item.links?.length) && <div className="mt-3 flex flex-wrap gap-2">{item.links?.map(link => <div key={link.to} className="flex flex-wrap gap-1">{!requiresChoice && (item.clarification || (item.links?.length || 0) > 1) && <button type="button" disabled={disabled} onClick={() => void submit(link.choice)} className="rounded-lg border border-teal-200 bg-teal-50 px-3 py-2 text-xs font-bold text-teal-700 hover:bg-teal-100 disabled:opacity-50">Pilih {link.label}</button>}<Link to={link.to} className="rounded-lg border border-teal-200 bg-white px-3 py-2 text-xs font-bold text-teal-700 hover:bg-teal-50">Lihat {link.label}</Link></div>)}</div>}{!requiresChoice && item.links && item.links.length > 1 && <p className="mt-2 text-xs text-slate-500">Pilih salah satu keterangan atau tuliskan jawaban Anda di bawah.</p>}{item.keterangan && !item.links?.length && <Link to="/keterangan" className="mt-3 inline-block font-bold text-teal-700 underline underline-offset-2">Lihat halaman Keterangan</Link>}</div></div>)}
           {busy && <p role="status" className="inline-flex items-center gap-2 rounded-xl bg-teal-50 px-3 py-2 text-xs font-semibold text-teal-700"><span aria-hidden="true" className="h-2 w-2 animate-pulse rounded-full bg-teal-600" />{status}</p>}
           <div ref={messagesEndRef} />
         </div>
